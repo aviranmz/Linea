@@ -3,7 +3,7 @@ FROM node:24-alpine AS base
 
 # Install pnpm and required system dependencies for Prisma
 RUN npm install -g pnpm && \
-    apk add --no-cache openssl1.1-compat
+    apk add --no-cache openssl libc6-compat
 
 # Set working directory
 WORKDIR /app
@@ -30,7 +30,7 @@ FROM node:24-alpine AS production
 
 # Install pnpm and required system dependencies for Prisma
 RUN npm install -g pnpm && \
-    apk add --no-cache openssl1.1-compat
+    apk add --no-cache openssl libc6-compat
 
 # Set working directory
 WORKDIR /app
