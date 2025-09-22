@@ -39,12 +39,17 @@ WORKDIR /app
 COPY package.json pnpm-workspace.yaml ./
 COPY apps/web/package.json ./apps/web/
 COPY apps/api/package.json ./apps/api/
+COPY packages/config/package.json ./packages/config/
 
 # Copy lockfile if it exists
 COPY pnpm-lock.yaml* ./
 
 # Install all dependencies (including dev) for Prisma generation
 RUN pnpm install --frozen-lockfile
+
+# Copy packages source and build config
+COPY packages/config ./packages/config
+RUN pnpm --filter @linea/config build
 
 # Copy built applications
 COPY --from=base /app/apps/web/dist ./apps/web/dist
