@@ -218,6 +218,16 @@ const requireOwnerOrAdmin = async (request: FastifyRequest, reply: FastifyReply)
   return user
 }
 
+const requireAdmin = async (request: FastifyRequest, reply: FastifyReply) => {
+  const user = await requireAuth(request, reply)
+  if (!user) return null
+  if (user.role !== 'ADMIN') {
+    reply.code(403).send({ error: 'Forbidden' })
+    return null
+  }
+  return user
+}
+
 const toSlug = (text: string) =>
   text
     .toLowerCase()
@@ -792,6 +802,24 @@ app.get('/api/categories', async (_request, reply) => {
   } catch (error) {
     app.log.error({ error }, 'Failed to fetch categories')
     reply.code(500).send({ error: 'Failed to fetch categories' })
+  }
+})
+
+// -------- Admin Overview (RBAC: ADMIN only) --------
+app.get('/api/admin/overview', async (request, reply) => {
+  const user = await requireAdmin(request, reply)
+  if (!user) return
+  try {
+    const [users, events, shows, waitlist] = await Promise.all([
+      prisma.user.count({ where: { deletedAt: null } }),
+      prisma.event.count({ where: { deletedAt: null } }),
+      prisma.show.count({ where: { deletedAt: null } }),
+      prisma.waitlistEntry.count({ where: { deletedAt: null } }),
+    ])
+    reply.send({ users, events, shows, waitlist })
+  } catch (error) {
+    // Mock fallback if DB unavailable
+    reply.send({ users: 1, events: mockEvents.length, shows: 0, waitlist: 0 })
   }
 })
 
