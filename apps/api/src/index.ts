@@ -15,6 +15,47 @@ import { getConfig, validateConfig } from '@linea/config'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
+// TODO(prod): Temporary mock events fallback for environments without DB/auth.
+// Remove this once DATABASE_URL is configured and seeding/migrations are in place.
+const mockEvents = [
+  {
+    id: 'event-1',
+    title: 'Future of Kitchen Design Summit',
+    slug: 'future-kitchen-design-summit',
+    description: 'An exclusive summit exploring the latest trends and innovations in kitchen design.',
+    shortDescription: 'Explore cutting-edge kitchen design trends.',
+    status: 'PUBLISHED',
+    startDate: '2025-10-26T09:00:00Z',
+    endDate: '2025-10-27T17:00:00Z',
+    capacity: 200,
+    isPublic: true,
+    featured: true,
+    tags: ['design', 'innovation', 'kitchen', 'summit'],
+    owner: { id: 'owner-1', name: 'Alice Wonderland', email: 'alice@kitchenco.com' },
+    venue: { id: 'venue-1', name: 'Milano Design Center', address: 'Via Tortona, 37', city: 'Milano', country: 'Italy' },
+    category: { id: 'cat-1', name: 'Design', slug: 'design', color: '#a855f7', icon: '🎨' },
+    _count: { waitlist: 0 }
+  },
+  {
+    id: 'event-2',
+    title: 'Smart Kitchen Technology Expo',
+    slug: 'smart-kitchen-tech-expo',
+    description: 'Discover the newest smart appliances and integrated technologies for modern kitchens.',
+    shortDescription: 'Newest smart appliances and integrated tech.',
+    status: 'PUBLISHED',
+    startDate: '2025-11-15T10:00:00Z',
+    endDate: '2025-11-16T18:00:00Z',
+    capacity: 150,
+    isPublic: true,
+    featured: false,
+    tags: ['technology', 'smart home', 'kitchen', 'expo'],
+    owner: { id: 'owner-2', name: 'Bob The Builder', email: 'bob@designbuild.com' },
+    venue: { id: 'venue-2', name: 'Triennale di Milano', address: 'Viale Emilio Alemagna, 6', city: 'Milano', country: 'Italy' },
+    category: { id: 'cat-2', name: 'Technology', slug: 'technology', color: '#3b82f6', icon: '💻' },
+    _count: { waitlist: 0 }
+  }
+]
+
 // Load configuration
 const config = getConfig()
 validateConfig(config)
@@ -258,8 +299,9 @@ app.get('/api/events', async (request, reply) => {
 
     return { events }
   } catch (error) {
-    app.log.error({ error }, 'Failed to fetch events')
-    reply.code(500).send({ error: 'Failed to fetch events' })
+    // TODO(prod): Remove mock fallback once DB is configured
+    app.log.warn({ error }, 'DB unavailable, serving mock events')
+    return { events: mockEvents }
   }
 })
 
@@ -298,15 +340,22 @@ app.get('/api/events/:slug', async (request, reply) => {
     })
 
     if (!event) {
-      reply.code(404).send({ error: 'Event not found' })
-      return
+      // Fall through to mock below
     }
 
-    return { event }
+    if (event) return { event }
   } catch (error) {
-    app.log.error({ error }, 'Failed to fetch event')
-    reply.code(500).send({ error: 'Failed to fetch event' })
+    // continue to mock
   }
+
+  // TODO(prod): Remove mock fallback once DB is configured
+  const { slug } = request.params as { slug: string }
+  const mock = mockEvents.find(e => e.slug === slug)
+  if (!mock) {
+    reply.code(404).send({ error: 'Event not found' })
+    return
+  }
+  return { event: mock }
 })
 
 // ------------- Owner-scoped Events CRUD -------------
