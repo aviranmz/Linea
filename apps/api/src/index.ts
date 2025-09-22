@@ -25,7 +25,7 @@ const logger = pino({
 })
 
 const app = Fastify({
-  logger,
+  logger: true,
   requestIdHeader: 'x-request-id',
   requestIdLogLabel: 'reqId',
   genReqId: () => crypto.randomUUID()
