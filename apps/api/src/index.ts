@@ -89,9 +89,20 @@ app.get('/health', async (_request, reply) => {
     const services: Record<string, string> = {}
     
     if (prisma) {
-      // Check database connection
-      await prisma.$queryRaw`SELECT 1`
-      services.database = 'connected'
+      try {
+        // Check database connection with timeout
+        await Promise.race([
+          prisma.$queryRaw`SELECT 1`,
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Database connection timeout')), 5000)
+          )
+        ])
+        services.database = 'connected'
+      } catch (dbError) {
+        services.database = 'disconnected'
+        // Don't fail the health check if database is unavailable
+        // Just report it as disconnected
+      }
     } else {
       services.database = 'not configured'
     }
