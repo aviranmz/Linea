@@ -4,7 +4,9 @@ import helmet from '@fastify/helmet'
 import rateLimit from '@fastify/rate-limit'
 import swagger from '@fastify/swagger'
 import swaggerUi from '@fastify/swagger-ui'
+import fastifyStatic from '@fastify/static'
 import { PrismaClient } from '@prisma/client'
+import path from 'path'
 
 const app = Fastify({
   logger: process.env.NODE_ENV === 'development' ? {
@@ -65,6 +67,12 @@ await app.register(swaggerUi, {
     docExpansion: 'list',
     deepLinking: false
   }
+})
+
+// Serve static files from the frontend build
+await app.register(fastifyStatic, {
+  root: path.join(__dirname, '../../web/dist'),
+  prefix: '/'
 })
 
 // Health check
@@ -179,6 +187,15 @@ app.post('/api/waitlist', async (request, reply) => {
     reply.code(500)
     return { error: 'Failed to join waitlist' }
   }
+})
+
+// Catch-all handler: send back React's index.html file for client-side routing
+app.setNotFoundHandler(async (_request, reply) => {
+  // Only serve index.html for non-API routes
+  if (!_request.url.startsWith('/api') && !_request.url.startsWith('/docs') && !_request.url.startsWith('/health')) {
+    return reply.sendFile('index.html')
+  }
+  reply.code(404).send({ error: 'Not Found' })
 })
 
 // Error handler
