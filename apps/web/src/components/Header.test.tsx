@@ -88,7 +88,6 @@ describe('Header', () => {
       </BrowserRouter>
     )
     
-    const mobileMenuButton = screen.getByRole('button', { name: /open main menu/i })
     // The button uses sr-only text instead of aria-label
     expect(screen.getByText('Open main menu')).toBeInTheDocument()
   })
