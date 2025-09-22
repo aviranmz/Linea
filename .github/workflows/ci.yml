@@ -58,6 +58,9 @@ jobs:
       - name: Lint backend
         run: pnpm --filter @linea/api lint
 
+      - name: Generate Prisma client
+        run: pnpm --filter @linea/api db:generate
+
       - name: Type check frontend
         run: pnpm --filter @linea/web typecheck
 
