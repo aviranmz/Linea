@@ -1,0 +1,40 @@
+name: Version & Build
+on: [push, pull_request]
+jobs:
+  version_build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: actions/setup-node@v4
+        with: { node-version: '22.x' }
+      - run: |
+          PKG_VER=$(node -p "require('./package.json').version")
+          LAST_TAG=$(git tag --list 'v*' --sort=-v:refname | head -n1 || true)
+          echo "package.json: $PKG_VER"
+          echo "last tag:      $LAST_TAG"
+          if [ -n "$LAST_TAG" ]; then
+            TAG_VER=${LAST_TAG#v}
+            if [ "$PKG_VER" = "$TAG_VER" ]; then
+              echo "ERROR: Version not bumped."; exit 1;
+            fi
+          fi
+      - uses: pnpm/action-setup@v4
+        with: { version: 8 }
+      - run: pnpm ci
+      - run: pnpm run build
+      - run: pnpm run lint || true
+      - run: pnpm test || true
+
+  release_tag:
+    if: github.ref == 'refs/heads/main'
+    needs: version_build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - run: |
+          PKG_VER=$(node -p "require('./package.json').version")
+          git tag "v$PKG_VER"
+          git push origin "v$PKG_VER"
+

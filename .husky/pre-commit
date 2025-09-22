@@ -1,0 +1,19 @@
+#!/usr/bin/env sh
+. "$(dirname "$0")/_/husky.sh"
+
+pnpm run build || { echo "Build failed"; exit 1; }
+pnpm run lint  || { echo "Lint failed"; exit 1; }
+pnpm test      || { echo "Tests failed"; exit 1; }
+
+! git diff --cached -U0 -- 'apps/web/src/**/*.{js,jsx,ts,tsx,html}' \
+  | grep -E '\+.*(localhost|127\.0\.0\.1)' \
+  && echo "UI host check passed" || { echo "Blocked: localhost in UI code"; exit 1; }
+
+CHANGED_SRC=$(git diff --cached --name-only -- 'apps/**' 'packages/**' 'server/**' | wc -l | tr -d ' ')
+CHANGED_PKG=$(git diff --cached --name-only -- package.json | wc -l | tr -d ' ')
+if [ "$CHANGED_SRC" -gt 0 ] && [ "$CHANGED_PKG" -eq 0 ]; then
+  echo "Source files changed but no package.json version bump."
+  echo "Run: npm version patch|minor|major and re-stage."
+  exit 1
+fi
+

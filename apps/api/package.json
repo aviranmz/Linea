@@ -17,6 +17,7 @@
     "db:seed": "tsx src/seed.ts"
   },
   "dependencies": {
+    "@sentry/node": "^7.120.3",
     "@linea/config": "workspace:*",
     "@fastify/cookie": "^9.3.1",
     "@fastify/cors": "^8.4.0",

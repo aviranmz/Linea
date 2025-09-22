@@ -7,6 +7,7 @@ import swaggerUi from '@fastify/swagger-ui'
 import fastifyStatic from '@fastify/static'
 import cookie from '@fastify/cookie'
 import { PrismaClient } from '@prisma/client'
+import * as Sentry from '@sentry/node'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import { getConfig, validateConfig } from '@linea/config'
@@ -115,6 +116,16 @@ const app = Fastify({
   requestIdLogLabel: 'reqId',
   genReqId: () => crypto.randomUUID()
 })
+
+// Initialize Sentry if configured
+if (config.observability.SENTRY_DSN) {
+  Sentry.init({
+    dsn: config.observability.SENTRY_DSN,
+    environment: config.observability.SENTRY_ENVIRONMENT,
+    release: config.observability.SENTRY_RELEASE,
+    tracesSampleRate: 0.0
+  })
+}
 
 // Initialize Prisma
 const prisma = new PrismaClient({
@@ -960,6 +971,10 @@ app.setNotFoundHandler(async (_request, reply) => {
 // Error handler
 app.setErrorHandler((error, _request, reply) => {
   app.log.error({ error }, 'API Error')
+
+  if (config.observability.SENTRY_DSN) {
+    Sentry.captureException(error)
+  }
 
   if (error.validation) {
     reply.code(400).send({
