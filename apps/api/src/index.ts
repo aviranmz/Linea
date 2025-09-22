@@ -2,33 +2,12 @@ import Fastify from 'fastify'
 import cors from '@fastify/cors'
 import helmet from '@fastify/helmet'
 import rateLimit from '@fastify/rate-limit'
-import swagger from '@fastify/swagger'
-import swaggerUi from '@fastify/swagger-ui'
 import { PrismaClient } from '@prisma/client'
-import { Redis } from 'ioredis'
-import pino from 'pino'
-
-// Import routes
-import { authRoutes } from './routes/auth.js'
-import { eventRoutes } from './routes/events.js'
-import { waitlistRoutes } from './routes/waitlist.js'
-import { ownerRoutes } from './routes/owners.js'
-import { adminRoutes } from './routes/admin.js'
-
-const logger = pino({
-  level: process.env.LOG_LEVEL || 'info',
-  transport: process.env.NODE_ENV === 'development' ? {
-    target: 'pino-pretty',
-    options: {
-      colorize: true,
-      translateTime: 'HH:MM:ss Z',
-      ignore: 'pid,hostname'
-    }
-  } : undefined
-})
 
 const app = Fastify({
-  logger,
+  logger: {
+    level: process.env.LOG_LEVEL || 'info'
+  },
   requestIdHeader: 'x-request-id',
   requestIdLogLabel: 'reqId',
   genReqId: () => crypto.randomUUID()
@@ -37,13 +16,6 @@ const app = Fastify({
 // Initialize Prisma
 const prisma = new PrismaClient({
   log: process.env.NODE_ENV === 'development' ? ['query', 'info', 'warn', 'error'] : ['error']
-})
-
-// Initialize Redis
-const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379', {
-  retryDelayOnFailover: 100,
-  enableReadyCheck: false,
-  maxRetriesPerRequest: null
 })
 
 // Register plugins
@@ -61,45 +33,17 @@ await app.register(rateLimit, {
   timeWindow: '1 minute'
 })
 
-await app.register(swagger, {
-  openapi: {
-    info: {
-      title: 'Linea API',
-      description: 'Event management platform API',
-      version: '0.1.0'
-    },
-    servers: [
-      {
-        url: process.env.API_URL || 'http://localhost:3001',
-        description: 'Development server'
-      }
-    ]
-  }
-})
-
-await app.register(swaggerUi, {
-  routePrefix: '/docs',
-  uiConfig: {
-    docExpansion: 'list',
-    deepLinking: false
-  }
-})
-
 // Health check
 app.get('/health', async (request, reply) => {
   try {
     // Check database connection
     await prisma.$queryRaw`SELECT 1`
     
-    // Check Redis connection
-    await redis.ping()
-    
     return {
       status: 'healthy',
       timestamp: new Date().toISOString(),
       services: {
-        database: 'connected',
-        redis: 'connected'
+        database: 'connected'
       }
     }
   } catch (error) {
@@ -112,12 +56,96 @@ app.get('/health', async (request, reply) => {
   }
 })
 
-// Register routes
-await app.register(authRoutes, { prefix: '/api/auth' })
-await app.register(eventRoutes, { prefix: '/api/events' })
-await app.register(waitlistRoutes, { prefix: '/api/waitlist' })
-await app.register(ownerRoutes, { prefix: '/api/owners' })
-await app.register(adminRoutes, { prefix: '/api/admin' })
+// Basic API routes
+app.get('/', async (request, reply) => {
+  return { 
+    message: 'Linea API is running!',
+    version: '0.1.0',
+    timestamp: new Date().toISOString()
+  }
+})
+
+// Events API
+app.get('/api/events', async (request, reply) => {
+  try {
+    const events = await prisma.event.findMany({
+      where: {
+        status: 'PUBLISHED',
+        deletedAt: null
+      },
+      include: {
+        venue: true
+      },
+      orderBy: {
+        startDate: 'asc'
+      }
+    })
+    
+    return { events }
+  } catch (error) {
+    reply.code(500)
+    return { error: 'Failed to fetch events' }
+  }
+})
+
+app.get('/api/events/:slug', async (request, reply) => {
+  try {
+    const { slug } = request.params as { slug: string }
+    
+    const event = await prisma.event.findUnique({
+      where: { slug },
+      include: {
+        venue: true,
+        waitlist: true
+      }
+    })
+    
+    if (!event) {
+      reply.code(404)
+      return { error: 'Event not found' }
+    }
+    
+    return { event }
+  } catch (error) {
+    reply.code(500)
+    return { error: 'Failed to fetch event' }
+  }
+})
+
+// Waitlist API
+app.post('/api/waitlist', async (request, reply) => {
+  try {
+    const { email, eventId } = request.body as { email: string; eventId: string }
+    
+    // Check if already on waitlist
+    const existing = await prisma.waitlistEntry.findUnique({
+      where: {
+        email_eventId: {
+          email,
+          eventId
+        }
+      }
+    })
+    
+    if (existing) {
+      reply.code(400)
+      return { error: 'Email already on waitlist for this event' }
+    }
+    
+    const waitlistEntry = await prisma.waitlistEntry.create({
+      data: {
+        email,
+        eventId,
+        status: 'PENDING'
+      }
+    })
+    
+    return { waitlistEntry }
+  } catch (error) {
+    reply.code(500)
+    return { error: 'Failed to join waitlist' }
+  }
+})
 
 // Error handler
 app.setErrorHandler((error, request, reply) => {
@@ -145,10 +173,9 @@ const gracefulShutdown = async (signal: string) => {
   try {
     await app.close()
     await prisma.$disconnect()
-    await redis.quit()
     process.exit(0)
   } catch (error) {
-    app.log.error('Error during shutdown:', error)
+    app.log.error({ error }, 'Error during shutdown')
     process.exit(1)
   }
 }
@@ -164,7 +191,6 @@ const start = async () => {
     
     await app.listen({ port, host })
     app.log.info(`Server listening on http://${host}:${port}`)
-    app.log.info(`API documentation available at http://${host}:${port}/docs`)
   } catch (error) {
     app.log.error(error)
     process.exit(1)
