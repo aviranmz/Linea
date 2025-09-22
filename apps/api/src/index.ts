@@ -6,17 +6,22 @@ import swagger from '@fastify/swagger'
 import swaggerUi from '@fastify/swagger-ui'
 import { PrismaClient } from '@prisma/client'
 import pino from 'pino'
+import { authRoutes } from './routes/auth.js'
+import { eventRoutes } from './routes/events.js'
+import { venueRoutes } from './routes/venues.js'
 
 const logger = pino({
   level: process.env.LOG_LEVEL || 'info',
-  transport: process.env.NODE_ENV === 'development' ? {
-    target: 'pino-pretty',
-    options: {
-      colorize: true,
-      translateTime: 'HH:MM:ss Z',
-      ignore: 'pid,hostname'
+  ...(process.env.NODE_ENV === 'development' && {
+    transport: {
+      target: 'pino-pretty',
+      options: {
+        colorize: true,
+        translateTime: 'HH:MM:ss Z',
+        ignore: 'pid,hostname'
+      }
     }
-  } : undefined
+  })
 })
 
 const app = Fastify({
@@ -33,7 +38,7 @@ const prisma = new PrismaClient({
 
 // Register plugins
 await app.register(cors, {
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  origin: process.env.FRONTEND_URL || 'http://localhost:3030',
   credentials: true
 })
 
@@ -55,7 +60,7 @@ await app.register(swagger, {
     },
     servers: [
       {
-        url: process.env.API_URL || 'http://localhost:3001',
+        url: process.env.API_URL || 'http://localhost:9030',
         description: 'Development server'
       }
     ]
@@ -102,87 +107,10 @@ app.get('/', async (_request, _reply) => {
   }
 })
 
-// Events API
-app.get('/api/events', async (_request, reply) => {
-  try {
-    const events = await prisma.event.findMany({
-      where: {
-        status: 'PUBLISHED',
-        deletedAt: null
-      },
-      include: {
-        venue: true
-      },
-      orderBy: {
-        startDate: 'asc'
-      }
-    })
-    
-    return { events }
-  } catch (error) {
-    reply.code(500)
-    return { error: 'Failed to fetch events' }
-  }
-})
-
-app.get('/api/events/:slug', async (request, reply) => {
-  try {
-    const { slug } = request.params as { slug: string }
-    
-    const event = await prisma.event.findUnique({
-      where: { slug },
-      include: {
-        venue: true,
-        waitlist: true
-      }
-    })
-    
-    if (!event) {
-      reply.code(404)
-      return { error: 'Event not found' }
-    }
-    
-    return { event }
-  } catch (error) {
-    reply.code(500)
-    return { error: 'Failed to fetch event' }
-  }
-})
-
-// Waitlist API
-app.post('/api/waitlist', async (request, reply) => {
-  try {
-    const { email, eventId } = request.body as { email: string; eventId: string }
-    
-    // Check if already on waitlist
-    const existing = await prisma.waitlistEntry.findUnique({
-      where: {
-        email_eventId: {
-          email,
-          eventId
-        }
-      }
-    })
-    
-    if (existing) {
-      reply.code(400)
-      return { error: 'Email already on waitlist for this event' }
-    }
-    
-    const waitlistEntry = await prisma.waitlistEntry.create({
-      data: {
-        email,
-        eventId,
-        status: 'PENDING'
-      }
-    })
-    
-    return { waitlistEntry }
-  } catch (error) {
-    reply.code(500)
-    return { error: 'Failed to join waitlist' }
-  }
-})
+// Register API routes
+await app.register(authRoutes, { prefix: '/api' })
+await app.register(eventRoutes, { prefix: '/api' })
+await app.register(venueRoutes, { prefix: '/api' })
 
 // Error handler
 app.setErrorHandler((error, _request, reply) => {
@@ -223,7 +151,7 @@ process.on('SIGINT', () => gracefulShutdown('SIGINT'))
 // Start server
 const start = async () => {
   try {
-    const port = parseInt(process.env.PORT || '3001')
+    const port = parseInt(process.env.PORT || '9030')
     const host = process.env.HOST || '0.0.0.0'
 
     await app.listen({ port, host })
