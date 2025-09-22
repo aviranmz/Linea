@@ -52,6 +52,9 @@ COPY --from=base /app/apps/web/dist ./apps/web/dist
 COPY --from=base /app/apps/api/dist ./apps/api/dist
 COPY --from=base /app/apps/api/prisma ./apps/api/prisma
 
+# Install @prisma/client for client generation
+RUN cd apps/api && npm install @prisma/client
+
 # Generate Prisma client
 RUN cd apps/api && prisma generate
 
