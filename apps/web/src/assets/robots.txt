@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://linea-production.up.railway.app/sitemap.xml
+
