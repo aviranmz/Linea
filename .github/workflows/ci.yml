@@ -1,0 +1,97 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: linea_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      
+      redis:
+        image: redis:7
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'pnpm'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint frontend
+        run: pnpm --filter @linea/web lint
+
+      - name: Lint backend
+        run: pnpm --filter @linea/api lint
+
+      - name: Type check frontend
+        run: pnpm --filter @linea/web typecheck
+
+      - name: Type check backend
+        run: pnpm --filter @linea/api typecheck
+
+      - name: Build frontend
+        run: pnpm --filter @linea/web build
+
+      - name: Build backend
+        run: pnpm --filter @linea/api build
+
+      - name: Test frontend
+        run: pnpm --filter @linea/web test
+
+      - name: Test backend
+        run: pnpm --filter @linea/api test
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/linea_test
+          REDIS_URL: redis://localhost:6379
+          JWT_SECRET: test-secret
+          SESSION_SECRET: test-session-secret
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to Railway
+        uses: railway-app/railway-deploy@v1
+        with:
+          railway-token: ${{ secrets.RAILWAY_TOKEN }}
+          service: linea-api

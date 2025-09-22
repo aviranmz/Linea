@@ -1,0 +1,342 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  role      UserRole @default(VISITOR)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  // Relations
+  ownedEvents    Event[]     @relation("EventOwner")
+  waitlistEntries WaitlistEntry[]
+  sessions       Session[]
+  auditLogs      AuditLog[]
+
+  @@map("users")
+}
+
+model Organization {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  website     String?
+  ownerId     String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  deletedAt   DateTime?
+
+  // Relations
+  owner  User    @relation(fields: [ownerId], references: [id])
+  events Event[]
+
+  @@map("organizations")
+}
+
+model Venue {
+  id          String   @id @default(cuid())
+  name        String
+  address     String
+  city        String
+  country     String
+  latitude    Float?
+  longitude   Float?
+  website     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  deletedAt   DateTime?
+
+  // Relations
+  events Event[]
+
+  @@map("venues")
+}
+
+model Event {
+  id          String      @id @default(cuid())
+  title       String
+  slug        String      @unique
+  description String?
+  status      EventStatus @default(DRAFT)
+  startDate   DateTime
+  endDate     DateTime?
+  capacity    Int?
+  youtubeUrl  String?
+  mapLat      Float?
+  mapLng      Float?
+  mapZoom     Int?
+  ownerId     String
+  venueId     String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  deletedAt   DateTime?
+
+  // Relations
+  owner         User           @relation("EventOwner", fields: [ownerId], references: [id])
+  venue         Venue?         @relation(fields: [venueId], references: [id])
+  waitlist      WaitlistEntry[]
+  categories    EventCategory[]
+  shows         Show[]
+  eventPages    EventPage[]
+
+  @@index([slug])
+  @@index([startDate])
+  @@index([status])
+  @@map("events")
+}
+
+model Show {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  startDate   DateTime
+  endDate     DateTime?
+  capacity    Int?
+  eventId     String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  deletedAt   DateTime?
+
+  // Relations
+  event Event @relation(fields: [eventId], references: [id])
+
+  @@map("shows")
+}
+
+model EventPage {
+  id          String   @id @default(cuid())
+  content     String?  // MDX content
+  seoTitle    String?
+  seoDescription String?
+  eventId     String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  deletedAt   DateTime?
+
+  // Relations
+  event Event @relation(fields: [eventId], references: [id])
+
+  @@map("event_pages")
+}
+
+model WaitlistEntry {
+  id        String   @id @default(cuid())
+  email     String
+  eventId   String
+  userId    String?
+  status    WaitlistStatus @default(PENDING)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  // Relations
+  event Event @relation(fields: [eventId], references: [id])
+  user  User? @relation(fields: [userId], references: [id])
+
+  @@unique([email, eventId])
+  @@index([eventId])
+  @@index([email])
+  @@map("waitlist_entries")
+}
+
+model Category {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  color       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  deletedAt   DateTime?
+
+  // Relations
+  events EventCategory[]
+
+  @@map("categories")
+}
+
+model EventCategory {
+  id         String   @id @default(cuid())
+  eventId    String
+  categoryId String
+  createdAt  DateTime @default(now())
+
+  // Relations
+  event    Event    @relation(fields: [eventId], references: [id])
+  category Category @relation(fields: [categoryId], references: [id])
+
+  @@unique([eventId, categoryId])
+  @@map("event_categories")
+}
+
+model Tag {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  deletedAt   DateTime?
+
+  // Relations
+  events EventTag[]
+
+  @@map("tags")
+}
+
+model EventTag {
+  id      String @id @default(cuid())
+  eventId String
+  tagId   String
+
+  // Relations
+  event Event @relation(fields: [eventId], references: [id])
+  tag   Tag   @relation(fields: [tagId], references: [id])
+
+  @@unique([eventId, tagId])
+  @@map("event_tags")
+}
+
+model NearbyPlace {
+  id          String   @id @default(cuid())
+  name        String
+  type        String   // restaurant, museum, etc.
+  address     String
+  latitude    Float
+  longitude   Float
+  distance    Float?   // Distance from event in meters
+  eventId     String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  deletedAt   DateTime?
+
+  // Relations
+  event Event @relation(fields: [eventId], references: [id])
+
+  @@index([eventId])
+  @@map("nearby_places")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  // Relations
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([token])
+  @@index([expiresAt])
+  @@map("sessions")
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  action    String   // CREATE, UPDATE, DELETE
+  resource  String   // Event, User, etc.
+  resourceId String
+  userId    String?
+  ipAddress String?
+  userAgent String?
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  // Relations
+  user User? @relation(fields: [userId], references: [id])
+
+  @@index([resource, resourceId])
+  @@index([userId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+model Consent {
+  id        String   @id @default(cuid())
+  email     String
+  type      ConsentType
+  granted   Boolean
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([email, type])
+  @@index([email])
+  @@map("consents")
+}
+
+model EmailVerification {
+  id        String   @id @default(cuid())
+  email     String
+  token     String   @unique
+  type      EmailType
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([token])
+  @@index([email])
+  @@map("email_verifications")
+}
+
+model Invitation {
+  id        String   @id @default(cuid())
+  email     String
+  role      UserRole
+  token     String   @unique
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  invitedBy String
+  createdAt DateTime @default(now())
+
+  @@index([token])
+  @@index([email])
+  @@map("invitations")
+}
+
+// Enums
+enum UserRole {
+  VISITOR
+  OWNER
+  ADMIN
+}
+
+enum EventStatus {
+  DRAFT
+  PUBLISHED
+  CANCELLED
+  COMPLETED
+}
+
+enum WaitlistStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+}
+
+enum ConsentType {
+  MARKETING
+  ANALYTICS
+  NECESSARY
+}
+
+enum EmailType {
+  MAGIC_LINK
+  VERIFICATION
+  WAITLIST_CONFIRMATION
+  UNSUBSCRIBE
+}
