@@ -44,13 +44,16 @@ COPY pnpm-lock.yaml* ./
 # Install production dependencies only
 RUN pnpm install --frozen-lockfile --prod
 
+# Install Prisma CLI globally for client generation
+RUN npm install -g prisma
+
 # Copy built applications
 COPY --from=base /app/apps/web/dist ./apps/web/dist
 COPY --from=base /app/apps/api/dist ./apps/api/dist
 COPY --from=base /app/apps/api/prisma ./apps/api/prisma
 
 # Generate Prisma client
-RUN pnpm --filter @linea/api db:generate
+RUN cd apps/api && prisma generate
 
 # Set environment variables
 ENV NODE_ENV=production
