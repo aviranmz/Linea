@@ -70,10 +70,10 @@ importers:
         specifier: ^6.4.14
         version: 6.4.19
       '@typescript-eslint/eslint-plugin':
-        specifier: ^6.10.0
+        specifier: ^6.21.0
         version: 6.21.0(@typescript-eslint/parser@6.21.0)(eslint@8.57.1)(typescript@5.9.2)
       '@typescript-eslint/parser':
-        specifier: ^6.10.0
+        specifier: ^6.21.0
         version: 6.21.0(eslint@8.57.1)(typescript@5.9.2)
       eslint:
         specifier: ^8.53.0
@@ -122,10 +122,10 @@ importers:
         specifier: ^18.2.15
         version: 18.3.7(@types/react@18.3.24)
       '@typescript-eslint/eslint-plugin':
-        specifier: ^6.10.0
+        specifier: ^6.21.0
         version: 6.21.0(@typescript-eslint/parser@6.21.0)(eslint@8.57.1)(typescript@5.9.2)
       '@typescript-eslint/parser':
-        specifier: ^6.10.0
+        specifier: ^6.21.0
         version: 6.21.0(eslint@8.57.1)(typescript@5.9.2)
       '@vitejs/plugin-react':
         specifier: ^4.1.0
@@ -140,7 +140,7 @@ importers:
         specifier: ^4.6.0
         version: 4.6.2(eslint@8.57.1)
       eslint-plugin-react-refresh:
-        specifier: ^0.4.4
+        specifier: ^0.4.20
         version: 0.4.20(eslint@8.57.1)
       postcss:
         specifier: ^8.4.31

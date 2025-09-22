@@ -34,7 +34,7 @@ await app.register(rateLimit, {
 })
 
 // Health check
-app.get('/health', async (request, reply) => {
+app.get('/health', async (_request, reply) => {
   try {
     // Check database connection
     await prisma.$queryRaw`SELECT 1`
@@ -57,7 +57,7 @@ app.get('/health', async (request, reply) => {
 })
 
 // Basic API routes
-app.get('/', async (request, reply) => {
+app.get('/', async (_request, _reply) => {
   return { 
     message: 'Linea API is running!',
     version: '0.1.0',
@@ -66,7 +66,7 @@ app.get('/', async (request, reply) => {
 })
 
 // Events API
-app.get('/api/events', async (request, reply) => {
+app.get('/api/events', async (_request, reply) => {
   try {
     const events = await prisma.event.findMany({
       where: {
