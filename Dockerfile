@@ -56,6 +56,9 @@ COPY --from=base /app/apps/web/dist ./apps/web/dist
 COPY --from=base /app/apps/api/dist ./apps/api/dist
 COPY --from=base /app/apps/api/prisma ./apps/api/prisma
 
+# Copy runtime configuration files
+COPY config ./config
+
 # Generate Prisma client
 RUN pnpm --filter @linea/api db:generate
 
