@@ -12,6 +12,9 @@ COPY package.json pnpm-workspace.yaml ./
 COPY apps/web/package.json ./apps/web/
 COPY apps/api/package.json ./apps/api/
 
+# Copy lockfile if it exists
+COPY pnpm-lock.yaml* ./
+
 # Install dependencies
 RUN pnpm install --frozen-lockfile
 
@@ -34,6 +37,9 @@ WORKDIR /app
 COPY package.json pnpm-workspace.yaml ./
 COPY apps/web/package.json ./apps/web/
 COPY apps/api/package.json ./apps/api/
+
+# Copy lockfile if it exists
+COPY pnpm-lock.yaml* ./
 
 # Install production dependencies only
 RUN pnpm install --frozen-lockfile --prod
