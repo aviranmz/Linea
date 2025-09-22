@@ -5,14 +5,10 @@ import rateLimit from '@fastify/rate-limit'
 import swagger from '@fastify/swagger'
 import swaggerUi from '@fastify/swagger-ui'
 import { PrismaClient } from '@prisma/client'
-import pino from 'pino'
-import { authRoutes } from './routes/auth.js'
-import { eventRoutes } from './routes/events.js'
-import { venueRoutes } from './routes/venues.js'
 
-const logger = pino({
-  level: process.env.LOG_LEVEL || 'info',
-  ...(process.env.NODE_ENV === 'development' && {
+const app = Fastify({
+  logger: process.env.NODE_ENV === 'development' ? {
+    level: process.env.LOG_LEVEL || 'info',
     transport: {
       target: 'pino-pretty',
       options: {
@@ -21,11 +17,7 @@ const logger = pino({
         ignore: 'pid,hostname'
       }
     }
-  })
-})
-
-const app = Fastify({
-  logger: true,
+  } : true,
   requestIdHeader: 'x-request-id',
   requestIdLogLabel: 'reqId',
   genReqId: () => crypto.randomUUID()
@@ -38,7 +30,7 @@ const prisma = new PrismaClient({
 
 // Register plugins
 await app.register(cors, {
-  origin: process.env.FRONTEND_URL || 'http://localhost:3030',
+  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
   credentials: true
 })
 
@@ -60,7 +52,7 @@ await app.register(swagger, {
     },
     servers: [
       {
-        url: process.env.API_URL || 'http://localhost:9030',
+        url: process.env.API_URL || 'http://localhost:3001',
         description: 'Development server'
       }
     ]
@@ -80,7 +72,7 @@ app.get('/health', async (_request, reply) => {
   try {
     // Check database connection
     await prisma.$queryRaw`SELECT 1`
-    
+
     return {
       status: 'healthy',
       timestamp: new Date().toISOString(),
@@ -100,17 +92,94 @@ app.get('/health', async (_request, reply) => {
 
 // Basic API routes
 app.get('/', async (_request, _reply) => {
-  return { 
+  return {
     message: 'Linea API is running!',
     version: '0.1.0',
     timestamp: new Date().toISOString()
   }
 })
 
-// Register API routes
-await app.register(authRoutes, { prefix: '/api' })
-await app.register(eventRoutes, { prefix: '/api' })
-await app.register(venueRoutes, { prefix: '/api' })
+// Events API
+app.get('/api/events', async (_request, reply) => {
+  try {
+    const events = await prisma.event.findMany({
+      where: {
+        status: 'PUBLISHED',
+        deletedAt: null
+      },
+      include: {
+        venue: true
+      },
+      orderBy: {
+        startDate: 'asc'
+      }
+    })
+
+    return { events }
+  } catch (error) {
+    reply.code(500)
+    return { error: 'Failed to fetch events' }
+  }
+})
+
+app.get('/api/events/:slug', async (request, reply) => {
+  try {
+    const { slug } = request.params as { slug: string }
+
+    const event = await prisma.event.findUnique({
+      where: { slug },
+      include: {
+        venue: true,
+        waitlist: true
+      }
+    })
+
+    if (!event) {
+      reply.code(404)
+      return { error: 'Event not found' }
+    }
+
+    return { event }
+  } catch (error) {
+    reply.code(500)
+    return { error: 'Failed to fetch event' }
+  }
+})
+
+// Waitlist API
+app.post('/api/waitlist', async (request, reply) => {
+  try {
+    const { email, eventId } = request.body as { email: string; eventId: string }
+
+    // Check if already on waitlist
+    const existing = await prisma.waitlistEntry.findUnique({
+      where: {
+        email_eventId: {
+          email,
+          eventId
+        }
+      }
+    })
+
+    if (existing) {
+      reply.code(400)
+      return { error: 'Email already on waitlist for this event' }
+    }
+
+    const waitlistEntry = await prisma.waitlistEntry.create({
+      data: {
+        email,
+        eventId,
+        status: 'PENDING'
+      }
+    })
+
+    return { waitlistEntry }
+  } catch (error) {
+    reply.code(500)
+    return { error: 'Failed to join waitlist' }
+  }
+})
 
 // Error handler
 app.setErrorHandler((error, _request, reply) => {
@@ -151,7 +220,7 @@ process.on('SIGINT', () => gracefulShutdown('SIGINT'))
 // Start server
 const start = async () => {
   try {
-    const port = parseInt(process.env.PORT || '9030')
+    const port = parseInt(process.env.PORT || '3001')
     const host = process.env.HOST || '0.0.0.0'
 
     await app.listen({ port, host })
