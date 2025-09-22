@@ -84,23 +84,3 @@ jobs:
           JWT_SECRET: test-secret
           SESSION_SECRET: test-session-secret
 
-  deploy:
-    needs: test
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Install Railway CLI
-        run: npm install -g @railway/cli
-
-      - name: Set Railway Token
-        run: echo "RAILWAY_TOKEN=${{ secrets.RAILWAY_TOKEN }}" >> $GITHUB_ENV
-
-      - name: Link Railway Project
-        run: railway link 729cd0b1-8bb6-426f-9775-18511e00ef41
-
-      - name: Deploy to Railway
-        run: railway up --detach
