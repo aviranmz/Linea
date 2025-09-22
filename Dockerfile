@@ -49,6 +49,9 @@ COPY --from=base /app/apps/web/dist ./apps/web/dist
 COPY --from=base /app/apps/api/dist ./apps/api/dist
 COPY --from=base /app/apps/api/prisma ./apps/api/prisma
 
+# Generate Prisma client
+RUN pnpm --filter @linea/api db:generate
+
 # Set environment variables
 ENV NODE_ENV=production
 ENV PORT=3001
