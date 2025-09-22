@@ -15,6 +15,37 @@ import { getConfig, validateConfig } from '@linea/config'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
+// Minimal email helper (SendGrid optional)
+// TODO(prod): Replace with robust email service + templates
+const sendEmail = async (to: string, subject: string, text: string) => {
+  try {
+    const key = process.env.SENDGRID_API_KEY || config.email.SENDGRID_API_KEY
+    if (!key) {
+      app.log.info({ to, subject, text }, 'Email (log only, no SENDGRID_API_KEY)')
+      return
+    }
+    const res = await fetch('https://api.sendgrid.com/v3/mail/send', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${key}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        personalizations: [{ to: [{ email: to }] }],
+        from: { email: config.email.SENDGRID_FROM_EMAIL, name: config.email.SENDGRID_FROM_NAME },
+        subject,
+        content: [{ type: 'text/plain', value: text }]
+      })
+    })
+    if (!res.ok) {
+      const body = await res.text()
+      app.log.warn({ status: res.status, body }, 'SendGrid send failed')
+    }
+  } catch (err) {
+    app.log.warn({ err }, 'Email send error')
+  }
+}
+
 // TODO(prod): Temporary mock events fallback for environments without DB/auth.
 // Remove this once DATABASE_URL is configured and seeding/migrations are in place.
 const mockEvents = [
@@ -55,6 +86,9 @@ const mockEvents = [
     _count: { waitlist: 0 }
   }
 ]
+
+// Mock waitlist storage for fallback mode
+const mockWaitlist: Array<{ id: string; email: string; eventId: string; status: 'PENDING'|'CONFIRMED' }> = []
 
 // Load configuration
 const config = getConfig()
@@ -658,8 +692,77 @@ app.post('/api/waitlist', async (request, reply) => {
       }
     }
   } catch (error) {
-    app.log.error({ error }, 'Failed to create waitlist entry')
-    reply.code(500).send({ error: 'Failed to join waitlist' })
+    // Mock fallback if DB unavailable
+    try {
+      const { email, eventId } = request.body as { email: string; eventId: string }
+      const exists = mockWaitlist.find(w => w.email === email && w.eventId === eventId)
+      if (exists) { reply.code(409).send({ error: 'Email already on waitlist for this event' }); return }
+      const id = crypto.randomUUID()
+      mockWaitlist.push({ id, email, eventId, status: 'PENDING' })
+      // Send mocked confirmation email
+      await sendEmail(email, 'Confirm your waitlist', `Click to confirm: ${config.server.API_URL}/api/waitlist/confirm?email=${encodeURIComponent(email)}&eventId=${encodeURIComponent(eventId)}`)
+      return { waitlistEntry: { id, email, eventId, status: 'PENDING', createdAt: new Date().toISOString() } }
+    } catch (fallbackErr) {
+      app.log.error({ error, fallbackErr }, 'Failed to create waitlist entry (mock and db)')
+      reply.code(500).send({ error: 'Failed to join waitlist' })
+    }
+  }
+})
+
+// Confirm waitlist (double opt-in)
+app.get('/api/waitlist/confirm', async (request, reply) => {
+  const { email, eventId } = request.query as { email?: string; eventId?: string }
+  if (!email || !eventId) { reply.code(400).send({ error: 'Missing email or eventId' }); return }
+  try {
+    const entry = await prisma.waitlistEntry.findFirst({ where: { email, eventId, deletedAt: null } })
+    if (!entry) { reply.code(404).send({ error: 'Not found' }); return }
+    if (entry.status !== 'CONFIRMED') {
+      await prisma.waitlistEntry.update({ where: { id: entry.id }, data: { status: 'CONFIRMED' } })
+    }
+    reply.send({ ok: true })
+  } catch (error) {
+    const mock = mockWaitlist.find(w => w.email === email && w.eventId === eventId)
+    if (!mock) { reply.code(404).send({ error: 'Not found' }); return }
+    mock.status = 'CONFIRMED'
+    reply.send({ ok: true })
+  }
+})
+
+// Unsubscribe (remove from waitlist)
+app.post('/api/waitlist/unsubscribe', async (request, reply) => {
+  const { email, eventId } = request.body as { email: string; eventId: string }
+  if (!email || !eventId) { reply.code(400).send({ error: 'Missing email or eventId' }); return }
+  try {
+    const entry = await prisma.waitlistEntry.findFirst({ where: { email, eventId, deletedAt: null } })
+    if (!entry) { reply.code(404).send({ error: 'Not found' }); return }
+    await prisma.waitlistEntry.update({ where: { id: entry.id }, data: { deletedAt: new Date() } })
+    reply.send({ ok: true })
+  } catch (error) {
+    const idx = mockWaitlist.findIndex(w => w.email === email && w.eventId === eventId)
+    if (idx === -1) { reply.code(404).send({ error: 'Not found' }); return }
+    mockWaitlist.splice(idx, 1)
+    reply.send({ ok: true })
+  }
+})
+
+// Export waitlist CSV (owner/admin typically, but allow public for demo)
+app.get('/api/waitlist/export', async (request, reply) => {
+  const { eventId } = request.query as { eventId?: string }
+  if (!eventId) { reply.code(400).send({ error: 'Missing eventId' }); return }
+  try {
+    const entries = await prisma.waitlistEntry.findMany({ where: { eventId, deletedAt: null }, orderBy: { createdAt: 'asc' } })
+    const rows: string[][] = [["email","eventId","status","createdAt"], ...entries.map(e => [e.email, e.eventId, String(e.status), e.createdAt.toISOString()])]
+    const csv = rows.map(r => r.map(v => typeof v === 'string' && v.includes(',') ? `"${v.replace(/"/g,'""')}"` : String(v)).join(',')).join('\n')
+    reply.header('Content-Type', 'text/csv')
+    reply.header('Content-Disposition', `attachment; filename="waitlist-${eventId}.csv"`)
+    return csv
+  } catch (error) {
+    const entries = mockWaitlist.filter(w => w.eventId === eventId)
+    const rows: string[][] = [["email","eventId","status","createdAt"], ...entries.map(e => [e.email, e.eventId, String(e.status), new Date().toISOString()])]
+    const csv = rows.map(r => r.map(v => typeof v === 'string' && v.includes(',') ? `"${v.replace(/"/g,'""')}"` : String(v)).join(',')).join('\n')
+    reply.header('Content-Type', 'text/csv')
+    reply.header('Content-Disposition', `attachment; filename="waitlist-${eventId}.csv"`)
+    return csv
   }
 })
 
