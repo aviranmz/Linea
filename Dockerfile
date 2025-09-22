@@ -1,8 +1,9 @@
 # Use Node.js 24 Alpine image
 FROM node:24-alpine AS base
 
-# Install pnpm
-RUN npm install -g pnpm
+# Install pnpm and required system dependencies for Prisma
+RUN npm install -g pnpm && \
+    apk add --no-cache openssl1.1-compat
 
 # Set working directory
 WORKDIR /app
@@ -27,8 +28,9 @@ RUN pnpm build
 # Production stage
 FROM node:24-alpine AS production
 
-# Install pnpm
-RUN npm install -g pnpm
+# Install pnpm and required system dependencies for Prisma
+RUN npm install -g pnpm && \
+    apk add --no-cache openssl1.1-compat
 
 # Set working directory
 WORKDIR /app
