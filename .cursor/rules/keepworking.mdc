@@ -1,0 +1,14 @@
+--- 
+description: Run all tasks until complete
+globs: 
+  alwaysApply: true
+rules:
+  - name: "Run all Asana tasks until completion"
+    trigger: "asana.task.created"
+    action:
+      - type: "run_all"
+        options:
+          continueOnError: true   # don’t stop if one fails
+          runUntil: "allCompleted" # ensures it checks every task until done
+          retryFailed: true        # retry tasks that fail
+          maxRetries: 3

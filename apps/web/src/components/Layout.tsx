@@ -3,6 +3,7 @@ import { Header } from './Header'
 import { Footer } from './Footer'
 import { ThemeProvider } from '../contexts/ThemeContext'
 import { postJson } from '../lib/api'
+import { CookieBanner } from './CookieBanner'
 
 interface LayoutProps {
   children: ReactNode
@@ -72,6 +73,7 @@ export function Layout({ children }: LayoutProps) {
             </div>
           )}
         </main>
+        <CookieBanner />
         <Footer />
       </div>
     </ThemeProvider>
