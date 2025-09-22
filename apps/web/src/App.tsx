@@ -4,17 +4,20 @@ import { EventPage } from './pages/EventPage'
 import { OwnerPortal } from './pages/OwnerPortal'
 import { AdminPortal } from './pages/AdminPortal'
 import { Layout } from './components/Layout'
+import { ErrorBoundary } from './components/ErrorBoundary'
 
 function App() {
   return (
-    <Layout>
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/events/:slug" element={<EventPage />} />
-        <Route path="/owner/*" element={<OwnerPortal />} />
-        <Route path="/admin/*" element={<AdminPortal />} />
-      </Routes>
-    </Layout>
+    <ErrorBoundary>
+      <Layout>
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/events/:slug" element={<EventPage />} />
+          <Route path="/owner/*" element={<OwnerPortal />} />
+          <Route path="/admin/*" element={<AdminPortal />} />
+        </Routes>
+      </Layout>
+    </ErrorBoundary>
   )
 }
 

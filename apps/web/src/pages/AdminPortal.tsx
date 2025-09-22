@@ -1,123 +1,241 @@
+import { useState, useEffect } from 'react'
+
+interface PlatformStats {
+  totalUsers: number
+  totalEvents: number
+  totalWaitlist: number
+  activeEvents: number
+}
+
 export function AdminPortal() {
+  const [stats, setStats] = useState<PlatformStats>({
+    totalUsers: 0,
+    totalEvents: 0,
+    totalWaitlist: 0,
+    activeEvents: 0
+  })
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    // In a real app, this would fetch platform statistics
+    // For now, we'll use mock data
+    setTimeout(() => {
+      setStats({
+        totalUsers: 1234,
+        totalEvents: 56,
+        totalWaitlist: 5678,
+        activeEvents: 23
+      })
+      setLoading(false)
+    }, 1000)
+  }, [])
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Admin Portal</h1>
-          <p className="text-gray-600">Manage platform, users, and content</p>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="text-4xl font-bold text-gray-900 mb-4">Admin Portal</h1>
+        <p className="text-lg text-gray-600">
+          Platform administration and analytics dashboard
+        </p>
+      </div>
+
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="bg-white rounded-lg shadow-sm p-6">
+          <div className="flex items-center">
+            <div className="flex-shrink-0">
+              <div className="w-8 h-8 bg-indigo-100 rounded-md flex items-center justify-center">
+                <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                </svg>
+              </div>
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-600">Total Users</p>
+              <p className="text-2xl font-semibold text-gray-900">
+                {loading ? '...' : stats.totalUsers.toLocaleString()}
+              </p>
+            </div>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* Stats Overview */}
-          <div className="lg:col-span-4 grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
-            <div className="bg-white p-6 rounded-lg shadow-sm">
-              <div className="text-2xl font-bold text-gray-900">156</div>
-              <div className="text-sm text-gray-600">Total Owners</div>
+        <div className="bg-white rounded-lg shadow-sm p-6">
+          <div className="flex items-center">
+            <div className="flex-shrink-0">
+              <div className="w-8 h-8 bg-purple-100 rounded-md flex items-center justify-center">
+                <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+              </div>
             </div>
-            <div className="bg-white p-6 rounded-lg shadow-sm">
-              <div className="text-2xl font-bold text-gray-900">1,234</div>
-              <div className="text-sm text-gray-600">Total Events</div>
-            </div>
-            <div className="bg-white p-6 rounded-lg shadow-sm">
-              <div className="text-2xl font-bold text-gray-900">45,678</div>
-              <div className="text-sm text-gray-600">Total Waitlist</div>
-            </div>
-            <div className="bg-white p-6 rounded-lg shadow-sm">
-              <div className="text-2xl font-bold text-gray-900">89%</div>
-              <div className="text-sm text-gray-600">Active Rate</div>
-            </div>
-            <div className="bg-white p-6 rounded-lg shadow-sm">
-              <div className="text-2xl font-bold text-gray-900">12</div>
-              <div className="text-sm text-gray-600">Pending Reviews</div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-600">Total Events</p>
+              <p className="text-2xl font-semibold text-gray-900">
+                {loading ? '...' : stats.totalEvents.toLocaleString()}
+              </p>
             </div>
           </div>
+        </div>
 
-          {/* Recent Activity */}
-          <div className="lg:col-span-3">
-            <div className="bg-white rounded-lg shadow-sm">
-              <div className="p-6 border-b">
-                <h2 className="text-xl font-semibold text-gray-900">Recent Activity</h2>
+        <div className="bg-white rounded-lg shadow-sm p-6">
+          <div className="flex items-center">
+            <div className="flex-shrink-0">
+              <div className="w-8 h-8 bg-green-100 rounded-md flex items-center justify-center">
+                <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
               </div>
-              <div className="p-6">
-                <div className="space-y-4">
-                  <div className="flex items-center space-x-4 p-4 border rounded-lg">
-                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    <div className="flex-1">
-                      <p className="text-sm text-gray-900">
-                        <strong>New Event Created:</strong> "Milano Design Week 2024" by Design Studio Milano
-                      </p>
-                      <p className="text-xs text-gray-500">2 hours ago</p>
-                    </div>
-                    <button className="btn btn-outline btn-sm">Review</button>
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-600">Total Waitlist</p>
+              <p className="text-2xl font-semibold text-gray-900">
+                {loading ? '...' : stats.totalWaitlist.toLocaleString()}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-lg shadow-sm p-6">
+          <div className="flex items-center">
+            <div className="flex-shrink-0">
+              <div className="w-8 h-8 bg-yellow-100 rounded-md flex items-center justify-center">
+                <svg className="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+              </div>
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-600">Active Events</p>
+              <p className="text-2xl font-semibold text-gray-900">
+                {loading ? '...' : stats.activeEvents.toLocaleString()}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Recent Activity */}
+        <div className="bg-white rounded-lg shadow-sm">
+          <div className="px-6 py-4 border-b border-gray-200">
+            <h2 className="text-xl font-semibold text-gray-900">Recent Activity</h2>
+          </div>
+          <div className="p-6">
+            <div className="space-y-4">
+              <div className="flex items-center space-x-3">
+                <div className="flex-shrink-0">
+                  <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                    <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
                   </div>
-                  
-                  <div className="flex items-center space-x-4 p-4 border rounded-lg">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                    <div className="flex-1">
-                      <p className="text-sm text-gray-900">
-                        <strong>New Owner Registered:</strong> Creative Events Ltd.
-                      </p>
-                      <p className="text-xs text-gray-500">4 hours ago</p>
-                    </div>
-                    <button className="btn btn-outline btn-sm">View</button>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm text-gray-900">New event created: "Tech Innovation Summit"</p>
+                  <p className="text-xs text-gray-500">2 hours ago</p>
+                </div>
+              </div>
+              
+              <div className="flex items-center space-x-3">
+                <div className="flex-shrink-0">
+                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                    <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
                   </div>
-                  
-                  <div className="flex items-center space-x-4 p-4 border rounded-lg">
-                    <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
-                    <div className="flex-1">
-                      <p className="text-sm text-gray-900">
-                        <strong>Event Published:</strong> "Tech Innovation Summit" is now live
-                      </p>
-                      <p className="text-xs text-gray-500">6 hours ago</p>
-                    </div>
-                    <button className="btn btn-outline btn-sm">View Event</button>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm text-gray-900">New user registered: john@example.com</p>
+                  <p className="text-xs text-gray-500">4 hours ago</p>
+                </div>
+              </div>
+              
+              <div className="flex items-center space-x-3">
+                <div className="flex-shrink-0">
+                  <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                    <svg className="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                    </svg>
                   </div>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm text-gray-900">Waitlist entry added to "Design Week 2024"</p>
+                  <p className="text-xs text-gray-500">6 hours ago</p>
                 </div>
               </div>
             </div>
           </div>
+        </div>
 
-          {/* Admin Actions */}
-          <div className="space-y-6">
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
-              <div className="space-y-3">
-                <button className="btn btn-primary w-full">
-                  Review Pending Events
-                </button>
-                <button className="btn btn-outline w-full">
-                  Manage Owners
-                </button>
-                <button className="btn btn-outline w-full">
-                  System Settings
-                </button>
-                <button className="btn btn-outline w-full">
-                  Export Data
-                </button>
+        {/* System Health */}
+        <div className="bg-white rounded-lg shadow-sm">
+          <div className="px-6 py-4 border-b border-gray-200">
+            <h2 className="text-xl font-semibold text-gray-900">System Health</h2>
+          </div>
+          <div className="p-6">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-gray-900">API Status</span>
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                  Healthy
+                </span>
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-gray-900">Database</span>
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                  Connected
+                </span>
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-gray-900">Redis Cache</span>
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                  Not Configured
+                </span>
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-gray-900">Email Service</span>
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                  Not Configured
+                </span>
               </div>
             </div>
+          </div>
+        </div>
+      </div>
 
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">System Health</h3>
-              <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">API Status</span>
-                  <span className="text-sm text-green-600 font-medium">Healthy</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Database</span>
-                  <span className="text-sm text-green-600 font-medium">Connected</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Email Service</span>
-                  <span className="text-sm text-green-600 font-medium">Active</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Redis Cache</span>
-                  <span className="text-sm text-green-600 font-medium">Connected</span>
-                </div>
-              </div>
-            </div>
+      {/* Quick Actions */}
+      <div className="mt-8 bg-white rounded-lg shadow-sm">
+        <div className="px-6 py-4 border-b border-gray-200">
+          <h2 className="text-xl font-semibold text-gray-900">Quick Actions</h2>
+        </div>
+        <div className="p-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <button className="flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+              Create User
+            </button>
+            
+            <button className="flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+              View Analytics
+            </button>
+            
+            <button className="flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              System Settings
+            </button>
           </div>
         </div>
       </div>
