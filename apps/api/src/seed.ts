@@ -1,4 +1,4 @@
-import { PrismaClient, UserRole, EventStatus, ConsentType } from '@prisma/client'
+import { PrismaClient } from '@prisma/client'
 // import { hash } from 'bcryptjs'
 
 const prisma = new PrismaClient()
@@ -13,7 +13,7 @@ async function main() {
     create: {
       email: 'admin@linea.app',
       name: 'Admin User',
-      role: UserRole.ADMIN,
+      role: 'ADMIN',
       isActive: true,
       lastLoginAt: new Date(),
     },
@@ -28,7 +28,7 @@ async function main() {
     create: {
       email: 'owner@linea.app',
       name: 'Event Owner',
-      role: UserRole.OWNER,
+      role: 'OWNER',
       isActive: true,
       lastLoginAt: new Date(),
     },
@@ -145,7 +145,7 @@ async function main() {
         slug: 'milano-design-week-2024',
         description: 'The most important design event in the world, showcasing the latest trends in furniture, lighting, and home accessories.',
         shortDescription: 'Discover the future of design at the world\'s premier design event.',
-        status: EventStatus.PUBLISHED,
+        status: 'PUBLISHED',
         startDate: new Date('2024-04-15T10:00:00Z'),
         endDate: new Date('2024-04-21T18:00:00Z'),
         capacity: 1000,
@@ -179,7 +179,7 @@ async function main() {
         slug: 'tech-innovation-summit',
         description: 'A gathering of tech leaders, entrepreneurs, and innovators to discuss the future of technology and its impact on society.',
         shortDescription: 'Join the conversation about the future of technology.',
-        status: EventStatus.PUBLISHED,
+        status: 'PUBLISHED',
         startDate: new Date('2024-05-20T09:00:00Z'),
         endDate: new Date('2024-05-22T17:00:00Z'),
         capacity: 500,
@@ -213,7 +213,7 @@ async function main() {
         slug: 'contemporary-art-exhibition',
         description: 'An immersive exhibition featuring works by emerging and established contemporary artists from around the world.',
         shortDescription: 'Experience cutting-edge contemporary art in the heart of Milano.',
-        status: EventStatus.DRAFT,
+        status: 'DRAFT',
         startDate: new Date('2024-06-10T11:00:00Z'),
         endDate: new Date('2024-08-10T19:00:00Z'),
         capacity: 200,
@@ -337,7 +337,7 @@ async function main() {
     prisma.consent.create({
       data: {
         userId: adminUser.id,
-        type: ConsentType.NECESSARY,
+        type: 'NECESSARY',
         granted: true,
         grantedAt: new Date(),
         ipAddress: '127.0.0.1',
@@ -347,7 +347,7 @@ async function main() {
     prisma.consent.create({
       data: {
         userId: adminUser.id,
-        type: ConsentType.ANALYTICS,
+        type: 'ANALYTICS',
         granted: true,
         grantedAt: new Date(),
         ipAddress: '127.0.0.1',

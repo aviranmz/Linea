@@ -6,7 +6,7 @@ import swagger from '@fastify/swagger'
 import swaggerUi from '@fastify/swagger-ui'
 import fastifyStatic from '@fastify/static'
 import cookie from '@fastify/cookie'
-import { PrismaClient, Prisma, type EventStatus } from '@prisma/client'
+import { PrismaClient } from '@prisma/client'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import { getConfig, validateConfig } from '@linea/config'
@@ -212,7 +212,7 @@ app.get('/api/events', async (request, reply) => {
       featured?: string
     }
 
-    const where: Prisma.EventWhereInput = {
+    const where: Record<string, unknown> = {
       isPublic: true,
       deletedAt: null
     }
@@ -230,7 +230,7 @@ app.get('/api/events', async (request, reply) => {
     }
 
     if (status && ['DRAFT','PUBLISHED','CANCELLED','COMPLETED'].includes(status)) {
-      where.status = status as EventStatus
+      where.status = status
     }
 
     if (featured === 'true') {
@@ -334,10 +334,7 @@ app.get('/api/owner/events', async (request, reply) => {
   try {
     const user = await requireOwnerOrAdmin(request, reply)
     if (!user) return
-    const where: Prisma.EventWhereInput = { deletedAt: null }
-    if (user.role === 'OWNER') {
-      where.ownerId = user.id
-    }
+    const where: Record<string, unknown> = user.role === 'OWNER' ? { ownerId: user.id, deletedAt: null } : { deletedAt: null }
     const events = await prisma.event.findMany({
       where,
       orderBy: { createdAt: 'desc' },
@@ -380,7 +377,7 @@ app.post('/api/owner/events', async (request, reply) => {
         slug,
         description: description ?? null,
         shortDescription: shortDescription ?? null,
-        status: (isPublic ? 'PUBLISHED' : 'DRAFT') as EventStatus,
+        status: (isPublic ? 'PUBLISHED' : 'DRAFT'),
         startDate: new Date(startDate),
         endDate: endDate ? new Date(endDate) : null,
         capacity: capacity ?? null,
