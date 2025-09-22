@@ -15,6 +15,8 @@ model User {
   email     String   @unique
   name      String?
   role      UserRole @default(VISITOR)
+  isActive  Boolean  @default(true)
+  lastLoginAt DateTime?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   deletedAt DateTime?
@@ -24,7 +26,14 @@ model User {
   waitlistEntries WaitlistEntry[]
   sessions        Session[]
   auditLogs       AuditLog[]
+  emailVerifications EmailVerification[]
+  consents        Consent[]
+  invitationsSent Invitation[] @relation("InvitationInviter")
+  invitationsReceived Invitation[] @relation("InvitationInvitee")
 
+  @@index([email])
+  @@index([role])
+  @@index([isActive])
   @@map("users")
 }
 
@@ -33,34 +42,48 @@ model Event {
   title       String
   slug        String      @unique
   description String?
+  shortDescription String?
   status      EventStatus @default(DRAFT)
   startDate   DateTime
   endDate     DateTime?
   capacity    Int?
+  currentWaitlist Int @default(0)
   youtubeUrl  String?
   mapLat      Float?
   mapLng      Float?
   mapZoom     Int?
+  mapAddress  String?
   ownerId     String
   venueId     String?
+  categoryId  String?
+  isPublic    Boolean @default(false)
+  featured    Boolean @default(false)
+  tags        String[]
+  metadata    Json?
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
   deletedAt   DateTime?
 
   // Relations
-  owner    User           @relation("EventOwner", fields: [ownerId], references: [id])
-  venue    Venue?         @relation(fields: [venueId], references: [id])
-  waitlist WaitlistEntry[]
+  owner     User           @relation("EventOwner", fields: [ownerId], references: [id])
+  venue     Venue?         @relation(fields: [venueId], references: [id])
+  category  Category?      @relation(fields: [categoryId], references: [id])
+  waitlist  WaitlistEntry[]
+  shows     Show[]
+  nearbyPlaces NearbyPlace[]
 
   @@index([slug])
   @@index([startDate])
   @@index([status])
+  @@index([isPublic])
+  @@index([featured])
+  @@index([categoryId])
   @@map("events")
 }
 
 model Venue {
   id          String   @id @default(cuid())
-  name        String
+  name        String   @unique
   address     String
   city        String
   country     String
@@ -74,6 +97,7 @@ model Venue {
   // Relations
   events Event[]
 
+  @@index([name])
   @@map("venues")
 }
 
@@ -134,6 +158,132 @@ model AuditLog {
   @@map("audit_logs")
 }
 
+// Additional Models
+
+model Show {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  startDate   DateTime
+  endDate     DateTime?
+  capacity    Int?
+  currentWaitlist Int @default(0)
+  youtubeUrl  String?
+  eventId     String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  deletedAt   DateTime?
+
+  // Relations
+  event Event @relation(fields: [eventId], references: [id])
+
+  @@index([eventId])
+  @@index([startDate])
+  @@map("shows")
+}
+
+model Category {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  slug        String   @unique
+  description String?
+  color       String?
+  icon        String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  deletedAt   DateTime?
+
+  // Relations
+  events Event[]
+
+  @@index([slug])
+  @@index([isActive])
+  @@map("categories")
+}
+
+model EmailVerification {
+  id        String   @id @default(cuid())
+  email     String
+  token     String   @unique
+  type      EmailVerificationType
+  expiresAt DateTime
+  verifiedAt DateTime?
+  userId    String?
+  createdAt DateTime @default(now())
+
+  // Relations
+  user User? @relation(fields: [userId], references: [id])
+
+  @@index([email])
+  @@index([token])
+  @@index([expiresAt])
+  @@map("email_verifications")
+}
+
+model Consent {
+  id          String   @id @default(cuid())
+  userId      String
+  type        ConsentType
+  granted     Boolean
+  grantedAt   DateTime?
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([userId, type])
+  @@index([type])
+  @@map("consents")
+}
+
+model NearbyPlace {
+  id          String   @id @default(cuid())
+  name        String
+  address     String
+  latitude    Float
+  longitude   Float
+  category    String
+  rating      Float?
+  website     String?
+  phone       String?
+  distance    Float?   // Distance from event in meters
+  eventId     String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  event Event @relation(fields: [eventId], references: [id])
+
+  @@index([eventId])
+  @@index([category])
+  @@index([distance])
+  @@map("nearby_places")
+}
+
+model Invitation {
+  id          String   @id @default(cuid())
+  email       String
+  role        UserRole
+  token       String   @unique
+  expiresAt   DateTime
+  acceptedAt  DateTime?
+  invitedBy   String
+  createdAt   DateTime @default(now())
+
+  // Relations
+  inviter User @relation("InvitationInviter", fields: [invitedBy], references: [id])
+  invitee User? @relation("InvitationInvitee", fields: [email], references: [email])
+
+  @@index([email])
+  @@index([token])
+  @@index([expiresAt])
+  @@map("invitations")
+}
+
 // Enums
 enum UserRole {
   VISITOR
@@ -152,4 +302,18 @@ enum WaitlistStatus {
   PENDING
   CONFIRMED
   CANCELLED
+}
+
+enum EmailVerificationType {
+  MAGIC_LINK
+  EMAIL_VERIFICATION
+  PASSWORD_RESET
+  OWNER_INVITATION
+}
+
+enum ConsentType {
+  ANALYTICS
+  MARKETING
+  NECESSARY
+  FUNCTIONAL
 }

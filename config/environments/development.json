@@ -1,0 +1,96 @@
+{
+  "environment": {
+    "NODE_ENV": "development",
+    "APP_NAME": "Linea",
+    "APP_VERSION": "0.2.0"
+  },
+  "database": {
+    "DATABASE_URL": "postgresql://postgres:password@localhost:5432/linea_dev",
+    "DB_POOL_MIN": 2,
+    "DB_POOL_MAX": 5,
+    "DB_POOL_IDLE_TIMEOUT": 30000
+  },
+  "redis": {
+    "REDIS_URL": "redis://localhost:6379",
+    "REDIS_PASSWORD": "",
+    "REDIS_DB": 0,
+    "REDIS_KEY_PREFIX": "linea:dev:"
+  },
+  "server": {
+    "API_URL": "http://localhost:9030",
+    "FRONTEND_URL": "http://localhost:3030",
+    "PORT": 9030,
+    "HOST": "0.0.0.0",
+    "CORS_ORIGIN": "http://localhost:3030",
+    "CORS_CREDENTIALS": true
+  },
+  "security": {
+    "JWT_SECRET": "dev-jwt-secret-change-in-production",
+    "JWT_EXPIRES_IN": "7d",
+    "JWT_REFRESH_EXPIRES_IN": "30d",
+    "SESSION_SECRET": "dev-session-secret-change-in-production",
+    "SESSION_COOKIE_NAME": "linea_session",
+    "SESSION_COOKIE_MAX_AGE": 604800000,
+    "SESSION_COOKIE_SECURE": false,
+    "SESSION_COOKIE_HTTP_ONLY": true,
+    "SESSION_COOKIE_SAME_SITE": "lax",
+    "RATE_LIMIT_WINDOW_MS": 900000,
+    "RATE_LIMIT_MAX_REQUESTS": 1000
+  },
+  "email": {
+    "SENDGRID_API_KEY": "your-sendgrid-api-key",
+    "SENDGRID_FROM_EMAIL": "dev@linea.app",
+    "SENDGRID_FROM_NAME": "Linea Dev",
+    "SENDGRID_REPLY_TO": "dev-support@linea.app"
+  },
+  "analytics": {
+    "ANALYTICS_ENABLED": false,
+    "ANALYTICS_ID": "",
+    "ANALYTICS_DOMAIN": "",
+    "ANALYTICS_SCRIPT_URL": ""
+  },
+  "observability": {
+    "SENTRY_DSN": "",
+    "SENTRY_ENVIRONMENT": "development",
+    "SENTRY_RELEASE": "0.2.0",
+    "LOG_LEVEL": "debug",
+    "LOG_FORMAT": "pretty",
+    "LOG_FILE": "logs/dev.log"
+  },
+  "maps": {
+    "NOMINATIM_BASE_URL": "https://nominatim.openstreetmap.org",
+    "NOMINATIM_USER_AGENT": "Linea-Dev/0.2.0",
+    "NOMINATIM_RATE_LIMIT": 1000,
+    "MAP_TILE_URL": "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+    "MAP_ATTRIBUTION": "© OpenStreetMap contributors"
+  },
+  "storage": {
+    "UPLOAD_MAX_SIZE": 5242880,
+    "UPLOAD_ALLOWED_TYPES": "image/jpeg,image/png,image/webp",
+    "UPLOAD_PATH": "./uploads",
+    "STORAGE_PROVIDER": "local"
+  },
+  "privacy": {
+    "DATA_RETENTION_SESSIONS": 7,
+    "DATA_RETENTION_EMAILS": 30,
+    "DATA_RETENTION_AUDIT_LOGS": 90,
+    "REQUIRE_DOUBLE_OPT_IN": false,
+    "COOKIE_CONSENT_REQUIRED": false,
+    "ANALYTICS_CONSENT_REQUIRED": false
+  },
+  "features": {
+    "FEATURE_NEARBY_SUGGESTIONS": true,
+    "FEATURE_MAP_INTEGRATION": true,
+    "FEATURE_PAYMENTS": false,
+    "FEATURE_ADVANCED_ANALYTICS": false
+  },
+  "development": {
+    "SEED_ADMIN_EMAIL": "admin@linea.dev",
+    "SEED_ADMIN_PASSWORD": "admin123",
+    "SEED_SAMPLE_EVENTS": true,
+    "DEBUG_SQL": true,
+    "DEBUG_REDIS": true,
+    "DEBUG_EMAIL": true
+  }
+}
+

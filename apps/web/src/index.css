@@ -6,37 +6,148 @@
 
 @layer base {
   * {
-    @apply border-gray-200;
+    @apply border-neutral-200;
+  }
+  
+  html {
+    scroll-behavior: smooth;
   }
   
   body {
-    @apply bg-white text-gray-900;
+    @apply bg-milano-cream text-neutral-900 antialiased;
     font-feature-settings: "rlig" 1, "calt" 1;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+  
+  .dark body {
+    @apply bg-neutral-900 text-neutral-100;
+  }
+  
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    @apply bg-neutral-100;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    @apply bg-neutral-300 rounded-full;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-neutral-400;
+  }
+  
+  .dark ::-webkit-scrollbar-track {
+    @apply bg-neutral-800;
+  }
+  
+  .dark ::-webkit-scrollbar-thumb {
+    @apply bg-neutral-600;
+  }
+  
+  .dark ::-webkit-scrollbar-thumb:hover {
+    @apply bg-neutral-500;
   }
 }
 
 @layer components {
+  /* Button Components */
   .btn {
-    @apply inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 px-4 py-2;
+    @apply inline-flex items-center justify-center rounded-lg text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 px-4 py-2.5;
   }
   
   .btn-primary {
-    @apply bg-primary-600 text-white hover:bg-primary-700;
+    @apply bg-accent-500 text-white hover:bg-accent-600 shadow-milano hover:shadow-milano-lg;
   }
   
   .btn-secondary {
-    @apply bg-secondary-100 text-secondary-900 hover:bg-secondary-200;
+    @apply bg-neutral-100 text-neutral-900 hover:bg-neutral-200 border border-neutral-200;
   }
   
   .btn-outline {
-    @apply border border-primary-600 text-primary-600 hover:bg-primary-50;
+    @apply border border-accent-500 text-accent-600 hover:bg-accent-50 dark:hover:bg-accent-950/20;
   }
   
+  .btn-ghost {
+    @apply text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:text-neutral-100 dark:hover:bg-neutral-800;
+  }
+  
+  /* Card Components */
   .card {
-    @apply rounded-lg border border-gray-200 bg-white shadow-sm;
+    @apply rounded-xl border border-neutral-200 bg-white shadow-milano hover:shadow-milano-lg transition-shadow duration-200 dark:border-neutral-700 dark:bg-neutral-800;
   }
   
+  .card-elevated {
+    @apply rounded-xl bg-white shadow-milano-lg dark:bg-neutral-800;
+  }
+  
+  /* Input Components */
   .input {
-    @apply flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
+    @apply flex h-11 w-full rounded-lg border border-neutral-300 bg-white px-3 py-2.5 text-sm placeholder:text-neutral-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-colors duration-200 dark:border-neutral-600 dark:bg-neutral-800 dark:text-neutral-100 dark:placeholder:text-neutral-500;
+  }
+  
+  .input-error {
+    @apply border-red-500 focus-visible:ring-red-500;
+  }
+  
+  /* Typography Components */
+  .heading-1 {
+    @apply text-4xl md:text-5xl lg:text-6xl font-display font-semibold text-neutral-900 dark:text-neutral-100;
+  }
+  
+  .heading-2 {
+    @apply text-3xl md:text-4xl lg:text-5xl font-display font-semibold text-neutral-900 dark:text-neutral-100;
+  }
+  
+  .heading-3 {
+    @apply text-2xl md:text-3xl font-display font-medium text-neutral-900 dark:text-neutral-100;
+  }
+  
+  .heading-4 {
+    @apply text-xl md:text-2xl font-display font-medium text-neutral-900 dark:text-neutral-100;
+  }
+  
+  .text-body {
+    @apply text-base text-neutral-600 dark:text-neutral-300 leading-relaxed;
+  }
+  
+  .text-caption {
+    @apply text-sm text-neutral-500 dark:text-neutral-400;
+  }
+  
+  /* Layout Components */
+  .container {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+  
+  .section {
+    @apply py-16 md:py-24;
+  }
+  
+  .section-sm {
+    @apply py-8 md:py-12;
+  }
+  
+  /* Milano Design Elements */
+  .milano-gradient {
+    @apply bg-gradient-to-br from-milano-cream via-white to-milano-sage/10;
+  }
+  
+  .milano-accent {
+    @apply text-accent-600 dark:text-accent-400;
+  }
+  
+  .milano-border {
+    @apply border-milano-gold/20;
+  }
+  
+  /* Animation Classes - Use Tailwind's built-in animations directly */
+  
+  /* Focus States */
+  .focus-milano {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2;
   }
 }

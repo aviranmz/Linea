@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
+import { postJson, getJson } from '../lib/api'
 
 interface PlatformStats {
   totalUsers: number
@@ -8,6 +9,20 @@ interface PlatformStats {
 }
 
 export function AdminPortal() {
+  const [auth, setAuth] = useState<{ authenticated: boolean; user?: { email: string }} | null>(null)
+  const [loginEmail, setLoginEmail] = useState('')
+
+  useEffect(() => {
+    getJson<{ authenticated: boolean; user?: { email: string } }>('/auth/me')
+      .then(setAuth)
+      .catch(() => setAuth({ authenticated: false }))
+  }, [])
+
+  const requestMagic = async (e: React.FormEvent) => {
+    e.preventDefault()
+    await postJson('/auth/request-magic-link', { email: loginEmail })
+    alert('Magic link sent if the email exists. Check your inbox.')
+  }
   const [stats, setStats] = useState<PlatformStats>({
     totalUsers: 0,
     totalEvents: 0,
@@ -29,6 +44,19 @@ export function AdminPortal() {
       setLoading(false)
     }, 1000)
   }, [])
+
+  if (!auth?.authenticated) {
+    return (
+      <div className="max-w-md mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <h1 className="heading-2 mb-4">Admin Login</h1>
+        <p className="text-body mb-6">Enter your email to receive a one-time magic link.</p>
+        <form onSubmit={requestMagic} className="space-y-4">
+          <input type="email" className="input w-full" value={loginEmail} onChange={(e)=>setLoginEmail(e.target.value)} placeholder="admin@linea.app" required />
+          <button type="submit" className="btn btn-primary w-full">Send magic link</button>
+        </form>
+      </div>
+    )
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">

@@ -1,0 +1,96 @@
+{
+  "environment": {
+    "NODE_ENV": "staging",
+    "APP_NAME": "Linea",
+    "APP_VERSION": "0.2.0"
+  },
+  "database": {
+    "DATABASE_URL": "postgresql://username:password@staging-db:5432/linea_staging",
+    "DB_POOL_MIN": 5,
+    "DB_POOL_MAX": 20,
+    "DB_POOL_IDLE_TIMEOUT": 30000
+  },
+  "redis": {
+    "REDIS_URL": "redis://staging-redis:6379",
+    "REDIS_PASSWORD": "staging-redis-password",
+    "REDIS_DB": 1,
+    "REDIS_KEY_PREFIX": "linea:staging:"
+  },
+  "server": {
+    "API_URL": "https://linea-staging-api.up.railway.app",
+    "FRONTEND_URL": "https://linea-staging.up.railway.app",
+    "PORT": 9030,
+    "HOST": "0.0.0.0",
+    "CORS_ORIGIN": "https://linea-staging.up.railway.app",
+    "CORS_CREDENTIALS": true
+  },
+  "security": {
+    "JWT_SECRET": "staging-jwt-secret-from-railway-vars",
+    "JWT_EXPIRES_IN": "7d",
+    "JWT_REFRESH_EXPIRES_IN": "30d",
+    "SESSION_SECRET": "staging-session-secret-from-railway-vars",
+    "SESSION_COOKIE_NAME": "linea_session",
+    "SESSION_COOKIE_MAX_AGE": 604800000,
+    "SESSION_COOKIE_SECURE": true,
+    "SESSION_COOKIE_HTTP_ONLY": true,
+    "SESSION_COOKIE_SAME_SITE": "lax",
+    "RATE_LIMIT_WINDOW_MS": 900000,
+    "RATE_LIMIT_MAX_REQUESTS": 500
+  },
+  "email": {
+    "SENDGRID_API_KEY": "staging-sendgrid-api-key",
+    "SENDGRID_FROM_EMAIL": "staging@linea.app",
+    "SENDGRID_FROM_NAME": "Linea Staging",
+    "SENDGRID_REPLY_TO": "staging-support@linea.app"
+  },
+  "analytics": {
+    "ANALYTICS_ENABLED": true,
+    "ANALYTICS_ID": "staging-analytics-id",
+    "ANALYTICS_DOMAIN": "staging.linea.app",
+    "ANALYTICS_SCRIPT_URL": "https://plausible.io/js/script.js"
+  },
+  "observability": {
+    "SENTRY_DSN": "staging-sentry-dsn",
+    "SENTRY_ENVIRONMENT": "staging",
+    "SENTRY_RELEASE": "0.2.0",
+    "LOG_LEVEL": "info",
+    "LOG_FORMAT": "json",
+    "LOG_FILE": "logs/staging.log"
+  },
+  "maps": {
+    "NOMINATIM_BASE_URL": "https://nominatim.openstreetmap.org",
+    "NOMINATIM_USER_AGENT": "Linea-Staging/0.2.0",
+    "NOMINATIM_RATE_LIMIT": 500,
+    "MAP_TILE_URL": "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+    "MAP_ATTRIBUTION": "© OpenStreetMap contributors"
+  },
+  "storage": {
+    "UPLOAD_MAX_SIZE": 5242880,
+    "UPLOAD_ALLOWED_TYPES": "image/jpeg,image/png,image/webp",
+    "UPLOAD_PATH": "./uploads",
+    "STORAGE_PROVIDER": "railway"
+  },
+  "privacy": {
+    "DATA_RETENTION_SESSIONS": 30,
+    "DATA_RETENTION_EMAILS": 180,
+    "DATA_RETENTION_AUDIT_LOGS": 365,
+    "REQUIRE_DOUBLE_OPT_IN": true,
+    "COOKIE_CONSENT_REQUIRED": true,
+    "ANALYTICS_CONSENT_REQUIRED": true
+  },
+  "features": {
+    "FEATURE_NEARBY_SUGGESTIONS": true,
+    "FEATURE_MAP_INTEGRATION": true,
+    "FEATURE_PAYMENTS": false,
+    "FEATURE_ADVANCED_ANALYTICS": true
+  },
+  "development": {
+    "SEED_ADMIN_EMAIL": "admin@linea.staging",
+    "SEED_ADMIN_PASSWORD": "staging-admin-password",
+    "SEED_SAMPLE_EVENTS": true,
+    "DEBUG_SQL": false,
+    "DEBUG_REDIS": false,
+    "DEBUG_EMAIL": false
+  }
+}
+

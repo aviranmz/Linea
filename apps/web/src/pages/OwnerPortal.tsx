@@ -1,4 +1,6 @@
+import React from 'react'
 import { useState, useEffect } from 'react'
+import { postJson, getJson } from '../lib/api'
 import { Link } from 'react-router-dom'
 
 interface Event {
@@ -12,6 +14,20 @@ interface Event {
 }
 
 export function OwnerPortal() {
+  const [auth, setAuth] = useState<{ authenticated: boolean; user?: { email: string }} | null>(null)
+  const [loginEmail, setLoginEmail] = useState('')
+
+  useEffect(() => {
+    getJson<{ authenticated: boolean; user?: { email: string } }>('/auth/me')
+      .then(setAuth)
+      .catch(() => setAuth({ authenticated: false }))
+  }, [])
+
+  const requestMagic = async (e: React.FormEvent) => {
+    e.preventDefault()
+    await postJson('/auth/request-magic-link', { email: loginEmail })
+    alert('Magic link sent if the email exists. Check your inbox.')
+  }
   const [events, setEvents] = useState<Event[]>([])
   const [loading, setLoading] = useState(true)
   const [showCreateForm, setShowCreateForm] = useState(false)
@@ -23,25 +39,62 @@ export function OwnerPortal() {
   })
 
   useEffect(() => {
-    // In a real app, this would fetch user's events
-    // For now, we'll use the mock data
-    fetch('/api/events')
-      .then(res => res.json())
-      .then(data => {
+    const load = async () => {
+      try {
+        const data = await getJson<{ events: Event[] }>('/api/owner/events')
         setEvents(data.events || [])
+      } catch {
+        // ignore
+      } finally {
         setLoading(false)
-      })
-      .catch(() => {
-        setLoading(false)
-      })
+      }
+    }
+    load()
   }, [])
 
   const handleCreateEvent = async (e: React.FormEvent) => {
     e.preventDefault()
-    // In a real app, this would create the event
-    console.log('Creating event:', newEvent)
-    setShowCreateForm(false)
-    setNewEvent({ title: '', description: '', startDate: '', capacity: '' })
+    const payload = {
+      title: newEvent.title,
+      description: newEvent.description || undefined,
+      startDate: newEvent.startDate,
+      capacity: newEvent.capacity ? Number(newEvent.capacity) : undefined,
+      isPublic: false,
+      featured: false,
+      tags: [] as string[]
+    }
+    try {
+      await postJson('/api/owner/events', payload)
+      const data = await getJson<{ events: Event[] }>('/api/owner/events')
+      setEvents(data.events || [])
+      setShowCreateForm(false)
+      setNewEvent({ title: '', description: '', startDate: '', capacity: '' })
+    } catch (err) {
+      alert('Failed to create event')
+    }
+  }
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Delete this event?')) return
+    try {
+      await fetch(`/api/owner/events/${id}`, { method: 'DELETE', credentials: 'include' })
+      setEvents(prev => prev.filter(e => e.id !== id))
+    } catch {
+      alert('Failed to delete event')
+    }
+  }
+
+  if (!auth?.authenticated) {
+    return (
+      <div className="max-w-md mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <h1 className="heading-2 mb-4">Owner Login</h1>
+        <p className="text-body mb-6">Enter your email to receive a one-time magic link.</p>
+        <form onSubmit={requestMagic} className="space-y-4">
+          <input type="email" className="input w-full" value={loginEmail} onChange={(e)=>setLoginEmail(e.target.value)} placeholder="owner@linea.app" required />
+          <button type="submit" className="btn btn-primary w-full">Send magic link</button>
+        </form>
+      </div>
+    )
   }
 
   return (
@@ -182,7 +235,7 @@ export function OwnerPortal() {
                     <button className="text-gray-600 hover:text-gray-800 text-sm font-medium">
                       Edit
                     </button>
-                    <button className="text-red-600 hover:text-red-800 text-sm font-medium">
+                    <button onClick={() => handleDelete(event.id)} className="text-red-600 hover:text-red-800 text-sm font-medium">
                       Delete
                     </button>
                   </div>
