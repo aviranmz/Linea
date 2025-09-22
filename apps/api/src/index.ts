@@ -122,14 +122,7 @@ app.get('/health', async (_request, reply) => {
   }
 })
 
-// Basic API routes
-app.get('/', async (_request, _reply) => {
-  return {
-    message: 'Linea API is running!',
-    version: '0.1.0',
-    timestamp: new Date().toISOString()
-  }
-})
+// Basic API routes - removed root route to allow static file serving
 
 // Simple API routes (database-independent for now)
 app.get('/api/events', async (_request, reply) => {
@@ -230,7 +223,7 @@ process.on('SIGINT', () => gracefulShutdown('SIGINT'))
 // Start server
 const start = async () => {
   try {
-    const port = parseInt(process.env.PORT || '3001')
+    const port = parseInt(process.env.PORT || '8080')
     const host = process.env.HOST || '0.0.0.0'
 
     await app.listen({ port, host })
