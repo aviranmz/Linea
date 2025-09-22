@@ -41,16 +41,19 @@ COPY apps/api/package.json ./apps/api/
 # Copy lockfile if it exists
 COPY pnpm-lock.yaml* ./
 
-# Install production dependencies only
-RUN pnpm install --frozen-lockfile --prod
+# Install all dependencies (including dev) for Prisma generation
+RUN pnpm install --frozen-lockfile
 
 # Copy built applications
 COPY --from=base /app/apps/web/dist ./apps/web/dist
 COPY --from=base /app/apps/api/dist ./apps/api/dist
 COPY --from=base /app/apps/api/prisma ./apps/api/prisma
 
-# Install @prisma/client and generate Prisma client
-RUN pnpm --filter @linea/api add @prisma/client && pnpm --filter @linea/api db:generate
+# Generate Prisma client
+RUN pnpm --filter @linea/api db:generate
+
+# Remove dev dependencies to reduce image size
+RUN pnpm prune --prod
 
 # Set environment variables
 ENV NODE_ENV=production
