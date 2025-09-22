@@ -156,6 +156,25 @@ await app.register(cookie, {
   secret: config.security.SESSION_SECRET,
 })
 
+// Structured request timing logs
+app.addHook('onRequest', async (req) => {
+  // @ts-expect-error attach start time
+  req._start = Date.now()
+  if (config.observability.SENTRY_DSN) {
+    Sentry.addBreadcrumb({
+      category: 'request',
+      message: `${req.method} ${req.url}`,
+      level: 'info'
+    })
+  }
+})
+
+app.addHook('onResponse', async (req, reply) => {
+  const start = (req as any)._start as number | undefined
+  const ms = start ? Date.now() - start : undefined
+  req.log.info({ method: req.method, url: req.url, statusCode: reply.statusCode, ms }, 'request completed')
+})
+
 await app.register(swagger, {
   openapi: {
     info: {
