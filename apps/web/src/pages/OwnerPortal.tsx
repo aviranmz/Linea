@@ -1,6 +1,6 @@
 import React from 'react'
 import { useState, useEffect } from 'react'
-import { postJson, getJson } from '../lib/api'
+import { postJson, getJson, putJson, deleteJson } from '../lib/api'
 import { Link } from 'react-router-dom'
 
 interface Event {
@@ -31,11 +31,21 @@ export function OwnerPortal() {
   const [events, setEvents] = useState<Event[]>([])
   const [loading, setLoading] = useState(true)
   const [showCreateForm, setShowCreateForm] = useState(false)
+  const [editTarget, setEditTarget] = useState<Event | null>(null)
   const [newEvent, setNewEvent] = useState({
     title: '',
     description: '',
     startDate: '',
     capacity: ''
+  })
+  const [editEvent, setEditEvent] = useState({
+    title: '',
+    description: '',
+    startDate: '',
+    endDate: '',
+    capacity: '',
+    isPublic: false,
+    featured: false
   })
 
   useEffect(() => {
@@ -77,10 +87,44 @@ export function OwnerPortal() {
   const handleDelete = async (id: string) => {
     if (!confirm('Delete this event?')) return
     try {
-      await fetch(`/api/owner/events/${id}`, { method: 'DELETE', credentials: 'include' })
+      await deleteJson(`/api/owner/events/${id}`)
       setEvents(prev => prev.filter(e => e.id !== id))
     } catch {
       alert('Failed to delete event')
+    }
+  }
+
+  const openEdit = (ev: Event) => {
+    setEditTarget(ev)
+    setEditEvent({
+      title: ev.title,
+      description: ev.description || '',
+      startDate: ev.startDate ? new Date(ev.startDate).toISOString().slice(0,16) : '',
+      endDate: '',
+      capacity: ev.capacity ? String(ev.capacity) : '',
+      isPublic: ev.status === 'PUBLISHED',
+      featured: false
+    })
+  }
+
+  const submitEdit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!editTarget) return
+    try {
+      await putJson(`/api/owner/events/${editTarget.id}`, {
+        title: editEvent.title,
+        description: editEvent.description || null,
+        startDate: editEvent.startDate ? new Date(editEvent.startDate).toISOString() : undefined,
+        endDate: editEvent.endDate ? new Date(editEvent.endDate).toISOString() : null,
+        capacity: editEvent.capacity ? parseInt(editEvent.capacity) : null,
+        isPublic: editEvent.isPublic,
+        featured: editEvent.featured
+      })
+      const data = await getJson<{ events: Event[] }>(`/api/owner/events`)
+      setEvents(data.events || [])
+      setEditTarget(null)
+    } catch (err) {
+      alert('Failed to update event')
     }
   }
 
@@ -232,9 +276,7 @@ export function OwnerPortal() {
                     >
                       View
                     </Link>
-                    <button className="text-gray-600 hover:text-gray-800 text-sm font-medium">
-                      Edit
-                    </button>
+                    <button onClick={() => openEdit(event)} className="text-gray-600 hover:text-gray-800 text-sm font-medium">Edit</button>
                     <button onClick={() => handleDelete(event.id)} className="text-red-600 hover:text-red-800 text-sm font-medium">
                       Delete
                     </button>
@@ -277,6 +319,51 @@ export function OwnerPortal() {
           <p className="text-3xl font-bold text-green-600">12.5%</p>
         </div>
       </div>
+
+      {/* Edit Modal */}
+      {editTarget && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-8 max-w-md w-full mx-4">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">Edit Event</h2>
+            <form onSubmit={submitEdit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Title</label>
+                <input type="text" value={editEvent.title} onChange={(e)=>setEditEvent({ ...editEvent, title: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" required />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                <textarea value={editEvent.description} onChange={(e)=>setEditEvent({ ...editEvent, description: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" rows={3} />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Start Date</label>
+                <input type="datetime-local" value={editEvent.startDate} onChange={(e)=>setEditEvent({ ...editEvent, startDate: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" required />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">End Date (optional)</label>
+                <input type="datetime-local" value={editEvent.endDate} onChange={(e)=>setEditEvent({ ...editEvent, endDate: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Capacity (optional)</label>
+                <input type="number" value={editEvent.capacity} onChange={(e)=>setEditEvent({ ...editEvent, capacity: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
+              </div>
+              <div className="flex items-center gap-6">
+                <label className="flex items-center gap-2 text-sm text-gray-700">
+                  <input type="checkbox" checked={editEvent.isPublic} onChange={(e)=>setEditEvent({ ...editEvent, isPublic: e.target.checked })} />
+                  Public (publish)
+                </label>
+                <label className="flex items-center gap-2 text-sm text-gray-700">
+                  <input type="checkbox" checked={editEvent.featured} onChange={(e)=>setEditEvent({ ...editEvent, featured: e.target.checked })} />
+                  Featured
+                </label>
+              </div>
+              <div className="flex justify-end space-x-4">
+                <button type="button" onClick={()=>setEditTarget(null)} className="px-4 py-2 text-gray-600 hover:text-gray-800">Cancel</button>
+                <button type="submit" className="px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">Save</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

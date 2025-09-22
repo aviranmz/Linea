@@ -1,0 +1,156 @@
+---
+description: Asana sweep – implement everything sequentially and push after each
+globs:
+  alwaysApply: true
+
+env:
+  ASANA_PROJECT_ID: "replace_with_asana_project_gid"
+  BASE_BRANCH: "main"             # or "develop"
+  OPEN_PR: "true"                 # set "false" if you don't want PRs
+  TEST_CMD: "npm test --silent"   # or "pnpm test" / "yarn test"
+  LINT_CMD: "npm run lint"        # adjust to your repo
+  BUILD_CMD: "npm run build"      # adjust to your repo
+  DEFAULT_COMMIT_PREFIX: "feat"   # or "chore", "fix", etc.
+
+rules:
+  - name: "Asana → Code → Push (sequential until done)"
+    trigger: "manual"   # switch to a cron/schedule after first run (e.g., "0 * * * *")
+    action:
+      # 1) Get all incomplete tasks from Asana MCP
+      - type: "mcp.call"
+        id: "fetch_tasks"
+        tool: "asana.search_tasks"
+        params:
+          project_id: "${ASANA_PROJECT_ID}"
+          completed: false
+          limit: 100
+          fields:
+            - gid
+            - name
+            - notes
+            - permalink_url
+            - custom_fields
+            - assignee
+      # 2) Ensure base branch up to date
+      - type: "shell"
+        id: "prep_branch"
+        continueOnError: false
+        command: |
+          set -e
+          git fetch origin
+          git checkout "${BASE_BRANCH}"
+          git pull --ff-only origin "${BASE_BRANCH}"
+
+      # 3) Iterate each task sequentially
+      - type: "loop"
+        for: "{{fetch_tasks.result.data}}"
+        as: "task"
+        continueOnError: true     # don't stop the whole sweep on one failure
+        retry:
+          maxRetries: 2
+          delaySeconds: 5
+        steps:
+          # 3.1) Branch per task
+          - type: "shell"
+            id: "branch_{{task.gid}}"
+            command: |
+              set -e
+              slug="$(echo "{{task.name}}" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/-/g;s/^-|-$//g' | cut -c1-60)"
+              BRANCH="feat/asana-{{task.gid}}-${slug}"
+              echo "Using branch: ${BRANCH}"
+              git checkout -b "${BRANCH}" || git checkout "${BRANCH}"
+              git merge --ff-only "${BASE_BRANCH}" || true
+              echo "${BRANCH}" > .CURR_BRANCH
+
+          # 3.2) Implement using Cursor edit (AI) — pass full task spec
+          - type: "edit"
+            id: "apply_edit_{{task.gid}}"
+            strategy: "workspace"  # or "smart"
+            prompt: |
+              Implement the Asana task below **completely**. Create/modify code, tests, and any config necessary.
+              - You must keep the project passing lint, tests, and build.
+              - Write concise, meaningful commits.
+              - If migration or env changes are needed, add/modify README sections.
+              - Prefer incremental, self-contained changes.
+
+              === ASANA TASK ===
+              ID: {{task.gid}}
+              Title: {{task.name}}
+              URL: {{task.permalink_url}}
+              Description/Notes:
+              {{task.notes}}
+
+              Custom Fields (if any):
+              {{task.custom_fields}}
+
+              Acceptance:
+              - All required code is implemented
+              - Repo lint/test/build succeed locally
+
+          # 3.3) Lint, test, build
+          - type: "shell"
+            id: "quality_{{task.gid}}"
+            command: |
+              set -e
+              ${LINT_CMD}
+              ${TEST_CMD}
+              ${BUILD_CMD}
+
+          # 3.4) Commit & push (after each task)
+          - type: "shell"
+            id: "commit_push_{{task.gid}}"
+            command: |
+              set -e
+              BRANCH="$(cat .CURR_BRANCH)"
+              git add -A
+              if ! git diff --cached --quiet; then
+                git commit -m "${DEFAULT_COMMIT_PREFIX}: {{task.name}} (asana:{{task.gid}})"
+                git push -u origin "${BRANCH}"
+              else
+                echo "No changes to commit for task {{task.gid}}"
+              fi
+
+          # 3.5) Optional: open PR
+          - type: "shell"
+            id: "pr_{{task.gid}}"
+            when: '${OPEN_PR} == "true"'
+            continueOnError: true
+            command: |
+              set -e
+              BRANCH="$(cat .CURR_BRANCH)"
+              if command -v gh >/dev/null 2>&1; then
+                gh pr create --fill --base "${BASE_BRANCH}" --head "${BRANCH}" || true
+                PR_URL="$(gh pr view --json url -q .url || echo "")"
+                echo "${PR_URL}" > .CURR_PR_URL || true
+              else
+                echo "GitHub CLI not installed; skipping PR."
+                echo "" > .CURR_PR_URL
+              fi
+
+          # 3.6) Comment back on Asana with links
+          - type: "mcp.call"
+            id: "comment_{{task.gid}}"
+            tool: "asana.add_comment"
+            params:
+              task_id: "{{task.gid}}"
+              text: |
+                ✅ Implementation pushed for task **{{task.name}}** ({{task.gid}})
+                - Branch: $(cat .CURR_BRANCH)
+                - Commit: $(git rev-parse --short HEAD || echo "n/a")
+                - PR: $(cat .CURR_PR_URL || echo "n/a")
+
+          # 3.7) Complete the Asana task
+          - type: "mcp.call"
+            id: "complete_{{task.gid}}"
+            tool: "asana.complete_task"
+            params:
+              task_id: "{{task.gid}}"
+              completed: true
+
+          # 3.8) Return to base for the next task
+          - type: "shell"
+            id: "reset_for_next_{{task.gid}}"
+            command: |
+              set -e
+              git checkout "${BASE_BRANCH}"
+              git pull --ff-only origin "${BASE_BRANCH}"
