@@ -5,7 +5,7 @@ export interface SessionData {
   userId: string
   email: string
   role: string
-  name?: string
+  name?: string | null
   createdAt: number
   expiresAt: number
 }
@@ -16,11 +16,16 @@ export class SessionService {
 
   constructor() {
     const config = getConfig()
-    this.client = createClient({
+    const clientOptions: any = {
       url: config.redis.REDIS_URL,
-      password: config.redis.REDIS_PASSWORD || undefined,
       database: config.redis.REDIS_DB || 0,
-    })
+    }
+    
+    if (config.redis.REDIS_PASSWORD) {
+      clientOptions.password = config.redis.REDIS_PASSWORD
+    }
+    
+    this.client = createClient(clientOptions)
 
     this.client.on('error', (err) => {
       console.error('Redis Client Error:', err)
