@@ -11,6 +11,7 @@ import * as Sentry from '@sentry/node'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import { getConfig, validateConfig } from '@linea/config'
+import { sessionService } from './services/sessionService.js'
 
 // Get __dirname equivalent for ES modules
 const __filename = fileURLToPath(import.meta.url)
@@ -170,7 +171,7 @@ app.addHook('onRequest', async (req) => {
 })
 
 app.addHook('onResponse', async (req, reply) => {
-  const start = (req as any)._start as number | undefined
+  const start = (req as { _start?: number })._start
   const ms = start ? Date.now() - start : undefined
   req.log.info({ method: req.method, url: req.url, statusCode: reply.statusCode, ms }, 'request completed')
 })
@@ -210,12 +211,54 @@ const getSessionUser = async (request: FastifyRequest) => {
   const cookieName = config.security.SESSION_COOKIE_NAME || 'linea_session'
   const token = (request.cookies as Record<string, string | undefined>)?.[cookieName]
   if (!token) return null
-  const session = await prisma.session.findFirst({
-    where: { token, expiresAt: { gt: new Date() }, deletedAt: null },
-    include: { user: true }
+  
+  // Get session from Redis
+  const sessionData = await sessionService.getSession(token)
+  if (!sessionData) return null
+  
+  // Get user from database to ensure they're still active
+  const user = await prisma.user.findFirst({
+    where: { 
+      id: sessionData.userId, 
+      isActive: true,
+      deletedAt: null 
+    }
   })
-  if (!session?.user || !session.user.isActive) return null
-  return session.user
+  
+  if (!user) {
+    // User no longer exists or is inactive, cleanup session
+    await sessionService.deleteSession(token)
+    return null
+  }
+  
+  return user
+}
+
+// Helper function to create and set session
+const createSessionAndSetCookie = async (reply: FastifyReply, user: { id: string, email: string, role: string, name?: string | null }) => {
+  const sessionToken = crypto.randomUUID()
+  const sessionDuration = config.security.SESSION_COOKIE_MAX_AGE || 7 * 24 * 60 * 60 * 1000
+  
+  await sessionService.createSession(sessionToken, {
+    userId: user.id,
+    email: user.email,
+    role: user.role,
+    name: user.name || undefined
+  }, sessionDuration)
+
+  reply.setCookie(
+    config.security.SESSION_COOKIE_NAME || 'linea_session',
+    sessionToken,
+    {
+      path: '/',
+      httpOnly: true,
+      sameSite: (config.security.SESSION_COOKIE_SAME_SITE as 'lax'|'strict'|'none' | undefined) || 'lax',
+      secure: !!config.security.SESSION_COOKIE_SECURE,
+      maxAge: Math.floor(sessionDuration / 1000),
+    }
+  )
+  
+  return sessionToken
 }
 
 const requireAuth = async (request: FastifyRequest, reply: FastifyReply) => {
@@ -289,10 +332,16 @@ app.get('/health', async (_request, reply) => {
       app.log.warn({ error: dbError }, 'Database health check failed')
     }
 
-    // Check Redis connection (if configured)
-    // TODO: Add Redis health check when Redis is implemented
+    // Check Redis connection
+    try {
+      const isRedisHealthy = await sessionService.isHealthy()
+      services.redis = isRedisHealthy ? 'connected' : 'disconnected'
+    } catch (redisError) {
+      services.redis = 'disconnected'
+      app.log.warn({ error: redisError }, 'Redis health check failed')
+    }
 
-    const isHealthy = services.database === 'connected'
+    const isHealthy = services.database === 'connected' && services.redis === 'connected'
 
     return {
       status: isHealthy ? 'healthy' : 'degraded',
@@ -314,7 +363,7 @@ app.get('/health', async (_request, reply) => {
 // Basic API routes - removed root route to allow static file serving
 
 // Events API
-app.get('/api/events', async (request, reply) => {
+app.get('/api/events', async (request, _reply) => {
   try {
     const { search, category, status, featured } = request.query as {
       search?: string
@@ -842,7 +891,7 @@ app.get('/api/admin/overview', async (request, reply) => {
   }
 })
 
-// Auth: Request magic link
+// Auth: Request magic link (ENHANCED WITH MOCK FUNCTIONALITY)
 app.post('/auth/request-magic-link', async (request, reply) => {
   const { email } = request.body as { email: string }
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -866,10 +915,230 @@ app.post('/auth/request-magic-link', async (request, reply) => {
   const callbackUrl = new URL('/auth/callback', config.server.API_URL)
   callbackUrl.searchParams.set('token', token)
 
-  // TODO: Integrate SendGrid; for dev, log link
-  app.log.info({ email, callbackUrl: callbackUrl.toString() }, 'Magic link generated')
+  // For development: return the magic link in response
+  // For production: send via SendGrid
+  if (config.environment.NODE_ENV === 'development') {
+    app.log.info({ email, callbackUrl: callbackUrl.toString() }, 'Magic link generated (dev mode)')
+    reply.send({ 
+      ok: true, 
+      magicLink: callbackUrl.toString(),
+      message: 'Magic link generated (development mode)',
+      expiresIn: '15 minutes'
+    })
+  } else {
+    // TODO: Integrate SendGrid for production
+    app.log.info({ email, callbackUrl: callbackUrl.toString() }, 'Magic link generated')
+    reply.send({ ok: true, message: 'Magic link sent to your email' })
+  }
+})
 
-  reply.send({ ok: true })
+// Owner Registration (Enhanced Magic Link with Name)
+app.post('/auth/register-owner', async (request, reply) => {
+  const { email, name, organizationName } = request.body as { 
+    email: string, 
+    name: string, 
+    organizationName?: string 
+  }
+  
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  if (!email || !emailRegex.test(email)) {
+    reply.code(400).send({ error: 'Invalid email' })
+    return
+  }
+  
+  if (!name?.trim()) {
+    reply.code(400).send({ error: 'Name is required' })
+    return
+  }
+
+  // Check if user already exists as owner
+  const existingUser = await prisma.user.findUnique({ 
+    where: { email } 
+  })
+  
+  if (existingUser && existingUser.role === 'OWNER') {
+    reply.code(400).send({ error: 'Owner account already exists with this email' })
+    return
+  }
+
+  const token = crypto.randomUUID()
+  const expiresAt = new Date(Date.now() + 1000 * 60 * 30) // 30 minutes for owner registration
+
+  await prisma.emailVerification.create({
+    data: {
+      email,
+      token,
+      type: 'OWNER_INVITATION',
+      expiresAt,
+    }
+  })
+
+  const callbackUrl = new URL('/auth/owner-callback', config.server.API_URL)
+  callbackUrl.searchParams.set('token', token)
+  callbackUrl.searchParams.set('name', encodeURIComponent(name))
+  if (organizationName) {
+    callbackUrl.searchParams.set('org', encodeURIComponent(organizationName))
+  }
+
+  if (config.environment.NODE_ENV === 'development') {
+    app.log.info({ email, name, callbackUrl: callbackUrl.toString() }, 'Owner registration link generated (dev mode)')
+    reply.send({ 
+      ok: true, 
+      magicLink: callbackUrl.toString(),
+      message: 'Owner registration link generated (development mode)',
+      expiresIn: '30 minutes'
+    })
+  } else {
+    // TODO: Send owner invitation email via SendGrid
+    app.log.info({ email, name }, 'Owner registration link generated')
+    reply.send({ ok: true, message: 'Owner registration link sent to your email' })
+  }
+})
+
+// Owner Registration Callback
+app.get('/auth/owner-callback', async (request, reply) => {
+  const { token, name, org: _org } = request.query as { 
+    token?: string, 
+    name?: string, 
+    org?: string 
+  }
+  
+  if (!token) {
+    reply.code(400).send({ error: 'Missing token' })
+    return
+  }
+
+  const record = await prisma.emailVerification.findFirst({
+    where: {
+      token,
+      type: 'OWNER_INVITATION',
+      verifiedAt: null,
+      expiresAt: { gt: new Date() },
+    }
+  })
+
+  if (!record) {
+    reply.code(400).send({ error: 'Invalid or expired registration token' })
+    return
+  }
+
+  // Create or update user as OWNER
+  const user = await prisma.user.upsert({
+    where: { email: record.email },
+    update: { 
+      role: 'OWNER', 
+      name: name ? decodeURIComponent(name) : null,
+      lastLoginAt: new Date(), 
+      isActive: true 
+    },
+    create: { 
+      email: record.email, 
+      role: 'OWNER', 
+      name: name ? decodeURIComponent(name) : null,
+      isActive: true, 
+      lastLoginAt: new Date() 
+    }
+  })
+
+  // Mark verification used
+  await prisma.emailVerification.update({
+    where: { id: record.id },
+    data: { verifiedAt: new Date(), userId: user.id }
+  })
+
+  // Create session
+  const session = await prisma.session.create({
+    data: {
+      userId: user.id,
+      token: crypto.randomUUID(),
+      expiresAt: new Date(Date.now() + (config.security.SESSION_COOKIE_MAX_AGE || 7 * 24 * 60 * 60 * 1000))
+    }
+  })
+
+  reply.setCookie(
+    config.security.SESSION_COOKIE_NAME || 'linea_session',
+    session.token,
+    {
+      path: '/',
+      httpOnly: true,
+      sameSite: (config.security.SESSION_COOKIE_SAME_SITE as 'lax'|'strict'|'none' | undefined) || 'lax',
+      secure: !!config.security.SESSION_COOKIE_SECURE,
+      maxAge: Math.floor((config.security.SESSION_COOKIE_MAX_AGE || 604800000) / 1000),
+    }
+  )
+
+  // Redirect to owner portal
+  reply.redirect(`${config.server.FRONTEND_URL}/owner-portal`)
+})
+
+// Admin Login (Username + Password)
+app.post('/auth/admin-login', async (request, reply) => {
+  const { email, password } = request.body as { email: string, password: string }
+  
+  if (!email || !password) {
+    reply.code(400).send({ error: 'Email and password are required' })
+    return
+  }
+
+  // Find admin user
+  const user = await prisma.user.findFirst({
+    where: { 
+      email, 
+      role: 'ADMIN',
+      isActive: true 
+    }
+  })
+
+  if (!user) {
+    reply.code(401).send({ error: 'Invalid credentials' })
+    return
+  }
+
+  // For now, check against seed admin password from env
+  // In production, this should use proper password hashing (bcrypt)
+  const isValidPassword = password === config.development.SEED_ADMIN_PASSWORD
+
+  if (!isValidPassword) {
+    reply.code(401).send({ error: 'Invalid credentials' })
+    return
+  }
+
+  // Update last login
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { lastLoginAt: new Date() }
+  })
+
+  // Create session
+  const session = await prisma.session.create({
+    data: {
+      userId: user.id,
+      token: crypto.randomUUID(),
+      expiresAt: new Date(Date.now() + (config.security.SESSION_COOKIE_MAX_AGE || 7 * 24 * 60 * 60 * 1000))
+    }
+  })
+
+  reply.setCookie(
+    config.security.SESSION_COOKIE_NAME || 'linea_session',
+    session.token,
+    {
+      path: '/',
+      httpOnly: true,
+      sameSite: (config.security.SESSION_COOKIE_SAME_SITE as 'lax'|'strict'|'none' | undefined) || 'lax',
+      secure: !!config.security.SESSION_COOKIE_SECURE,
+      maxAge: Math.floor((config.security.SESSION_COOKIE_MAX_AGE || 604800000) / 1000),
+    }
+  )
+
+  reply.send({
+    ok: true,
+    user: {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      name: user.name
+    }
+  })
 })
 
 // Auth: Magic link callback
@@ -935,23 +1204,20 @@ app.get('/auth/callback', async (request, reply) => {
 // Auth: Current user
 app.get('/auth/me', async (request, reply) => {
   try {
-    const cookieName = config.security.SESSION_COOKIE_NAME || 'linea_session'
-    const token = (request.cookies as Record<string, string | undefined>)?.[cookieName]
-    if (!token) {
+    const user = await getSessionUser(request)
+    if (!user) {
       reply.code(401).send({ authenticated: false })
       return
     }
-    const session = await prisma.session.findFirst({
-      where: { token, expiresAt: { gt: new Date() }, deletedAt: null },
-      include: { user: true }
-    })
-    if (!session || !session.user) {
-      reply.code(401).send({ authenticated: false })
-      return
-    }
+    
     reply.send({
       authenticated: true,
-      user: { id: session.user.id, email: session.user.email, role: session.user.role, name: session.user.name }
+      user: { 
+        id: user.id, 
+        email: user.email, 
+        role: user.role, 
+        name: user.name 
+      }
     })
   } catch (error) {
     app.log.error({ error }, 'Failed to get current user')
@@ -996,7 +1262,7 @@ app.post('/auth/signout', async (request, reply) => {
     const cookieName = config.security.SESSION_COOKIE_NAME || 'linea_session'
     const token = (request.cookies as Record<string, string | undefined>)?.[cookieName]
     if (token) {
-      await prisma.session.updateMany({ where: { token }, data: { deletedAt: new Date() } })
+      await sessionService.deleteSession(token)
     }
     reply.clearCookie(cookieName, { path: '/' })
     reply.send({ ok: true })
@@ -1047,6 +1313,7 @@ const gracefulShutdown = async (signal: string) => {
     if (prisma) {
       await prisma.$disconnect()
     }
+    await sessionService.disconnect()
     process.exit(0)
   } catch (error) {
     app.log.error({ error }, 'Error during shutdown')

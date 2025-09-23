@@ -61,6 +61,11 @@ jobs:
       - name: Generate Prisma client
         run: pnpm --filter @linea/api db:generate
 
+      - name: Run database migrations
+        run: pnpm --filter @linea/api db:migrate
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/linea_test
+
       - name: Type check frontend
         run: pnpm --filter @linea/web typecheck
 

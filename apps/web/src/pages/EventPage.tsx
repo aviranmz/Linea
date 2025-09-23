@@ -1,17 +1,59 @@
 import React from 'react'
 import { useParams } from 'react-router-dom'
 import { useState, useEffect } from 'react'
+import { Helmet } from 'react-helmet-async'
 
 interface Event {
   id: string
   title: string
   slug: string
   description: string
+  shortDescription?: string
   startDate: string
   endDate?: string
   status: string
   capacity?: number
   youtubeUrl?: string
+  venue?: {
+    id: string
+    name: string
+    address: string
+    city: string
+    country: string
+    latitude?: number
+    longitude?: number
+  }
+  owner?: {
+    id: string
+    name: string
+    email: string
+  }
+  category?: {
+    id: string
+    name: string
+    slug: string
+    color: string
+    icon: string
+  }
+  shows?: Array<{
+    id: string
+    title: string
+    description?: string
+    startDate: string
+    endDate?: string
+    youtubeUrl?: string
+  }>
+  nearbyPlaces?: Array<{
+    id: string
+    name: string
+    address: string
+    category: string
+    distance?: number
+    website?: string
+  }>
+  _count?: {
+    waitlist: number
+  }
 }
 
 export function EventPage() {
@@ -85,8 +127,113 @@ export function EventPage() {
     )
   }
 
+  // Generate JSON-LD structured data
+  const generateJsonLd = () => {
+    if (!event) return null
+    
+    const jsonLd = {
+      "@context": "https://schema.org",
+      "@type": "Event",
+      name: event.title,
+      description: event.description || event.shortDescription,
+      startDate: event.startDate,
+      endDate: event.endDate,
+      eventStatus: event.status === 'PUBLISHED' ? 'https://schema.org/EventScheduled' : 'https://schema.org/EventPostponed',
+      eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
+      url: `${window.location.origin}/events/${event.slug}`,
+      ...(event.venue && {
+        location: {
+          "@type": "Place",
+          name: event.venue.name,
+          address: {
+            "@type": "PostalAddress",
+            streetAddress: event.venue.address,
+            addressLocality: event.venue.city,
+            addressCountry: event.venue.country
+          },
+          ...(event.venue.latitude && event.venue.longitude && {
+            geo: {
+              "@type": "GeoCoordinates",
+              latitude: event.venue.latitude,
+              longitude: event.venue.longitude
+            }
+          })
+        }
+      }),
+      ...(event.owner && {
+        organizer: {
+          "@type": "Organization",
+          name: event.owner.name,
+          email: event.owner.email
+        }
+      }),
+      ...(event.capacity && {
+        maximumAttendeeCapacity: event.capacity
+      }),
+      offers: {
+        "@type": "Offer",
+        url: `${window.location.origin}/events/${event.slug}`,
+        price: "0",
+        priceCurrency: "EUR",
+        availability: "https://schema.org/InStock",
+        validFrom: new Date().toISOString()
+      }
+    }
+    
+    return JSON.stringify(jsonLd)
+  }
+
+  const pageTitle = event ? `${event.title} | Linea Events` : 'Event | Linea Events'
+  const pageDescription = event ? (event.shortDescription || event.description?.substring(0, 160) + '...' || 'Join us for an amazing event!') : 'Event details and registration'
+  const pageUrl = `${window.location.origin}/events/${slug}`
+  const eventImage = `${window.location.origin}/og-event-${slug}.jpg` // Placeholder for event-specific images
+
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <>
+      <Helmet>
+        <title>{pageTitle}</title>
+        <meta name="description" content={pageDescription} />
+        <link rel="canonical" href={pageUrl} />
+        
+        {/* Open Graph */}
+        <meta property="og:title" content={pageTitle} />
+        <meta property="og:description" content={pageDescription} />
+        <meta property="og:url" content={pageUrl} />
+        <meta property="og:type" content="event" />
+        <meta property="og:image" content={eventImage} />
+        <meta property="og:site_name" content="Linea Events" />
+        
+        {/* Twitter Card */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={pageTitle} />
+        <meta name="twitter:description" content={pageDescription} />
+        <meta name="twitter:image" content={eventImage} />
+        
+        {/* Event specific meta tags */}
+        {event && (
+          <>
+            <meta property="event:start_time" content={event.startDate} />
+            {event.endDate && <meta property="event:end_time" content={event.endDate} />}
+            {event.venue && (
+              <>
+                <meta property="event:location:name" content={event.venue.name} />
+                <meta property="event:location:address" content={`${event.venue.address}, ${event.venue.city}, ${event.venue.country}`} />
+                {event.venue.latitude && <meta property="event:location:latitude" content={event.venue.latitude.toString()} />}
+                {event.venue.longitude && <meta property="event:location:longitude" content={event.venue.longitude.toString()} />}
+              </>
+            )}
+          </>
+        )}
+        
+        {/* JSON-LD Structured Data */}
+        {event && (
+          <script type="application/ld+json">
+            {generateJsonLd()}
+          </script>
+        )}
+      </Helmet>
+      
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       {/* Event Header */}
       <div className="mb-8">
         <h1 className="text-4xl font-bold text-gray-900 mb-4">{event.title}</h1>
@@ -193,6 +340,124 @@ export function EventPage() {
           </form>
         )}
       </div>
-    </div>
+
+      {/* Venue Information */}
+      {event.venue && (
+        <div className="mb-8">
+          <h2 className="text-2xl font-semibold text-gray-900 mb-4">Venue</h2>
+          <div className="bg-white border border-gray-200 rounded-lg p-6">
+            <h3 className="text-lg font-medium text-gray-900 mb-2">{event.venue.name}</h3>
+            <p className="text-gray-600 mb-4">
+              {event.venue.address}, {event.venue.city}, {event.venue.country}
+            </p>
+            {event.venue.latitude && event.venue.longitude && (
+              <a
+                href={`https://maps.google.com/?q=${event.venue.latitude},${event.venue.longitude}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center text-indigo-600 hover:text-indigo-800"
+              >
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                View on Google Maps
+              </a>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Shows */}
+      {event.shows && event.shows.length > 0 && (
+        <div className="mb-8">
+          <h2 className="text-2xl font-semibold text-gray-900 mb-4">Shows</h2>
+          <div className="grid gap-4">
+            {event.shows.map((show) => (
+              <div key={show.id} className="bg-white border border-gray-200 rounded-lg p-6">
+                <h3 className="text-lg font-medium text-gray-900 mb-2">{show.title}</h3>
+                {show.description && (
+                  <p className="text-gray-600 mb-3">{show.description}</p>
+                )}
+                <div className="flex items-center text-sm text-gray-500">
+                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  {new Date(show.startDate).toLocaleDateString('en-US', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })}
+                  {show.endDate && (
+                    <span className="ml-4">
+                      - {new Date(show.endDate).toLocaleDateString('en-US', {
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </span>
+                  )}
+                </div>
+                {show.youtubeUrl && (
+                  <div className="mt-4 aspect-video bg-gray-100 rounded overflow-hidden">
+                    <iframe
+                      src={show.youtubeUrl}
+                      title={show.title}
+                      className="w-full h-full"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    />
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Nearby Places */}
+      {event.nearbyPlaces && event.nearbyPlaces.length > 0 && (
+        <div className="mb-8">
+          <h2 className="text-2xl font-semibold text-gray-900 mb-4">Nearby Places</h2>
+          <div className="grid md:grid-cols-2 gap-4">
+            {event.nearbyPlaces.slice(0, 6).map((place) => (
+              <div key={place.id} className="bg-white border border-gray-200 rounded-lg p-4">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <h3 className="text-sm font-medium text-gray-900">{place.name}</h3>
+                    <p className="text-xs text-gray-500 mt-1">{place.address}</p>
+                    <div className="flex items-center mt-2">
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                        {place.category}
+                      </span>
+                      {place.distance && (
+                        <span className="ml-2 text-xs text-gray-500">
+                          {Math.round(place.distance)}m away
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  {place.website && (
+                    <a
+                      href={place.website}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="ml-2 text-indigo-600 hover:text-indigo-800"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                      </svg>
+                    </a>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      </div>
+    </>
   )
 }
