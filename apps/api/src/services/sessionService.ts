@@ -17,9 +17,9 @@ export class SessionService {
   constructor() {
     const config = getConfig()
     this.client = createClient({
-      url: config.database.REDIS_URL,
-      password: config.database.REDIS_PASSWORD || undefined,
-      database: config.database.REDIS_DB || 0,
+      url: config.redis.REDIS_URL,
+      password: config.redis.REDIS_PASSWORD || undefined,
+      database: config.redis.REDIS_DB || 0,
     })
 
     this.client.on('error', (err) => {
@@ -51,7 +51,7 @@ export class SessionService {
 
   private getKey(token: string): string {
     const config = getConfig()
-    const prefix = config.database.REDIS_KEY_PREFIX || 'linea:'
+    const prefix = config.redis.REDIS_KEY_PREFIX || 'linea:'
     return `${prefix}session:${token}`
   }
 
@@ -134,7 +134,7 @@ export class SessionService {
     await this.connect()
     
     const config = getConfig()
-    const prefix = config.database.REDIS_KEY_PREFIX || 'linea:'
+    const prefix = config.redis.REDIS_KEY_PREFIX || 'linea:'
     const pattern = `${prefix}session:*`
     
     const keys = await this.client.keys(pattern)
@@ -176,7 +176,7 @@ export class SessionService {
     await this.connect()
     
     const config = getConfig()
-    const prefix = config.database.REDIS_KEY_PREFIX || 'linea:'
+    const prefix = config.redis.REDIS_KEY_PREFIX || 'linea:'
     const pattern = `${prefix}session:*`
     
     const keys = await this.client.keys(pattern)
@@ -209,7 +209,7 @@ export class SessionService {
     await this.connect()
     
     const config = getConfig()
-    const prefix = config.database.REDIS_KEY_PREFIX || 'linea:'
+    const prefix = config.redis.REDIS_KEY_PREFIX || 'linea:'
     const pattern = `${prefix}session:*`
     
     const keys = await this.client.keys(pattern)
