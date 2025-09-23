@@ -16,6 +16,14 @@ export class SessionService {
 
   constructor() {
     const config = getConfig()
+    
+    // Check if Redis URL is available
+    if (!config.redis.REDIS_URL || config.redis.REDIS_URL.includes('production-redis')) {
+      console.warn('Redis not configured, falling back to database sessions')
+      this.client = null as any
+      return
+    }
+    
     const clientOptions: any = {
       url: config.redis.REDIS_URL,
       database: config.redis.REDIS_DB || 0,
@@ -43,12 +51,14 @@ export class SessionService {
   }
 
   async connect(): Promise<void> {
+    if (!this.client) return
     if (!this.isConnected) {
       await this.client.connect()
     }
   }
 
   async disconnect(): Promise<void> {
+    if (!this.client) return
     if (this.isConnected) {
       await this.client.disconnect()
     }
@@ -65,6 +75,11 @@ export class SessionService {
     sessionData: Omit<SessionData, 'createdAt' | 'expiresAt'>,
     expiresInMs: number
   ): Promise<void> {
+    if (!this.client) {
+      console.warn('Redis not available, session not stored')
+      return
+    }
+    
     await this.connect()
     
     const now = Date.now()
@@ -81,6 +96,10 @@ export class SessionService {
   }
 
   async getSession(token: string): Promise<SessionData | null> {
+    if (!this.client) {
+      return null
+    }
+    
     await this.connect()
     
     const key = this.getKey(token)
@@ -108,6 +127,10 @@ export class SessionService {
   }
 
   async updateSession(token: string, updates: Partial<SessionData>): Promise<boolean> {
+    if (!this.client) {
+      return false
+    }
+    
     await this.connect()
     
     const existing = await this.getSession(token)
@@ -129,6 +152,10 @@ export class SessionService {
   }
 
   async deleteSession(token: string): Promise<void> {
+    if (!this.client) {
+      return
+    }
+    
     await this.connect()
     
     const key = this.getKey(token)
@@ -222,6 +249,10 @@ export class SessionService {
   }
 
   async isHealthy(): Promise<boolean> {
+    if (!this.client) {
+      return false
+    }
+    
     try {
       await this.connect()
       await this.client.ping()
