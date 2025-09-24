@@ -231,7 +231,8 @@ const getSessionUser = async (request: FastifyRequest) => {
         id: sessionData.userId, 
         isActive: true,
         deletedAt: null 
-      }
+      },
+      select: { id: true, email: true, role: true, name: true, isActive: true }
     })
     if (!user) {
       await sessionService.deleteSession(token)
@@ -246,7 +247,8 @@ const getSessionUser = async (request: FastifyRequest) => {
   })
   if (!dbSession) return null
   const user = await prisma.user.findFirst({
-    where: { id: dbSession.userId, isActive: true, deletedAt: null }
+    where: { id: dbSession.userId, isActive: true, deletedAt: null },
+    select: { id: true, email: true, role: true, name: true, isActive: true }
   })
   if (!user) return null
   return user
@@ -1392,7 +1394,8 @@ app.post('/auth/register-owner', async (request, reply) => {
 
   // Check if user already exists as owner
   const existingUser = await prisma.user.findUnique({ 
-    where: { email } 
+    where: { email },
+    select: { id: true, role: true }
   })
   
   if (existingUser && existingUser.role === 'OWNER') {
