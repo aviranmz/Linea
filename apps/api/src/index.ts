@@ -1242,6 +1242,26 @@ app.post('/auth/dev/generate-link', async (request, reply) => {
   reply.send({ ok: true, magicLink: callbackUrl.toString(), user: { id: user.id, email: user.email, role: user.role } })
 })
 
+// Dev-only: Inspect email verification token state
+app.get('/auth/dev/debug-token', async (request, reply) => {
+  if (!(shouldShowMagicLink || config.environment.NODE_ENV !== 'production')) {
+    reply.code(403).send({ error: 'Forbidden' })
+    return
+  }
+  const { token } = request.query as { token?: string }
+  if (!token) { reply.code(400).send({ error: 'Missing token' }); return }
+  const record = await prisma.emailVerification.findFirst({ where: { token } })
+  if (!record) { reply.code(404).send({ error: 'Not found' }); return }
+  reply.send({
+    id: record.id,
+    email: record.email,
+    type: record.type,
+    verifiedAt: record.verifiedAt,
+    expiresAt: record.expiresAt,
+    isExpired: record.expiresAt <= new Date(),
+  })
+})
+
 // Collect visitor email for quick registration
 app.post('/collect-email', async (request, reply) => {
   try {
