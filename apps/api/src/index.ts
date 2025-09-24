@@ -1262,6 +1262,27 @@ app.get('/auth/dev/debug-token', async (request, reply) => {
   })
 })
 
+// Dev-only: direct login by email (no token). Creates user if needed and sets session.
+app.post('/auth/dev/login', async (request, reply) => {
+  if (!(shouldShowMagicLink || config.environment.NODE_ENV !== 'production')) {
+    reply.code(403).send({ error: 'Forbidden' })
+    return
+  }
+  const { email, role, name } = request.body as { email: string; role?: 'VISITOR'|'OWNER'|'ADMIN'; name?: string }
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  if (!emailRegex.test(email)) { reply.code(400).send({ error: 'Invalid email' }); return }
+
+  const desiredRole = role || 'VISITOR'
+  const user = await prisma.user.upsert({
+    where: { email },
+    update: { role: desiredRole, name: name ?? null, isActive: true, lastLoginAt: new Date() },
+    create: { email, role: desiredRole, name: name ?? null, isActive: true, lastLoginAt: new Date() }
+  })
+
+  await createSessionAndSetCookie(reply, { id: user.id, email: user.email, role: user.role, name: user.name || null })
+  reply.send({ ok: true, user: { id: user.id, email: user.email, role: user.role, name: user.name } })
+})
+
 // Collect visitor email for quick registration
 app.post('/collect-email', async (request, reply) => {
   try {
