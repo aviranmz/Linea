@@ -917,7 +917,7 @@ app.post('/auth/request-magic-link', async (request, reply) => {
 
   // For development: return the magic link in response
   // For production: send via SendGrid
-  if (config.environment.NODE_ENV === 'development') {
+  if (config.environment.NODE_ENV === 'development' || !config.email.SENDGRID_API_KEY || config.email.SENDGRID_API_KEY.includes('production-sendgrid')) {
     app.log.info({ email, callbackUrl: callbackUrl.toString() }, 'Magic link generated (dev mode)')
     reply.send({ 
       ok: true, 
@@ -980,7 +980,7 @@ app.post('/auth/register-owner', async (request, reply) => {
     callbackUrl.searchParams.set('org', encodeURIComponent(organizationName))
   }
 
-  if (config.environment.NODE_ENV === 'development') {
+  if (config.environment.NODE_ENV === 'development' || !config.email.SENDGRID_API_KEY || config.email.SENDGRID_API_KEY.includes('production-sendgrid')) {
     app.log.info({ email, name, callbackUrl: callbackUrl.toString() }, 'Owner registration link generated (dev mode)')
     reply.send({ 
       ok: true, 
