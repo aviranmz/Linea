@@ -298,6 +298,23 @@ async function main() {
 
   console.log('✅ Created waitlist entries:', waitlistEntries.length)
 
+  // Add 20-30 random waitlist emails per event
+  for (let eventIndex = 0; eventIndex < events.length; eventIndex++) {
+    const event = events[eventIndex]
+    if (!event) continue
+    const count = 20 + Math.floor(Math.random() * 11) // 20..30
+    const statuses = ['PENDING','CONFIRMED','APPROVED','REJECTED','ARRIVED','CANCELLED'] as const
+    const emails: { email: string; eventId: string; status: (typeof statuses)[number] }[] = []
+    for (let i = 0; i < count; i++) {
+      const email = `seed-user-${eventIndex}-${i}@example.com`
+      const status = statuses[Math.floor(Math.random() * statuses.length)] as (typeof statuses)[number]
+      emails.push({ email, eventId: event.id, status })
+    }
+    // Use createMany for efficiency; skipDuplicates to avoid clashes with prior seeds
+    await prisma.waitlistEntry.createMany({ data: emails, skipDuplicates: true })
+    console.log(`✅ Added ${count} waitlist entries for event:`, event.title)
+  }
+
   // Create sample nearby places
   const nearbyPlaces = await Promise.all([
     prisma.nearbyPlace.create({
