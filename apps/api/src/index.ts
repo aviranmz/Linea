@@ -222,23 +222,31 @@ const getSessionUser = async (request: FastifyRequest) => {
   
   // Get session from Redis
   const sessionData = await sessionService.getSession(token)
-  if (!sessionData) return null
-  
-  // Get user from database to ensure they're still active
-  const user = await prisma.user.findFirst({
-    where: { 
-      id: sessionData.userId, 
-      isActive: true,
-      deletedAt: null 
+  if (sessionData) {
+    // Get user from database to ensure they're still active
+    const user = await prisma.user.findFirst({
+      where: { 
+        id: sessionData.userId, 
+        isActive: true,
+        deletedAt: null 
+      }
+    })
+    if (!user) {
+      await sessionService.deleteSession(token)
+      return null
     }
-  })
-  
-  if (!user) {
-    // User no longer exists or is inactive, cleanup session
-    await sessionService.deleteSession(token)
-    return null
+    return user
   }
   
+  // Fallback: check DB sessions
+  const dbSession = await prisma.session.findFirst({
+    where: { token, expiresAt: { gt: new Date() } }
+  })
+  if (!dbSession) return null
+  const user = await prisma.user.findFirst({
+    where: { id: dbSession.userId, isActive: true, deletedAt: null }
+  })
+  if (!user) return null
   return user
 }
 
@@ -253,6 +261,18 @@ const createSessionAndSetCookie = async (reply: FastifyReply, user: { id: string
     role: user.role,
     name: user.name || null
   }, sessionDuration)
+  // Always persist DB session as fallback
+  try {
+    await prisma.session.create({
+      data: {
+        userId: user.id,
+        token: sessionToken,
+        expiresAt: new Date(Date.now() + sessionDuration)
+      }
+    })
+  } catch (e) {
+    // ignore if table missing in mock mode
+  }
 
   reply.setCookie(
     config.security.SESSION_COOKIE_NAME || 'linea_session',
@@ -1053,26 +1073,13 @@ app.get('/auth/owner-callback', async (request, reply) => {
     data: { verifiedAt: new Date(), userId: user.id }
   })
 
-  // Create session
-  const session = await prisma.session.create({
-    data: {
-      userId: user.id,
-      token: crypto.randomUUID(),
-      expiresAt: new Date(Date.now() + (config.security.SESSION_COOKIE_MAX_AGE || 7 * 24 * 60 * 60 * 1000))
-    }
+  // Create session (Redis)
+  await createSessionAndSetCookie(reply, {
+    id: user.id,
+    email: user.email,
+    role: user.role,
+    name: user.name || null
   })
-
-  reply.setCookie(
-    config.security.SESSION_COOKIE_NAME || 'linea_session',
-    session.token,
-    {
-      path: '/',
-      httpOnly: true,
-      sameSite: (config.security.SESSION_COOKIE_SAME_SITE as 'lax'|'strict'|'none' | undefined) || 'lax',
-      secure: !!config.security.SESSION_COOKIE_SECURE,
-      maxAge: Math.floor((config.security.SESSION_COOKIE_MAX_AGE || 604800000) / 1000),
-    }
-  )
 
   // Redirect to owner portal
   reply.redirect(`${config.server.FRONTEND_URL}/owner-portal`)
@@ -1116,26 +1123,13 @@ app.post('/auth/admin-login', async (request, reply) => {
     data: { lastLoginAt: new Date() }
   })
 
-  // Create session
-  const session = await prisma.session.create({
-    data: {
-      userId: user.id,
-      token: crypto.randomUUID(),
-      expiresAt: new Date(Date.now() + (config.security.SESSION_COOKIE_MAX_AGE || 7 * 24 * 60 * 60 * 1000))
-    }
+  // Create session (Redis)
+  await createSessionAndSetCookie(reply, {
+    id: user.id,
+    email: user.email,
+    role: user.role,
+    name: user.name || null
   })
-
-  reply.setCookie(
-    config.security.SESSION_COOKIE_NAME || 'linea_session',
-    session.token,
-    {
-      path: '/',
-      httpOnly: true,
-      sameSite: (config.security.SESSION_COOKIE_SAME_SITE as 'lax'|'strict'|'none' | undefined) || 'lax',
-      secure: !!config.security.SESSION_COOKIE_SECURE,
-      maxAge: Math.floor((config.security.SESSION_COOKIE_MAX_AGE || 604800000) / 1000),
-    }
-  )
 
   reply.send({
     ok: true,
@@ -1183,26 +1177,13 @@ app.get('/auth/callback', async (request, reply) => {
     data: { verifiedAt: new Date(), userId: user.id }
   })
 
-  // Create session
-  const session = await prisma.session.create({
-    data: {
-      userId: user.id,
-      token: crypto.randomUUID(),
-      expiresAt: new Date(Date.now() + (config.security.SESSION_COOKIE_MAX_AGE || 7 * 24 * 60 * 60 * 1000))
-    }
+  // Create session (Redis)
+  await createSessionAndSetCookie(reply, {
+    id: user.id,
+    email: user.email,
+    role: user.role,
+    name: user.name || null
   })
-
-  reply.setCookie(
-    config.security.SESSION_COOKIE_NAME || 'linea_session',
-    session.token,
-    {
-      path: '/',
-      httpOnly: true,
-      sameSite: (config.security.SESSION_COOKIE_SAME_SITE as 'lax'|'strict'|'none' | undefined) || 'lax',
-      secure: !!config.security.SESSION_COOKIE_SECURE,
-      maxAge: Math.floor((config.security.SESSION_COOKIE_MAX_AGE || 604800000) / 1000),
-    }
-  )
 
   // Redirect to frontend
   reply.redirect(config.server.FRONTEND_URL || '/')
@@ -1230,6 +1211,35 @@ app.get('/auth/me', async (request, reply) => {
     app.log.error({ error }, 'Failed to get current user')
     reply.code(500).send({ error: 'Failed to get current user' })
   }
+})
+
+// Dev-only: Generate non-expiring magic links for owners/admin
+app.post('/auth/dev/generate-link', async (request, reply) => {
+  if (!(shouldShowMagicLink || config.environment.NODE_ENV !== 'production')) {
+    reply.code(403).send({ error: 'Forbidden' })
+    return
+  }
+  const { email, role, name } = request.body as { email: string; role: 'OWNER'|'ADMIN'|'VISITOR'; name?: string }
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  if (!emailRegex.test(email)) { reply.code(400).send({ error: 'Invalid email' }); return }
+
+  // Upsert user with requested role
+  const user = await prisma.user.upsert({
+    where: { email },
+    update: { role, name: name ?? null, isActive: true, lastLoginAt: new Date() },
+    create: { email, role, name: name ?? null, isActive: true, lastLoginAt: new Date() }
+  })
+
+  // Create a non-expiring verification record (expires in 10 years)
+  const token = crypto.randomUUID()
+  await prisma.emailVerification.create({
+    data: { email, token, type: 'MAGIC_LINK', expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 365 * 10) }
+  })
+
+  const callbackUrl = new URL('/auth/callback', config.server.API_URL)
+  callbackUrl.searchParams.set('token', token)
+
+  reply.send({ ok: true, magicLink: callbackUrl.toString(), user: { id: user.id, email: user.email, role: user.role } })
 })
 
 // Collect visitor email for quick registration
@@ -1270,6 +1280,7 @@ app.post('/auth/signout', async (request, reply) => {
     const token = (request.cookies as Record<string, string | undefined>)?.[cookieName]
     if (token) {
       await sessionService.deleteSession(token)
+      try { await prisma.session.deleteMany({ where: { token } }) } catch {}
     }
     reply.clearCookie(cookieName, { path: '/' })
     reply.send({ ok: true })
