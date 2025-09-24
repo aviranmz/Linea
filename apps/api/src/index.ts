@@ -925,14 +925,14 @@ app.get('/api/waitlist/export', async (request, reply) => {
   if (!eventId) { reply.code(400).send({ error: 'Missing eventId' }); return }
   try {
     const entries = await prisma.waitlistEntry.findMany({ where: { eventId, deletedAt: null }, orderBy: { createdAt: 'asc' } })
-    const rows: string[][] = [["email","eventId","status","createdAt"], ...entries.map((e) => [e.email, e.eventId, String(e.status), e.createdAt.toISOString()])]
+    const rows: string[][] = [["email","eventId","status","createdAt"], ...entries.map((e: { email: string; eventId: string; status: unknown; createdAt: Date }) => [e.email, e.eventId, String(e.status), e.createdAt.toISOString()])]
     const csv = rows.map(r => r.map(v => typeof v === 'string' && v.includes(',') ? `"${v.replace(/"/g,'""')}"` : String(v)).join(',')).join('\n')
     reply.header('Content-Type', 'text/csv')
     reply.header('Content-Disposition', `attachment; filename="waitlist-${eventId}.csv"`)
     return csv
   } catch (error) {
     const entries = mockWaitlist.filter(w => w.eventId === eventId)
-    const rows: string[][] = [["email","eventId","status","createdAt"], ...entries.map(e => [e.email, e.eventId, String(e.status), new Date().toISOString()])]
+    const rows: string[][] = [["email","eventId","status","createdAt"], ...entries.map((e: { email: string; eventId: string; status: unknown }) => [e.email, e.eventId, String(e.status), new Date().toISOString()])]
     const csv = rows.map(r => r.map(v => typeof v === 'string' && v.includes(',') ? `"${v.replace(/"/g,'""')}"` : String(v)).join(',')).join('\n')
     reply.header('Content-Type', 'text/csv')
     reply.header('Content-Disposition', `attachment; filename="waitlist-${eventId}.csv"`)
@@ -1204,7 +1204,7 @@ app.put('/api/owner/waitlist/:id', async (request, reply) => {
   const nextStatus: typeof allowedStatuses[number] = body.status && (allowedStatuses as readonly string[]).includes(body.status)
     ? (body.status as typeof allowedStatuses[number])
     : 'CONFIRMED'
-  const updated = await prisma.waitlistEntry.update({ where: { id }, data: { status: nextStatus as unknown as never } })
+  const updated = await prisma.waitlistEntry.update({ where: { id }, data: { status: nextStatus as never } })
   reply.send({ entry: updated })
 })
 
