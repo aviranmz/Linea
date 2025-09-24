@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
+import { getJson } from '../lib/api'
 
 type Theme = 'light' | 'dark' | 'system'
 
@@ -41,6 +42,20 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
     // Save theme preference
     localStorage.setItem('theme', theme)
   }, [theme])
+
+  // Load owner theme variables (colors) once on mount
+  useEffect(() => {
+    getJson<{ theme: Record<string,string> | null }>('/api/owner/theme')
+      .then((res) => {
+        const t = res.theme || {}
+        const root = window.document.documentElement
+        if (t.primary) root.style.setProperty('--color-primary', String(t.primary))
+        if (t.secondary) root.style.setProperty('--color-secondary', String(t.secondary))
+        if (t.text) root.style.setProperty('--color-text', String(t.text))
+        if (t.background) root.style.setProperty('--color-bg', String(t.background))
+      })
+      .catch(() => {})
+  }, [])
 
   useEffect(() => {
     // Listen for system theme changes
