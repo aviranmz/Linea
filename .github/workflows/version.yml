@@ -9,6 +9,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with: { fetch-depth: 0 }
+      - name: Enforce lint before build
+        run: |
+          corepack enable
+          pnpm i -g pnpm@8
+          pnpm i --frozen-lockfile
+          pnpm -r lint
       - uses: actions/setup-node@v4
         with: { node-version: '22.x' }
       - run: |
@@ -26,7 +32,6 @@ jobs:
         with: { version: 8 }
       - run: pnpm ci
       - run: pnpm run build
-      - run: pnpm run lint || true
       - run: pnpm test || true
 
   release_tag:

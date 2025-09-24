@@ -1,8 +1,8 @@
 #!/usr/bin/env sh
 . "$(dirname "$0")/_/husky.sh"
 
-pnpm run build || { echo "Build failed"; exit 1; }
 pnpm run lint  || { echo "Lint failed"; exit 1; }
+pnpm run build || { echo "Build failed"; exit 1; }
 pnpm test      || { echo "Tests failed"; exit 1; }
 
 ! git diff --cached -U0 -- 'apps/web/src/**/*.{js,jsx,ts,tsx,html}' \
