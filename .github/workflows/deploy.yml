@@ -9,6 +9,13 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     environment: production
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      REDIS_URL: ${{ secrets.REDIS_URL }}
+      SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
+      SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
     
     steps:
       - name: Checkout code
@@ -22,7 +29,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '24'
+          node-version: '22.x'
           cache: 'pnpm'
 
       - name: Install dependencies
@@ -50,7 +57,7 @@ jobs:
       - name: Deploy to Railway
         uses: railwayapp/railway-deploy@v3
         with:
-          railway-token: ${{ secrets.RAILWAY_TOKEN }}
+          railwayToken: ${{ secrets.RAILWAY_TOKEN }}
           service: linea-api
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
