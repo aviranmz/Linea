@@ -175,7 +175,7 @@ export class SessionService {
     const sessionsToDelete: string[] = []
     
     for (const key of keys) {
-      const data = await this.client.get(key)
+      const data = this.client ? await this.client.get(key) : null
       if (data) {
         try {
           const session = JSON.parse(data) as SessionData
@@ -190,9 +190,7 @@ export class SessionService {
     }
     
     if (sessionsToDelete.length > 0) {
-      if (this.client) {
-        await this.client.del(sessionsToDelete)
-      }
+      if (this.client) await this.client.del(sessionsToDelete)
     }
   }
 
@@ -220,7 +218,7 @@ export class SessionService {
     const expiredKeys: string[] = []
     
     for (const key of keys) {
-      const data = await this.client.get(key)
+      const data = this.client ? await this.client.get(key) : null
       if (data) {
         try {
           const session = JSON.parse(data) as SessionData
@@ -234,9 +232,7 @@ export class SessionService {
       }
     }
     
-    if (expiredKeys.length > 0) {
-      await this.client.del(expiredKeys)
-    }
+    if (expiredKeys.length > 0 && this.client) await this.client.del(expiredKeys)
     
     return expiredKeys.length
   }
@@ -248,7 +244,7 @@ export class SessionService {
     const prefix = config.redis.REDIS_KEY_PREFIX || 'linea:'
     const pattern = `${prefix}session:*`
     
-    const keys = await this.client.keys(pattern)
+    const keys = this.client ? await this.client.keys(pattern) : []
     return keys.length
   }
 

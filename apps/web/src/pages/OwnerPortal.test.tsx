@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { BrowserRouter } from 'react-router-dom'
 import { OwnerPortal } from './OwnerPortal'
@@ -12,10 +12,11 @@ describe('OwnerPortal', () => {
     vi.clearAllMocks()
   })
 
-  it('renders portal header', () => {
-    mockFetch.mockResolvedValueOnce({
-      json: () => Promise.resolve({ events: [] })
-    })
+  it('renders portal header', async () => {
+    // First call: /auth/me, Second call: /api/owner/events
+    mockFetch
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ authenticated: true, user: { email: 'o@o.com' } }) })
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ events: [] }) })
 
     render(
       <BrowserRouter>
@@ -23,13 +24,18 @@ describe('OwnerPortal', () => {
       </BrowserRouter>
     )
     
-    expect(screen.getByText('Owner Portal')).toBeInTheDocument()
-    expect(screen.getByText('Manage your events and track waitlist performance')).toBeInTheDocument()
-    expect(screen.getByText('Create New Event')).toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.getByText('Owner Portal')).toBeInTheDocument()
+      expect(screen.getByText('Manage your events and track waitlist performance')).toBeInTheDocument()
+      expect(screen.getByText('Create New Event')).toBeInTheDocument()
+    })
   })
 
-  it('shows loading state while fetching events', () => {
-    mockFetch.mockImplementationOnce(() => new Promise(() => {})) // Never resolves
+  it('shows loading state while fetching events', async () => {
+    // /auth/me resolves authed, events never resolves
+    mockFetch
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ authenticated: true }) })
+      .mockImplementationOnce(() => new Promise(() => {})) // Never resolves
 
     render(
       <BrowserRouter>
@@ -37,15 +43,19 @@ describe('OwnerPortal', () => {
       </BrowserRouter>
     )
     
+    // Wait until the authenticated view is rendered
+    await waitFor(() => {
+      expect(screen.getByText('Owner Portal')).toBeInTheDocument()
+    })
     // Should show loading skeleton elements
     const skeletonElements = document.querySelectorAll('.animate-pulse')
     expect(skeletonElements.length).toBeGreaterThan(0)
   })
 
   it('shows empty state when no events', async () => {
-    mockFetch.mockResolvedValueOnce({
-      json: () => Promise.resolve({ events: [] })
-    })
+    mockFetch
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ authenticated: true }) })
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ events: [] }) })
 
     render(
       <BrowserRouter>
@@ -59,10 +69,10 @@ describe('OwnerPortal', () => {
     expect(screen.getByText('Create your first event to get started.')).toBeInTheDocument()
   })
 
-  it('opens create event modal when button is clicked', () => {
-    mockFetch.mockResolvedValueOnce({
-      json: () => Promise.resolve({ events: [] })
-    })
+  it('opens create event modal when button is clicked', async () => {
+    mockFetch
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ authenticated: true }) })
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ events: [] }) })
 
     render(
       <BrowserRouter>
@@ -70,7 +80,7 @@ describe('OwnerPortal', () => {
       </BrowserRouter>
     )
     
-    const createButton = screen.getByRole('button', { name: /create new event/i })
+    const createButton = await screen.findByRole('button', { name: /create new event/i })
     fireEvent.click(createButton)
 
     // Check for modal title specifically
@@ -81,10 +91,10 @@ describe('OwnerPortal', () => {
     expect(screen.getByLabelText('Capacity (optional)')).toBeInTheDocument()
   })
 
-  it('closes create event modal when cancel is clicked', () => {
-    mockFetch.mockResolvedValueOnce({
-      json: () => Promise.resolve({ events: [] })
-    })
+  it('closes create event modal when cancel is clicked', async () => {
+    mockFetch
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ authenticated: true }) })
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ events: [] }) })
 
     render(
       <BrowserRouter>
@@ -92,13 +102,15 @@ describe('OwnerPortal', () => {
       </BrowserRouter>
     )
     
-    const createButton = screen.getByRole('button', { name: /create new event/i })
+    const createButton = await screen.findByRole('button', { name: /create new event/i })
     fireEvent.click(createButton)
 
     const cancelButton = screen.getByRole('button', { name: /cancel/i })
     fireEvent.click(cancelButton)
 
     // Modal should be closed - check that the modal title is gone
-    expect(screen.queryByRole('heading', { name: 'Create New Event' })).not.toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.queryByRole('heading', { name: 'Create New Event' })).not.toBeInTheDocument()
+    })
   })
 })

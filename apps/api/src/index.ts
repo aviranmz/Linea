@@ -1022,9 +1022,8 @@ app.put('/api/owner/theme', async (request, reply) => {
   if (!user) return
   try {
     const theme = request.body as Record<string, unknown>
-    const updated = await prisma.user.update({ where: { id: user.id }, data: { theme } as Record<string, unknown> })
-    // @ts-expect-error Prisma JSON type
-    reply.send({ ok: true, theme: updated.theme })
+    const updated = await prisma.user.update({ where: { id: user.id }, data: { theme: theme as any } })
+    reply.send({ ok: true, theme: (updated as any).theme })
   } catch (error) {
     reply.code(500).send({ error: 'Failed to update theme' })
   }

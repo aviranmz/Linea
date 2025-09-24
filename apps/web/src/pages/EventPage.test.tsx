@@ -2,6 +2,15 @@ import { render, screen, waitFor, fireEvent } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { BrowserRouter } from 'react-router-dom'
 import { HelmetProvider } from 'react-helmet-async'
+import React from 'react'
+
+// Simplify Helmet during tests to avoid provider/context issues
+vi.mock('react-helmet-async', async () => {
+  return {
+    HelmetProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+    Helmet: ({ children }: { children?: React.ReactNode }) => <>{children}</>,
+  }
+})
 import { EventPage } from './EventPage'
 
 // Mock useParams
