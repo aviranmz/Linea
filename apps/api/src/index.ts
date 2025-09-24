@@ -522,6 +522,18 @@ type CreateEventBody = {
   isPublic?: boolean
   featured?: boolean
   tags?: string[]
+  productName?: string | null
+  heroImageUrl?: string | null
+  longDescription?: string | null
+  valueProposition?: string | null
+  features?: string[]
+  awards?: string[]
+  social?: Record<string,string> | null
+  videoUrl?: string | null
+  pressKitUrl?: string | null
+  contact?: { email?: string; phone?: string; whatsapp?: string; telegram?: string } | null
+  schedule?: Array<{ title: string; startsAt: string; endsAt?: string }>
+  qrUrl?: string | null
 }
 
 type UpdateEventBody = Partial<CreateEventBody> & { status?: 'DRAFT'|'PUBLISHED'|'CANCELLED'|'COMPLETED' }
@@ -560,7 +572,19 @@ app.post('/api/owner/events', async (request, reply) => {
       categoryId,
       isPublic,
       featured,
-      tags
+      tags,
+      productName,
+      heroImageUrl,
+      longDescription,
+      valueProposition,
+      features,
+      awards,
+      social,
+      videoUrl,
+      pressKitUrl,
+      contact,
+      schedule,
+      qrUrl
     } = body || {}
     if (!title || !startDate) {
       reply.code(400).send({ error: 'Missing required fields: title, startDate' })
@@ -582,7 +606,21 @@ app.post('/api/owner/events', async (request, reply) => {
         categoryId: categoryId || null,
         isPublic: !!isPublic,
         featured: !!featured,
-        tags: Array.isArray(tags) ? tags : []
+        tags: Array.isArray(tags) ? tags : [],
+        metadata: {
+          productName: productName ?? null,
+          heroImageUrl: heroImageUrl ?? null,
+          longDescription: longDescription ?? null,
+          valueProposition: valueProposition ?? null,
+          features: Array.isArray(features) ? features : [],
+          awards: Array.isArray(awards) ? awards : [],
+          social: social ?? null,
+          videoUrl: videoUrl ?? null,
+          pressKitUrl: pressKitUrl ?? null,
+          contact: contact ?? null,
+          schedule: Array.isArray(schedule) ? schedule : [],
+          qrUrl: qrUrl ?? null
+        }
       }
     })
     reply.code(201).send({ event })
@@ -623,6 +661,25 @@ app.put('/api/owner/events/:id', async (request, reply) => {
     if (typeof body.isPublic === 'boolean') data.isPublic = body.isPublic
     if (typeof body.featured === 'boolean') data.featured = body.featured
     if (Array.isArray(body.tags)) data.tags = body.tags
+    // Merge metadata updates if provided
+    const meta: Record<string, unknown> = {}
+    if (typeof body.productName !== 'undefined') meta.productName = body.productName
+    if (typeof body.heroImageUrl !== 'undefined') meta.heroImageUrl = body.heroImageUrl
+    if (typeof body.longDescription !== 'undefined') meta.longDescription = body.longDescription
+    if (typeof body.valueProposition !== 'undefined') meta.valueProposition = body.valueProposition
+    if (typeof body.features !== 'undefined') meta.features = Array.isArray(body.features) ? body.features : []
+    if (typeof body.awards !== 'undefined') meta.awards = Array.isArray(body.awards) ? body.awards : []
+    if (typeof body.social !== 'undefined') meta.social = body.social
+    if (typeof body.videoUrl !== 'undefined') meta.videoUrl = body.videoUrl
+    if (typeof body.pressKitUrl !== 'undefined') meta.pressKitUrl = body.pressKitUrl
+    if (typeof body.contact !== 'undefined') meta.contact = body.contact
+    if (typeof body.schedule !== 'undefined') meta.schedule = Array.isArray(body.schedule) ? body.schedule : []
+    if (typeof body.qrUrl !== 'undefined') meta.qrUrl = body.qrUrl
+    if (Object.keys(meta).length > 0) {
+      // Read existing metadata to merge (avoid overwriting other keys)
+      const current = await prisma.event.findUnique({ where: { id }, select: { metadata: true } })
+      data.metadata = { ...(current?.metadata as Record<string, unknown> || {}), ...meta }
+    }
     if (typeof body.title === 'string' && body.title !== existing.title) {
       data.slug = await generateUniqueSlug(body.title)
     }

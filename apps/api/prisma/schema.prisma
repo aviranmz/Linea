@@ -17,6 +17,8 @@ model User {
   role      UserRole @default(VISITOR)
   isActive  Boolean  @default(true)
   lastLoginAt DateTime?
+  // Owner/site preferences and theme (JSON blob)
+  theme     Json?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   deletedAt DateTime?
