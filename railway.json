@@ -5,7 +5,7 @@
     "buildCommand": "pnpm install && pnpm --filter @linea/api db:generate && pnpm build"
   },
   "deploy": {
-    "startCommand": "pnpm start",
+    "startCommand": "pnpm --filter @linea/api db:migrate:setup && pnpm start",
     "healthcheckPath": "/health",
     "healthcheckTimeout": 100,
     "restartPolicyType": "ON_FAILURE",
