@@ -9,13 +9,6 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     environment: production
-    env:
-      DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
-      JWT_SECRET: ${{ secrets.JWT_SECRET }}
-      REDIS_URL: ${{ secrets.REDIS_URL }}
-      SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
-      SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
     
     steps:
       - name: Checkout code
@@ -29,7 +22,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22.x'
+          node-version: '24'
           cache: 'pnpm'
 
       - name: Install dependencies
@@ -54,18 +47,14 @@ jobs:
           SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
 
+      - name: Install Railway CLI
+        run: npm i -g @railway/cli
+
       - name: Deploy to Railway
-        uses: railwayapp/railway-deploy@v3
-        with:
-          railwayToken: ${{ secrets.RAILWAY_TOKEN }}
-          service: linea-api
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          REDIS_URL: ${{ secrets.REDIS_URL }}
-          SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
-          JWT_SECRET: ${{ secrets.JWT_SECRET }}
-          SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
-          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: |
+          railway up --service linea-api --yes
 
   health-check:
     needs: deploy

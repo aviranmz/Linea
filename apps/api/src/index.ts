@@ -6,7 +6,7 @@ import swagger from '@fastify/swagger'
 import swaggerUi from '@fastify/swagger-ui'
 import fastifyStatic from '@fastify/static'
 import cookie from '@fastify/cookie'
-import { PrismaClient, Prisma } from '@prisma/client'
+import { PrismaClient } from '@prisma/client'
 import * as Sentry from '@sentry/node'
 import path from 'path'
 import { fileURLToPath } from 'url'
@@ -1200,11 +1200,11 @@ app.put('/api/owner/waitlist/:id', async (request, reply) => {
   const entry = await prisma.waitlistEntry.findUnique({ where: { id }, include: { event: true } })
   if (!entry || entry.deletedAt) { reply.code(404).send({ error: 'Not found' }); return }
   if (user.role === 'OWNER' && entry.event.ownerId !== user.id) { reply.code(403).send({ error: 'Forbidden' }); return }
-  const allowedStatuses = Object.values(Prisma.WaitlistStatus)
-  const nextStatus = (body.status && (allowedStatuses as readonly string[]).includes(body.status))
-    ? (body.status as Prisma.WaitlistStatus)
-    : Prisma.WaitlistStatus.CONFIRMED
-  const updated = await prisma.waitlistEntry.update({ where: { id }, data: { status: { set: nextStatus } } })
+  const allowedStatuses = ['APPROVED','REJECTED','ARRIVED','CONFIRMED','CANCELLED'] as const
+  const nextStatus: typeof allowedStatuses[number] = body.status && (allowedStatuses as readonly string[]).includes(body.status)
+    ? (body.status as typeof allowedStatuses[number])
+    : 'CONFIRMED'
+  const updated = await prisma.waitlistEntry.update({ where: { id }, data: { status: nextStatus as unknown as never } })
   reply.send({ entry: updated })
 })
 
@@ -1213,12 +1213,11 @@ app.put('/api/owner/theme', async (request, reply) => {
   if (!user) return
   try {
     const theme = request.body as unknown
-    // Use `as unknown as Prisma.InputJsonValue` to satisfy varying Prisma versions
-    const updated = await prisma.user.update({
-      where: { id: user.id },
-      data: { theme: (theme as unknown as Prisma.InputJsonValue) }
-    })
-    reply.send({ ok: true, theme: updated.theme as unknown })
+    // Cast to any to avoid Prisma client type variance across environments
+    // Update via raw SQL to avoid Prisma client JSON typing variance across environments
+    const themeJson = JSON.stringify(theme ?? null)
+    await prisma.$executeRawUnsafe(`UPDATE users SET theme = ${`'${themeJson.replace(/'/g, "''")}'`} WHERE id = ${`'${user.id.replace(/'/g, "''")}'`}`)
+    reply.send({ ok: true, theme })
   } catch (error) {
     reply.code(500).send({ error: 'Failed to update theme' })
   }
