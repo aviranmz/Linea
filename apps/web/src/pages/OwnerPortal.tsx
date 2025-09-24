@@ -74,12 +74,18 @@ export function OwnerPortal() {
       tags: [] as string[]
     }
     try {
-      await postJson('/api/owner/events', payload)
-      const data = await getJson<{ events: Event[] }>('/api/owner/events')
-      setEvents(data.events || [])
+      const created = await postJson<{ event: Event }>('/api/owner/events', payload)
+      if (created?.event) {
+        setEvents(prev => [created.event, ...prev])
+      }
+      // Try to refresh list, but do not fail UX if it errors
+      getJson<{ events: Event[] }>('/api/owner/events')
+        .then(data => setEvents(data.events || []))
+        .catch(() => {/* ignore transient refresh error */})
       setShowCreateForm(false)
       setNewEvent({ title: '', description: '', startDate: '', capacity: '' })
     } catch (err) {
+      console.error('Create event failed', err)
       alert('Failed to create event')
     }
   }
