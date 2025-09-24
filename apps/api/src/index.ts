@@ -6,7 +6,7 @@ import swagger from '@fastify/swagger'
 import swaggerUi from '@fastify/swagger-ui'
 import fastifyStatic from '@fastify/static'
 import cookie from '@fastify/cookie'
-import { PrismaClient, Prisma, $Enums } from '@prisma/client'
+import { PrismaClient, Prisma } from '@prisma/client'
 import * as Sentry from '@sentry/node'
 import path from 'path'
 import { fileURLToPath } from 'url'
@@ -990,7 +990,7 @@ app.get('/api/admin/owners', async (request, reply) => {
     const pageNum = Math.max(1, parseInt(page))
     const limitNum = Math.min(100, Math.max(1, parseInt(limit)))
 
-    const where: Prisma.UserWhereInput = {
+    const where: Record<string, unknown> = {
       role: 'OWNER',
       deletedAt: null,
       ...(status === 'ACTIVE' ? { isActive: true } : {}),
@@ -1024,7 +1024,7 @@ app.get('/api/admin/owners', async (request, reply) => {
     ])
 
     reply.send({
-      owners: owners.map((o) => ({
+      owners: owners.map((o: { id: string; email: string; name: string | null; isActive: boolean; createdAt: Date; _count: { ownedEvents: number } }) => ({
         id: o.id,
         email: o.email,
         name: o.name,
@@ -1060,10 +1060,10 @@ app.get('/api/admin/events', async (request, reply) => {
     const pageNum = Math.max(1, parseInt(page))
     const limitNum = Math.min(100, Math.max(1, parseInt(limit)))
 
-    const where: Prisma.EventWhereInput = {
+    const where: Record<string, unknown> = {
       deletedAt: null,
       ...(status && ['DRAFT', 'PUBLISHED', 'CANCELLED', 'COMPLETED'].includes(status)
-        ? { status: status as $Enums.EventStatus }
+        ? { status }
         : {}),
       ...(search
         ? {
@@ -1096,7 +1096,7 @@ app.get('/api/admin/events', async (request, reply) => {
     ])
 
     reply.send({
-      events: events.map((e) => ({
+      events: events.map((e: { id: string; title: string; slug: string; status: string; createdAt: Date; owner?: { name: string | null } | null; _count: { waitlist: number } }) => ({
         id: e.id,
         title: e.title,
         slug: e.slug,
@@ -1200,11 +1200,11 @@ app.put('/api/owner/waitlist/:id', async (request, reply) => {
   const entry = await prisma.waitlistEntry.findUnique({ where: { id }, include: { event: true } })
   if (!entry || entry.deletedAt) { reply.code(404).send({ error: 'Not found' }); return }
   if (user.role === 'OWNER' && entry.event.ownerId !== user.id) { reply.code(403).send({ error: 'Forbidden' }); return }
-  const allowedStatuses = ['APPROVED','REJECTED','ARRIVED','CONFIRMED','CANCELLED'] as const
-  const nextStatus: typeof allowedStatuses[number] = body.status && (allowedStatuses as readonly string[]).includes(body.status)
-    ? body.status as typeof allowedStatuses[number]
-    : 'CONFIRMED'
-  const updated = await prisma.waitlistEntry.update({ where: { id }, data: { status: nextStatus } })
+  const allowedStatuses = Object.values(Prisma.WaitlistStatus)
+  const nextStatus = (body.status && (allowedStatuses as readonly string[]).includes(body.status))
+    ? (body.status as Prisma.WaitlistStatus)
+    : Prisma.WaitlistStatus.CONFIRMED
+  const updated = await prisma.waitlistEntry.update({ where: { id }, data: { status: { set: nextStatus } } })
   reply.send({ entry: updated })
 })
 
@@ -1212,10 +1212,11 @@ app.put('/api/owner/theme', async (request, reply) => {
   const user = await requireOwnerOrAdmin(request, reply)
   if (!user) return
   try {
-    const theme = request.body as Record<string, unknown> | null
-    const updated = await prisma.user.update({ 
-      where: { id: user.id }, 
-      data: { theme: (theme as Prisma.InputJsonValue) ?? Prisma.JsonNull }
+    const theme = request.body as unknown
+    // Use `as unknown as Prisma.InputJsonValue` to satisfy varying Prisma versions
+    const updated = await prisma.user.update({
+      where: { id: user.id },
+      data: { theme: (theme as unknown as Prisma.InputJsonValue) }
     })
     reply.send({ ok: true, theme: updated.theme as unknown })
   } catch (error) {

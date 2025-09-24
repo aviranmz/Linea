@@ -30,6 +30,10 @@ jobs:
 
       - name: Generate Prisma client
         run: pnpm --filter @linea/api db:generate
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
 
       - name: Deploy database migrations
         run: pnpm --filter @linea/api db:migrate:deploy
@@ -38,6 +42,10 @@ jobs:
 
       - name: Build applications
         run: pnpm build
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
 
       - name: Deploy to Railway
         uses: railwayapp/railway-deploy@v3
