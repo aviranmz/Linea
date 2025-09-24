@@ -1283,6 +1283,28 @@ app.post('/auth/dev/login', async (request, reply) => {
   reply.send({ ok: true, user: { id: user.id, email: user.email, role: user.role, name: user.name } })
 })
 
+// Dev-only: reusable login link that creates a session and redirects
+app.get('/auth/dev/login-link', async (request, reply) => {
+  if (!(shouldShowMagicLink || config.environment.NODE_ENV !== 'production')) {
+    reply.code(403).send({ error: 'Forbidden' })
+    return
+  }
+  const { email, role, name, redirect } = request.query as { email?: string; role?: 'VISITOR'|'OWNER'|'ADMIN'; name?: string; redirect?: string }
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  if (!email || !emailRegex.test(email)) { reply.code(400).send({ error: 'Invalid email' }); return }
+  const desiredRole = (role || 'VISITOR')
+  const user = await prisma.user.upsert({
+    where: { email },
+    update: { role: desiredRole, name: name ?? null, isActive: true, lastLoginAt: new Date() },
+    create: { email, role: desiredRole, name: name ?? null, isActive: true, lastLoginAt: new Date() }
+  })
+
+  await createSessionAndSetCookie(reply, { id: user.id, email: user.email, role: user.role, name: user.name || null })
+
+  const dest = redirect || (config.server.FRONTEND_URL || '/')
+  reply.redirect(dest)
+})
+
 // Collect visitor email for quick registration
 app.post('/collect-email', async (request, reply) => {
   try {
