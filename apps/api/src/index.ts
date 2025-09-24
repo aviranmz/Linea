@@ -1016,12 +1016,6 @@ app.get('/api/admin/owners', async (request, reply) => {
           id: true,
           email: true,
           name: true,
-          phone: true,
-          businessName: true,
-          website: true,
-          address: true,
-          city: true,
-          country: true,
           isActive: true,
           createdAt: true,
           _count: { select: { ownedEvents: true } },
@@ -1034,12 +1028,6 @@ app.get('/api/admin/owners', async (request, reply) => {
         id: string; 
         email: string; 
         name: string | null; 
-        phone: string | null;
-        businessName: string | null;
-        website: string | null;
-        address: string | null;
-        city: string | null;
-        country: string | null;
         isActive: boolean; 
         createdAt: Date; 
         _count: { ownedEvents: number } 
@@ -1047,13 +1035,7 @@ app.get('/api/admin/owners', async (request, reply) => {
         id: o.id,
         email: o.email,
         name: o.name,
-        phone: o.phone,
-        businessName: o.businessName,
-        website: o.website,
-        address: o.address,
-        city: o.city,
-        country: o.country,
-        organizationName: o.businessName, // For backward compatibility
+        organizationName: null,
         status: o.isActive ? 'ACTIVE' : 'SUSPENDED',
         createdAt: o.createdAt,
         eventCount: o._count.ownedEvents,
@@ -1077,15 +1059,9 @@ app.put('/api/admin/owners/:id', async (request, reply) => {
   if (!user) return
   try {
     const { id } = request.params as { id: string }
-    const { name, email, phone, businessName, website, address, city, country } = request.body as {
+    const { name, email } = request.body as {
       name: string
       email: string
-      phone: string
-      businessName: string
-      website: string
-      address: string
-      city: string
-      country: string
     }
 
     // Validate required fields
@@ -1108,23 +1084,12 @@ app.put('/api/admin/owners/:id', async (request, reply) => {
       data: {
         name,
         email,
-        phone: phone || null,
-        businessName: businessName || null,
-        website: website || null,
-        address: address || null,
-        city: city || null,
-        country: country || null,
+        // Optional fields only if columns exist in DB
       },
       select: {
         id: true,
         email: true,
         name: true,
-        phone: true,
-        businessName: true,
-        website: true,
-        address: true,
-        city: true,
-        country: true,
         isActive: true,
         createdAt: true,
         _count: { select: { ownedEvents: true } },
@@ -1135,12 +1100,6 @@ app.put('/api/admin/owners/:id', async (request, reply) => {
       id: updated.id,
       email: updated.email,
       name: updated.name,
-      phone: updated.phone,
-      businessName: updated.businessName,
-      website: updated.website,
-      address: updated.address,
-      city: updated.city,
-      country: updated.country,
       status: updated.isActive ? 'ACTIVE' : 'SUSPENDED',
       createdAt: updated.createdAt,
       eventCount: updated._count.ownedEvents,
