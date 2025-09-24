@@ -1016,6 +1016,12 @@ app.get('/api/admin/owners', async (request, reply) => {
           id: true,
           email: true,
           name: true,
+          phone: true,
+          businessName: true,
+          website: true,
+          address: true,
+          city: true,
+          country: true,
           isActive: true,
           createdAt: true,
           _count: { select: { ownedEvents: true } },
@@ -1024,11 +1030,30 @@ app.get('/api/admin/owners', async (request, reply) => {
     ])
 
     reply.send({
-      owners: owners.map((o: { id: string; email: string; name: string | null; isActive: boolean; createdAt: Date; _count: { ownedEvents: number } }) => ({
+      owners: owners.map((o: { 
+        id: string; 
+        email: string; 
+        name: string | null; 
+        phone: string | null;
+        businessName: string | null;
+        website: string | null;
+        address: string | null;
+        city: string | null;
+        country: string | null;
+        isActive: boolean; 
+        createdAt: Date; 
+        _count: { ownedEvents: number } 
+      }) => ({
         id: o.id,
         email: o.email,
         name: o.name,
-        organizationName: null,
+        phone: o.phone,
+        businessName: o.businessName,
+        website: o.website,
+        address: o.address,
+        city: o.city,
+        country: o.country,
+        organizationName: o.businessName, // For backward compatibility
         status: o.isActive ? 'ACTIVE' : 'SUSPENDED',
         createdAt: o.createdAt,
         eventCount: o._count.ownedEvents,
@@ -1043,6 +1068,126 @@ app.get('/api/admin/owners', async (request, reply) => {
   } catch (error) {
     request.log.error({ error }, 'Failed to list owners (admin)')
     reply.code(500).send({ error: 'Failed to list owners' })
+  }
+})
+
+// -------- Admin: Update owner details (RBAC: ADMIN only) --------
+app.put('/api/admin/owners/:id', async (request, reply) => {
+  const user = await requireAdmin(request, reply)
+  if (!user) return
+  try {
+    const { id } = request.params as { id: string }
+    const { name, email, phone, businessName, website, address, city, country } = request.body as {
+      name: string
+      email: string
+      phone: string
+      businessName: string
+      website: string
+      address: string
+      city: string
+      country: string
+    }
+
+    // Validate required fields
+    if (!email || !name) {
+      reply.code(400).send({ error: 'Email and name are required' })
+      return
+    }
+
+    // Check if email is already taken by another user
+    const existingUser = await prisma.user.findFirst({
+      where: { email, id: { not: id }, deletedAt: null }
+    })
+    if (existingUser) {
+      reply.code(400).send({ error: 'Email already taken by another user' })
+      return
+    }
+
+    const updated = await prisma.user.update({
+      where: { id },
+      data: {
+        name,
+        email,
+        phone: phone || null,
+        businessName: businessName || null,
+        website: website || null,
+        address: address || null,
+        city: city || null,
+        country: country || null,
+      },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        phone: true,
+        businessName: true,
+        website: true,
+        address: true,
+        city: true,
+        country: true,
+        isActive: true,
+        createdAt: true,
+        _count: { select: { ownedEvents: true } },
+      },
+    })
+
+    reply.send({
+      id: updated.id,
+      email: updated.email,
+      name: updated.name,
+      phone: updated.phone,
+      businessName: updated.businessName,
+      website: updated.website,
+      address: updated.address,
+      city: updated.city,
+      country: updated.country,
+      status: updated.isActive ? 'ACTIVE' : 'SUSPENDED',
+      createdAt: updated.createdAt,
+      eventCount: updated._count.ownedEvents,
+    })
+  } catch (error) {
+    request.log.error({ error }, 'Failed to update owner (admin)')
+    reply.code(500).send({ error: 'Failed to update owner' })
+  }
+})
+
+// -------- Admin: Toggle owner status (RBAC: ADMIN only) --------
+app.put('/api/admin/owners/:id/status', async (request, reply) => {
+  const user = await requireAdmin(request, reply)
+  if (!user) return
+  try {
+    const { id } = request.params as { id: string }
+    const { status } = request.body as { status: 'ACTIVE' | 'SUSPENDED' }
+
+    if (!['ACTIVE', 'SUSPENDED'].includes(status)) {
+      reply.code(400).send({ error: 'Invalid status. Must be ACTIVE or SUSPENDED' })
+      return
+    }
+
+    const updated = await prisma.user.update({
+      where: { id },
+      data: { isActive: status === 'ACTIVE' },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        isActive: true,
+        createdAt: true,
+        _count: { select: { ownedEvents: true } },
+      },
+    })
+
+    reply.send({
+      id: updated.id,
+      email: updated.email,
+      name: updated.name,
+      status: updated.isActive ? 'ACTIVE' : 'SUSPENDED',
+      createdAt: updated.createdAt,
+      eventCount: updated._count.ownedEvents,
+    })
+  } catch (error) {
+    request.log.error({ error }, 'Failed to update owner status (admin)')
+    reply.code(500).send({ error: 'Failed to update owner status' })
   }
 })
 

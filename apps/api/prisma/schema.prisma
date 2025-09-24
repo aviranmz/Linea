@@ -19,6 +19,13 @@ model User {
   lastLoginAt DateTime?
   // Owner/site preferences and theme (JSON blob)
   theme     Json?
+  // Additional owner fields
+  phone     String?
+  businessName String?
+  website   String?
+  address   String?
+  city      String?
+  country   String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   deletedAt DateTime?
