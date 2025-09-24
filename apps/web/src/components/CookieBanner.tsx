@@ -23,7 +23,10 @@ export function CookieBanner() {
   const save = (consent: Consent) => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(consent))
-    } catch {}
+    } catch {
+      // ignore storage failures (e.g., private mode)
+      void 0
+    }
   }
 
   const acceptAll = () => {
@@ -55,15 +58,6 @@ export function CookieBanner() {
   )
 }
 
-export function getAnalyticsConsent(): boolean {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (!raw) return false
-    const parsed: Consent = JSON.parse(raw)
-    return !!parsed.analytics
-  } catch {
-    return false
-  }
-}
+// moved helper to src/lib/consent.ts to keep this file component-only
 
 
