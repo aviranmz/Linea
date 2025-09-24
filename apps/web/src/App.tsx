@@ -2,6 +2,7 @@ import { Routes, Route } from 'react-router-dom'
 import { HomePage } from './pages/HomePage'
 import { EventPage } from './pages/EventPage'
 import { OwnerPortal } from './pages/OwnerPortal'
+import OwnerTheme from './pages/OwnerTheme'
 import { AdminPortal } from './pages/AdminPortal'
 import { Layout } from './components/Layout'
 import { ErrorBoundary } from './components/ErrorBoundary'
@@ -14,6 +15,7 @@ function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/events/:slug" element={<EventPage />} />
           <Route path="/owner/*" element={<OwnerPortal />} />
+          <Route path="/owner/theme" element={<OwnerTheme />} />
           <Route path="/admin/*" element={<AdminPortal />} />
         </Routes>
       </Layout>

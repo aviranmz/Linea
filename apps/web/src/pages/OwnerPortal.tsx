@@ -161,6 +161,12 @@ export function OwnerPortal() {
         >
           Create New Event
         </button>
+        <a
+          href="/owner/theme"
+          className="ml-4 text-indigo-600 hover:text-indigo-800 underline"
+        >
+          Customize Theme
+        </a>
       </div>
 
       {/* Create Event Form Modal */}
