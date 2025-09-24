@@ -6,6 +6,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Linea - Event Management Platform</title>
     <meta name="description" content="Modern event management platform with email-only access and waitlist functionality" />
+    <!-- Google tag (gtag.js) - env driven -->
+    <script type="module">
+      const GA_MEASUREMENT_ID = import.meta.env.VITE_GA_MEASUREMENT_ID || 'G-10W9B0RT17';
+      if (GA_MEASUREMENT_ID) {
+        const gtagScript = document.createElement('script');
+        gtagScript.async = true;
+        gtagScript.src = `https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`;
+        document.head.appendChild(gtagScript);
+
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){ window.dataLayer.push(arguments); }
+        gtag('js', new Date());
+        gtag('config', GA_MEASUREMENT_ID);
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>

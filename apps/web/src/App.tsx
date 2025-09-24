@@ -4,7 +4,10 @@ import { EventPage } from './pages/EventPage'
 import { OwnerPortal } from './pages/OwnerPortal'
 import OwnerTheme from './pages/OwnerTheme'
 import OwnerWaitlist from './pages/OwnerWaitlist'
+import OwnerEventEditor from './pages/OwnerEventEditor'
 import { AdminPortal } from './pages/AdminPortal'
+import AdminOwners from './pages/AdminOwners'
+import AdminEvents from './pages/AdminEvents'
 import { Layout } from './components/Layout'
 import HelpCenter from './pages/HelpCenter'
 import Contact from './pages/Contact'
@@ -22,7 +25,10 @@ function App() {
           <Route path="/owner/*" element={<OwnerPortal />} />
           <Route path="/owner/theme" element={<OwnerTheme />} />
           <Route path="/owner/waitlist/:eventId" element={<OwnerWaitlist />} />
+          <Route path="/owner/events/:id/edit-advanced" element={<OwnerEventEditor />} />
           <Route path="/admin/*" element={<AdminPortal />} />
+          <Route path="/admin/owners" element={<AdminOwners />} />
+          <Route path="/admin/events" element={<AdminEvents />} />
           <Route path="/help" element={<HelpCenter />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/privacy" element={<PrivacyPolicy />} />

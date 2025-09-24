@@ -139,18 +139,7 @@ export function OwnerPortal() {
     }
   }
 
-  const openEdit = (ev: Event) => {
-    setEditTarget(ev)
-    setEditEvent({
-      title: ev.title,
-      description: ev.description || '',
-      startDate: ev.startDate ? new Date(ev.startDate).toISOString().slice(0,16) : '',
-      endDate: '',
-      capacity: ev.capacity ? String(ev.capacity) : '',
-      isPublic: ev.status === 'PUBLISHED',
-      featured: false
-    })
-  }
+  // Removed unused openEdit helper
 
   const submitEdit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -402,7 +391,8 @@ export function OwnerPortal() {
                       View
                     </Link>
                     <Link to={`/owner/waitlist/${event.id}`} className="text-indigo-600 hover:text-indigo-800 text-sm font-medium">Waitlist</Link>
-                    <button onClick={() => openEdit(event)} className="text-gray-600 hover:text-gray-800 text-sm font-medium">Edit</button>
+                    <Link to={`/owner/events/${event.slug}/edit-advanced`} className="text-gray-600 hover:text-gray-800 text-sm font-medium">Edit</Link>
+                    <Link to={`/owner/events/${event.slug}/edit-advanced`} className="text-gray-600 hover:text-gray-800 text-sm font-medium">Advanced</Link>
                     <button onClick={() => handleDelete(event.id)} className="text-red-600 hover:text-red-800 text-sm font-medium">
                       Delete
                     </button>

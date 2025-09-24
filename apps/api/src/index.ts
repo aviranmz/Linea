@@ -6,7 +6,7 @@ import swagger from '@fastify/swagger'
 import swaggerUi from '@fastify/swagger-ui'
 import fastifyStatic from '@fastify/static'
 import cookie from '@fastify/cookie'
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient, Prisma, $Enums } from '@prisma/client'
 import * as Sentry from '@sentry/node'
 import path from 'path'
 import { fileURLToPath } from 'url'
@@ -925,7 +925,7 @@ app.get('/api/waitlist/export', async (request, reply) => {
   if (!eventId) { reply.code(400).send({ error: 'Missing eventId' }); return }
   try {
     const entries = await prisma.waitlistEntry.findMany({ where: { eventId, deletedAt: null }, orderBy: { createdAt: 'asc' } })
-    const rows: string[][] = [["email","eventId","status","createdAt"], ...entries.map((e: any) => [e.email as string, e.eventId as string, String(e.status), (e.createdAt as Date).toISOString()])]
+    const rows: string[][] = [["email","eventId","status","createdAt"], ...entries.map((e) => [e.email, e.eventId, String(e.status), e.createdAt.toISOString()])]
     const csv = rows.map(r => r.map(v => typeof v === 'string' && v.includes(',') ? `"${v.replace(/"/g,'""')}"` : String(v)).join(',')).join('\n')
     reply.header('Content-Type', 'text/csv')
     reply.header('Content-Disposition', `attachment; filename="waitlist-${eventId}.csv"`)
@@ -976,6 +976,197 @@ app.get('/api/admin/overview', async (request, reply) => {
   }
 })
 
+// -------- Admin: Owners list (RBAC: ADMIN only) --------
+app.get('/api/admin/owners', async (request, reply) => {
+  const user = await requireAdmin(request, reply)
+  if (!user) return
+  try {
+    const { page = '1', limit = '20', search, status } = request.query as {
+      page?: string
+      limit?: string
+      search?: string
+      status?: 'ACTIVE' | 'SUSPENDED'
+    }
+    const pageNum = Math.max(1, parseInt(page))
+    const limitNum = Math.min(100, Math.max(1, parseInt(limit)))
+
+    const where: Prisma.UserWhereInput = {
+      role: 'OWNER',
+      deletedAt: null,
+      ...(status === 'ACTIVE' ? { isActive: true } : {}),
+      ...(status === 'SUSPENDED' ? { isActive: false } : {}),
+      ...(search
+        ? {
+            OR: [
+              { email: { contains: search, mode: 'insensitive' } },
+              { name: { contains: search, mode: 'insensitive' } },
+            ],
+          }
+        : {}),
+    }
+
+    const [total, owners] = await Promise.all([
+      prisma.user.count({ where }),
+      prisma.user.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip: (pageNum - 1) * limitNum,
+        take: limitNum,
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          isActive: true,
+          createdAt: true,
+          _count: { select: { ownedEvents: true } },
+        },
+      }),
+    ])
+
+    reply.send({
+      owners: owners.map((o) => ({
+        id: o.id,
+        email: o.email,
+        name: o.name,
+        organizationName: null,
+        status: o.isActive ? 'ACTIVE' : 'SUSPENDED',
+        createdAt: o.createdAt,
+        eventCount: o._count.ownedEvents,
+      })),
+      pagination: {
+        page: pageNum,
+        limit: limitNum,
+        total,
+        totalPages: Math.max(1, Math.ceil(total / limitNum)),
+      },
+    })
+  } catch (error) {
+    request.log.error({ error }, 'Failed to list owners (admin)')
+    reply.code(500).send({ error: 'Failed to list owners' })
+  }
+})
+
+// -------- Admin: Events list + moderation (RBAC: ADMIN only) --------
+app.get('/api/admin/events', async (request, reply) => {
+  const user = await requireAdmin(request, reply)
+  if (!user) return
+  try {
+    const { page = '1', limit = '20', status, search } = request.query as {
+      page?: string
+      limit?: string
+      status?: 'DRAFT' | 'PUBLISHED' | 'CANCELLED' | 'COMPLETED' | 'PENDING_REVIEW'
+      search?: string
+    }
+    const pageNum = Math.max(1, parseInt(page))
+    const limitNum = Math.min(100, Math.max(1, parseInt(limit)))
+
+    const where: Prisma.EventWhereInput = {
+      deletedAt: null,
+      ...(status && ['DRAFT', 'PUBLISHED', 'CANCELLED', 'COMPLETED'].includes(status)
+        ? { status: status as $Enums.EventStatus }
+        : {}),
+      ...(search
+        ? {
+            OR: [
+              { title: { contains: search, mode: 'insensitive' } },
+              { description: { contains: search, mode: 'insensitive' } },
+              { shortDescription: { contains: search, mode: 'insensitive' } },
+            ],
+          }
+        : {}),
+    }
+
+    const [total, events] = await Promise.all([
+      prisma.event.count({ where }),
+      prisma.event.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip: (pageNum - 1) * limitNum,
+        take: limitNum,
+        select: {
+          id: true,
+          title: true,
+          slug: true,
+          status: true,
+          createdAt: true,
+          owner: { select: { name: true } },
+          _count: { select: { waitlist: true } },
+        },
+      }),
+    ])
+
+    reply.send({
+      events: events.map((e) => ({
+        id: e.id,
+        title: e.title,
+        slug: e.slug,
+        status: e.status,
+        ownerName: e.owner?.name || 'Unknown',
+        waitlistCount: e._count.waitlist,
+        createdAt: e.createdAt,
+      })),
+      pagination: {
+        page: pageNum,
+        limit: limitNum,
+        total,
+        totalPages: Math.max(1, Math.ceil(total / limitNum)),
+      },
+    })
+  } catch (error) {
+    request.log.error({ error }, 'Failed to list events (admin)')
+    reply.code(500).send({ error: 'Failed to list events' })
+  }
+})
+
+app.post('/api/admin/events/:id/approve', async (request, reply) => {
+  const user = await requireAdmin(request, reply)
+  if (!user) return
+  try {
+    const { id } = request.params as { id: string }
+    const existing = await prisma.event.findFirst({ where: { id, deletedAt: null } })
+    if (!existing) { reply.code(404).send({ error: 'Event not found' }); return }
+    const updated = await prisma.event.update({ where: { id }, data: { status: 'PUBLISHED' } })
+    await prisma.auditLog.create({
+      data: {
+        action: 'UPDATE',
+        resource: 'Event',
+        resourceId: id,
+        userId: user.id,
+        metadata: { action: 'approve' },
+      },
+    })
+    reply.send({ ok: true, event: { id: updated.id, status: updated.status } })
+  } catch (error) {
+    request.log.error({ error }, 'Failed to approve event')
+    reply.code(500).send({ error: 'Failed to approve event' })
+  }
+})
+
+app.post('/api/admin/events/:id/reject', async (request, reply) => {
+  const user = await requireAdmin(request, reply)
+  if (!user) return
+  try {
+    const { id } = request.params as { id: string }
+    const { reason } = request.body as { reason?: string }
+    const existing = await prisma.event.findFirst({ where: { id, deletedAt: null } })
+    if (!existing) { reply.code(404).send({ error: 'Event not found' }); return }
+    const updated = await prisma.event.update({ where: { id }, data: { status: 'CANCELLED' } })
+    await prisma.auditLog.create({
+      data: {
+        action: 'UPDATE',
+        resource: 'Event',
+        resourceId: id,
+        userId: user.id,
+        metadata: { action: 'reject', reason: reason || null },
+      },
+    })
+    reply.send({ ok: true, event: { id: updated.id, status: updated.status } })
+  } catch (error) {
+    request.log.error({ error }, 'Failed to reject event')
+    reply.code(500).send({ error: 'Failed to reject event' })
+  }
+})
+
 // Owner Theme Settings CRUD (owner/admin)
 app.get('/api/owner/theme', async (request, reply) => {
   const user = await requireOwnerOrAdmin(request, reply)
@@ -1021,9 +1212,12 @@ app.put('/api/owner/theme', async (request, reply) => {
   const user = await requireOwnerOrAdmin(request, reply)
   if (!user) return
   try {
-    const theme = request.body as Record<string, unknown>
-    const updated = await prisma.user.update({ where: { id: user.id }, data: { theme: theme as any } })
-    reply.send({ ok: true, theme: (updated as any).theme })
+    const theme = request.body as Record<string, unknown> | null
+    const updated = await prisma.user.update({ 
+      where: { id: user.id }, 
+      data: { theme: (theme as Prisma.InputJsonValue) ?? Prisma.JsonNull }
+    })
+    reply.send({ ok: true, theme: updated.theme as unknown })
   } catch (error) {
     reply.code(500).send({ error: 'Failed to update theme' })
   }
