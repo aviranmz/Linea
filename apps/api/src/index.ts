@@ -1324,9 +1324,36 @@ const gracefulShutdown = async (signal: string) => {
 process.on('SIGTERM', () => gracefulShutdown('SIGTERM'))
 process.on('SIGINT', () => gracefulShutdown('SIGINT'))
 
+// Run database migrations on startup
+const runMigrations = async () => {
+  try {
+    app.log.info('🚀 Running database migrations...')
+    
+    // Test database connection first
+    await prisma.$connect()
+    app.log.info('✅ Database connected successfully!')
+    
+    // Run migrations
+    const { execSync } = await import('child_process')
+    execSync('npx prisma migrate deploy', { 
+      stdio: 'inherit',
+      env: { ...process.env, DATABASE_URL: config.database.DATABASE_URL }
+    })
+    app.log.info('✅ Database migrations completed!')
+    
+  } catch (error) {
+    app.log.error({ error }, '❌ Database migration failed')
+    // Don't exit - let the app start anyway
+    app.log.warn('⚠️  Continuing without migrations...')
+  }
+}
+
 // Start server
 const start = async () => {
   try {
+    // Run migrations first
+    await runMigrations()
+    
     const port = config.server.PORT
     const host = config.server.HOST
 
