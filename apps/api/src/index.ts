@@ -976,6 +976,30 @@ app.get('/api/admin/overview', async (request, reply) => {
   }
 })
 
+// Owner Theme Settings CRUD (owner/admin)
+app.get('/api/owner/theme', async (request, reply) => {
+  const user = await requireOwnerOrAdmin(request, reply)
+  if (!user) return
+  try {
+    const dbUser = await prisma.user.findUnique({ where: { id: user.id }, select: { theme: true } })
+    reply.send({ theme: dbUser?.theme || null })
+  } catch (error) {
+    reply.code(500).send({ error: 'Failed to fetch theme' })
+  }
+})
+
+app.put('/api/owner/theme', async (request, reply) => {
+  const user = await requireOwnerOrAdmin(request, reply)
+  if (!user) return
+  try {
+    const theme = request.body as Record<string, unknown>
+    const updated = await prisma.user.update({ where: { id: user.id }, data: { theme } })
+    reply.send({ ok: true, theme: updated.theme })
+  } catch (error) {
+    reply.code(500).send({ error: 'Failed to update theme' })
+  }
+})
+
 // Auth: Request magic link (ENHANCED WITH MOCK FUNCTIONALITY)
 app.post('/auth/request-magic-link', async (request, reply) => {
   const { email } = request.body as { email: string }
