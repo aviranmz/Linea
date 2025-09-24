@@ -10,7 +10,7 @@ import { PrismaClient } from '@prisma/client'
 import * as Sentry from '@sentry/node'
 import path from 'path'
 import { fileURLToPath } from 'url'
-import { randomUUID } from 'crypto'
+// import { randomUUID } from 'crypto'
 import { getConfig, validateConfig } from '@linea/config'
 import { sessionService } from './services/sessionService.js'
 
@@ -1328,73 +1328,7 @@ app.put('/api/owner/theme', async (request, reply) => {
   }
 })
 
-// Development: Direct admin login (DEV ONLY)
-app.get('/auth/dev/login-link', async (request, reply) => {
-  if (config.environment.NODE_ENV === 'production') {
-    reply.code(404).send({ error: 'Not found' })
-    return
-  }
-  
-  const { email, role = 'ADMIN', name = 'Admin' } = request.query as { 
-    email?: string
-    role?: 'ADMIN' | 'OWNER' | 'VISITOR'
-    name?: string
-  }
-  
-  if (!email) {
-    reply.code(400).send({ error: 'Email required' })
-    return
-  }
-  
-  try {
-    // Find or create user
-    const user = await prisma.user.upsert({
-      where: { email },
-      update: { 
-        name,
-        role,
-        isActive: true,
-        lastLoginAt: new Date()
-      },
-      create: {
-        email,
-        name,
-        role,
-        isActive: true,
-        lastLoginAt: new Date()
-      }
-    })
-    
-    // Create session token
-    const token = randomUUID()
-    const expiresInMs = 7 * 24 * 60 * 60 * 1000 // 7 days
-    
-    // Create session
-    await sessionService.createSession(token, {
-      userId: user.id,
-      email: user.email,
-      role: user.role,
-      name: user.name
-    }, expiresInMs)
-    
-    // Set session cookie
-    reply.setCookie('session', token, {
-      httpOnly: true,
-      secure: config.environment.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: expiresInMs
-    })
-    
-    reply.send({ 
-      ok: true, 
-      user: { id: user.id, email: user.email, name: user.name, role: user.role },
-      message: 'Logged in successfully (dev mode)'
-    })
-  } catch (error) {
-    app.log.error({ error }, 'Dev login failed')
-    reply.code(500).send({ error: 'Login failed' })
-  }
-})
+// (Removed duplicate dev login route) - using single definition near the bottom
 
 // Auth: Request magic link (ENHANCED WITH MOCK FUNCTIONALITY)
 app.post('/auth/request-magic-link', async (request, reply) => {
