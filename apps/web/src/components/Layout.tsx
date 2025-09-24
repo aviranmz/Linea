@@ -2,7 +2,7 @@ import React, { ReactNode, useEffect, useState } from 'react'
 import { Header } from './Header'
 import { Footer } from './Footer'
 import { ThemeProvider } from '../contexts/ThemeContext'
-import { postJson } from '../lib/api'
+import { postJson, getJson } from '../lib/api'
 import { CookieBanner } from './CookieBanner'
 
 interface LayoutProps {
@@ -15,7 +15,15 @@ export function Layout({ children }: LayoutProps) {
 
   useEffect(() => {
     const seen = localStorage.getItem('visitor_email')
-    if (!seen) setShowEmailModal(true)
+    // Only show for anonymous visitors with no saved email
+    getJson<{ authenticated: boolean; user?: { role: string } }>('/auth/me')
+      .then((res) => {
+        const isAuthed = !!res?.authenticated
+        if (!isAuthed && !seen) setShowEmailModal(true)
+      })
+      .catch(() => {
+        if (!seen) setShowEmailModal(true)
+      })
   }, [])
 
   const submitEmail = async (e: React.FormEvent) => {
