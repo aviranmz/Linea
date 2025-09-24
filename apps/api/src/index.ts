@@ -981,8 +981,8 @@ app.get('/api/owner/theme', async (request, reply) => {
   const user = await requireOwnerOrAdmin(request, reply)
   if (!user) return
   try {
-    const dbUser = await prisma.user.findUnique({ where: { id: user.id }, select: { theme: true } })
-    reply.send({ theme: dbUser?.theme || null })
+    const dbUser = await prisma.user.findUnique({ where: { id: user.id } })
+    reply.send({ theme: (dbUser as any)?.theme || null })
   } catch (error) {
     reply.code(500).send({ error: 'Failed to fetch theme' })
   }
@@ -993,8 +993,8 @@ app.put('/api/owner/theme', async (request, reply) => {
   if (!user) return
   try {
     const theme = request.body as Record<string, unknown>
-    const updated = await prisma.user.update({ where: { id: user.id }, data: { theme } })
-    reply.send({ ok: true, theme: updated.theme })
+    const updated = await prisma.user.update({ where: { id: user.id }, data: { ...( { theme } as any ) } })
+    reply.send({ ok: true, theme: (updated as any).theme })
   } catch (error) {
     reply.code(500).send({ error: 'Failed to update theme' })
   }

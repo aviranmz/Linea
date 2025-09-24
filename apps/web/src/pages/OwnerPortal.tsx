@@ -11,6 +11,7 @@ interface Event {
   startDate: string
   status: string
   capacity?: number
+  metadata?: Record<string, unknown>
 }
 
 export function OwnerPortal() {
@@ -36,7 +37,23 @@ export function OwnerPortal() {
     title: '',
     description: '',
     startDate: '',
-    capacity: ''
+    capacity: '',
+    shortDescription: '',
+    productName: '',
+    heroImageUrl: '',
+    longDescription: '',
+    valueProposition: '',
+    features: '', // newline separated
+    awards: '',   // newline separated
+    socialInstagram: '',
+    socialTiktok: '',
+    socialFacebook: '',
+    socialLinkedin: '',
+    videoUrl: '',
+    pressKitUrl: '',
+    contactEmail: '',
+    contactPhone: '',
+    qrUrl: ''
   })
   const [editEvent, setEditEvent] = useState({
     title: '',
@@ -67,11 +84,31 @@ export function OwnerPortal() {
     const payload = {
       title: newEvent.title,
       description: newEvent.description || undefined,
+      shortDescription: newEvent.shortDescription || undefined,
       startDate: newEvent.startDate,
       capacity: newEvent.capacity ? Number(newEvent.capacity) : undefined,
       isPublic: false,
       featured: false,
-      tags: [] as string[]
+      tags: [] as string[],
+      productName: newEvent.productName || undefined,
+      heroImageUrl: newEvent.heroImageUrl || undefined,
+      longDescription: newEvent.longDescription || undefined,
+      valueProposition: newEvent.valueProposition || undefined,
+      features: newEvent.features ? newEvent.features.split('\n').map(s=>s.trim()).filter(Boolean) : undefined,
+      awards: newEvent.awards ? newEvent.awards.split('\n').map(s=>s.trim()).filter(Boolean) : undefined,
+      social: {
+        instagram: newEvent.socialInstagram || undefined,
+        tiktok: newEvent.socialTiktok || undefined,
+        facebook: newEvent.socialFacebook || undefined,
+        linkedin: newEvent.socialLinkedin || undefined,
+      },
+      videoUrl: newEvent.videoUrl || undefined,
+      pressKitUrl: newEvent.pressKitUrl || undefined,
+      contact: {
+        email: newEvent.contactEmail || undefined,
+        phone: newEvent.contactPhone || undefined,
+      },
+      qrUrl: newEvent.qrUrl || undefined
     }
     try {
       const created = await postJson<{ event: Event }>('/api/owner/events', payload)
@@ -83,7 +120,9 @@ export function OwnerPortal() {
         .then(data => setEvents(data.events || []))
         .catch(() => {/* ignore transient refresh error */})
       setShowCreateForm(false)
-      setNewEvent({ title: '', description: '', startDate: '', capacity: '' })
+      setNewEvent({
+        title: '', description: '', startDate: '', capacity: '', shortDescription: '', productName: '', heroImageUrl: '', longDescription: '', valueProposition: '', features: '', awards: '', socialInstagram: '', socialTiktok: '', socialFacebook: '', socialLinkedin: '', videoUrl: '', pressKitUrl: '', contactEmail: '', contactPhone: '', qrUrl: ''
+      })
     } catch (err) {
       console.error('Create event failed', err)
       alert('Failed to create event')
@@ -174,7 +213,7 @@ export function OwnerPortal() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-8 max-w-md w-full mx-4">
             <h2 className="text-2xl font-bold text-gray-900 mb-6">Create New Event</h2>
-            <form onSubmit={handleCreateEvent} className="space-y-4">
+            <form onSubmit={handleCreateEvent} className="space-y-4 max-h-[80vh] overflow-y-auto pr-2">
               <div>
                 <label htmlFor="event-title" className="block text-sm font-medium text-gray-700 mb-2">
                   Event Title
@@ -199,6 +238,80 @@ export function OwnerPortal() {
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                   rows={3}
                 />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Short Description</label>
+                  <input type="text" value={newEvent.shortDescription} onChange={(e)=>setNewEvent({ ...newEvent, shortDescription: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Product Name</label>
+                  <input type="text" value={newEvent.productName} onChange={(e)=>setNewEvent({ ...newEvent, productName: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Hero Image URL</label>
+                <input type="url" value={newEvent.heroImageUrl} onChange={(e)=>setNewEvent({ ...newEvent, heroImageUrl: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Long Description</label>
+                <textarea value={newEvent.longDescription} onChange={(e)=>setNewEvent({ ...newEvent, longDescription: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" rows={4} />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Value Proposition</label>
+                <input type="text" value={newEvent.valueProposition} onChange={(e)=>setNewEvent({ ...newEvent, valueProposition: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Features (one per line)</label>
+                  <textarea value={newEvent.features} onChange={(e)=>setNewEvent({ ...newEvent, features: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" rows={3} />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Awards (one per line)</label>
+                  <textarea value={newEvent.awards} onChange={(e)=>setNewEvent({ ...newEvent, awards: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" rows={3} />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Instagram</label>
+                  <input type="url" value={newEvent.socialInstagram} onChange={(e)=>setNewEvent({ ...newEvent, socialInstagram: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">TikTok</label>
+                  <input type="url" value={newEvent.socialTiktok} onChange={(e)=>setNewEvent({ ...newEvent, socialTiktok: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Facebook</label>
+                  <input type="url" value={newEvent.socialFacebook} onChange={(e)=>setNewEvent({ ...newEvent, socialFacebook: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">LinkedIn</label>
+                  <input type="url" value={newEvent.socialLinkedin} onChange={(e)=>setNewEvent({ ...newEvent, socialLinkedin: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Product Video URL</label>
+                  <input type="url" value={newEvent.videoUrl} onChange={(e)=>setNewEvent({ ...newEvent, videoUrl: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Press Kit URL</label>
+                  <input type="url" value={newEvent.pressKitUrl} onChange={(e)=>setNewEvent({ ...newEvent, pressKitUrl: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Contact Email</label>
+                  <input type="email" value={newEvent.contactEmail} onChange={(e)=>setNewEvent({ ...newEvent, contactEmail: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Contact Phone</label>
+                  <input type="tel" value={newEvent.contactPhone} onChange={(e)=>setNewEvent({ ...newEvent, contactPhone: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">QR URL</label>
+                <input type="url" value={newEvent.qrUrl} onChange={(e)=>setNewEvent({ ...newEvent, qrUrl: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
               </div>
               <div>
                 <label htmlFor="event-start-date" className="block text-sm font-medium text-gray-700 mb-2">

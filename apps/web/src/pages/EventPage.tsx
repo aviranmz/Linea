@@ -14,6 +14,20 @@ interface Event {
   status: string
   capacity?: number
   youtubeUrl?: string
+  metadata?: {
+    productName?: string | null
+    heroImageUrl?: string | null
+    longDescription?: string | null
+    valueProposition?: string | null
+    features?: string[]
+    awards?: string[]
+    social?: Record<string,string> | null
+    videoUrl?: string | null
+    pressKitUrl?: string | null
+    contact?: { email?: string; phone?: string; whatsapp?: string; telegram?: string } | null
+    schedule?: Array<{ title: string; startsAt: string; endsAt?: string }>
+    qrUrl?: string | null
+  }
   venue?: {
     id: string
     name: string
@@ -186,7 +200,7 @@ export function EventPage() {
   const pageTitle = event ? `${event.title} | Linea Events` : 'Event | Linea Events'
   const pageDescription = event ? (event.shortDescription || event.description?.substring(0, 160) + '...' || 'Join us for an amazing event!') : 'Event details and registration'
   const pageUrl = `${window.location.origin}/events/${slug}`
-  const eventImage = `${window.location.origin}/og-event-${slug}.jpg` // Placeholder for event-specific images
+  const eventImage = event?.metadata?.heroImageUrl || `${window.location.origin}/og-event-${slug}.jpg`
 
   return (
     <>
@@ -277,27 +291,109 @@ export function EventPage() {
         </div>
       </div>
 
+      {/* Hero Product */}
+      {event.metadata?.heroImageUrl && (
+        <div className="mb-8">
+          <img src={event.metadata.heroImageUrl} alt={event.metadata?.productName || event.title} className="w-full rounded-xl border border-gray-200" />
+        </div>
+      )}
+
+      {/* Product Summary */}
+      {(event.metadata?.productName || event.metadata?.valueProposition) && (
+        <div className="mb-8">
+          <h2 className="text-2xl font-semibold text-gray-900 mb-2">{event.metadata?.productName || 'Product'}</h2>
+          {event.metadata?.valueProposition && (
+            <p className="text-gray-700">{event.metadata.valueProposition}</p>
+          )}
+        </div>
+      )}
+
       {/* Event Description */}
       <div className="mb-8">
         <h2 className="text-2xl font-semibold text-gray-900 mb-4">About This Event</h2>
-        <p className="text-gray-600 leading-relaxed">
-          {event.description || 'Join us for an amazing event! More details coming soon.'}
-        </p>
+        <div className="prose max-w-none">
+          <p className="text-gray-600 leading-relaxed">
+            {event.metadata?.longDescription || event.description || 'Join us for an amazing event! More details coming soon.'}
+          </p>
+        </div>
       </div>
 
-      {/* YouTube Video */}
-      {event.youtubeUrl && (
+      {/* Features & Awards */}
+      {(event.metadata?.features?.length || event.metadata?.awards?.length) && (
+        <div className="mb-8 grid md:grid-cols-2 gap-6">
+          {event.metadata?.features && event.metadata.features.length > 0 && (
+            <div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">Features</h3>
+              <ul className="list-disc pl-6 text-gray-700 space-y-1">
+                {event.metadata.features.map((f, i) => (
+                  <li key={i}>{f}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {event.metadata?.awards && event.metadata.awards.length > 0 && (
+            <div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">Awards</h3>
+              <ul className="list-disc pl-6 text-gray-700 space-y-1">
+                {event.metadata.awards.map((a, i) => (
+                  <li key={i}>{a}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Product Video */}
+      {(event.metadata?.videoUrl || event.youtubeUrl) && (
         <div className="mb-8">
           <h2 className="text-2xl font-semibold text-gray-900 mb-4">Event Video</h2>
           <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden">
             <iframe
-              src={event.youtubeUrl}
+              src={event.metadata?.videoUrl || event.youtubeUrl!}
               title={event.title}
               className="w-full h-full"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
             />
           </div>
+        </div>
+      )}
+
+      {/* Press & Socials */}
+      {(event.metadata?.pressKitUrl || event.metadata?.social) && (
+        <div className="mb-8">
+          <h2 className="text-2xl font-semibold text-gray-900 mb-4">Press & Social</h2>
+          <div className="flex flex-wrap gap-3">
+            {event.metadata?.pressKitUrl && (
+              <a href={event.metadata.pressKitUrl} className="btn btn-outline" target="_blank" rel="noreferrer">Download Press Kit</a>
+            )}
+            {event.metadata?.social && Object.entries(event.metadata.social).map(([k, v]) => v ? (
+              <a key={k} href={v as string} target="_blank" rel="noreferrer" className="text-indigo-600 hover:text-indigo-800 underline capitalize">{k}</a>
+            ) : null)}
+          </div>
+        </div>
+      )}
+
+      {/* Contact & QR */}
+      {(event.metadata?.contact || event.metadata?.qrUrl) && (
+        <div className="mb-8 grid md:grid-cols-2 gap-6">
+          {event.metadata?.contact && (
+            <div className="bg-white border border-gray-200 rounded-lg p-6">
+              <h3 className="text-lg font-semibold mb-2">Contact</h3>
+              <div className="space-y-1 text-gray-700">
+                {event.metadata.contact.email && <div>Email: <a className="text-indigo-600" href={`mailto:${event.metadata.contact.email}`}>{event.metadata.contact.email}</a></div>}
+                {event.metadata.contact.phone && <div>Phone: <a className="text-indigo-600" href={`tel:${event.metadata.contact.phone}`}>{event.metadata.contact.phone}</a></div>}
+                {event.metadata.contact.whatsapp && <div>WhatsApp: <a className="text-indigo-600" href={event.metadata.contact.whatsapp}>Open</a></div>}
+                {event.metadata.contact.telegram && <div>Telegram: <a className="text-indigo-600" href={event.metadata.contact.telegram}>Open</a></div>}
+              </div>
+            </div>
+          )}
+          {event.metadata?.qrUrl && (
+            <div className="bg-white border border-gray-200 rounded-lg p-6 flex items-center justify-center">
+              <img src={event.metadata.qrUrl} alt="QR" className="max-h-48" />
+            </div>
+          )}
         </div>
       )}
 
