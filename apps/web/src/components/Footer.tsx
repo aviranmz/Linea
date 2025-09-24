@@ -1,5 +1,8 @@
 import { Link } from 'react-router-dom'
 
+// Get version from package.json
+const version = import.meta.env.VITE_APP_VERSION || '0.2.4'
+
 export function Footer() {
   return (
     <footer className="bg-white/95 dark:bg-neutral-900/95 backdrop-blur-md border-t border-neutral-200/50 dark:border-neutral-700/50 transition-colors duration-300">
@@ -92,7 +95,7 @@ export function Footer() {
         <div className="mt-12 pt-8 border-t border-neutral-200 dark:border-neutral-700">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <p className="text-caption">
-              © 2024 Linea. All rights reserved. Version 0.1.0
+              © 2025 Linea. All rights reserved. Version {version}
             </p>
             <div className="mt-4 md:mt-0">
               <p className="text-caption">

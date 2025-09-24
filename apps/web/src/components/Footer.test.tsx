@@ -14,7 +14,7 @@ describe('Footer', () => {
     expect(screen.getByText('Linea')).toBeInTheDocument()
     expect(screen.getByText('Quick Links')).toBeInTheDocument()
     expect(screen.getByText('Support')).toBeInTheDocument()
-    expect(screen.getByText('© 2024 Linea. All rights reserved. Version 0.1.0')).toBeInTheDocument()
+    expect(screen.getByText(/© 2025 Linea. All rights reserved. Version/)).toBeInTheDocument()
   })
 
   it('renders all quick links', () => {
@@ -60,7 +60,7 @@ describe('Footer', () => {
       </MemoryRouter>
     )
     
-    expect(screen.getByText(/Version 0.1.0/)).toBeInTheDocument()
+    expect(screen.getByText(/Version/)).toBeInTheDocument()
   })
 
   it('has proper link structure', () => {
