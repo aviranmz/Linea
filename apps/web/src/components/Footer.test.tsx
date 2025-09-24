@@ -1,10 +1,15 @@
 import { render, screen } from '@testing-library/react'
 import { describe, it, expect } from 'vitest'
+import { MemoryRouter } from 'react-router-dom'
 import { Footer } from './Footer'
 
 describe('Footer', () => {
   it('renders footer content', () => {
-    render(<Footer />)
+    render(
+      <MemoryRouter>
+        <Footer />
+      </MemoryRouter>
+    )
     
     expect(screen.getByText('Linea')).toBeInTheDocument()
     expect(screen.getByText('Quick Links')).toBeInTheDocument()
@@ -13,7 +18,11 @@ describe('Footer', () => {
   })
 
   it('renders all quick links', () => {
-    render(<Footer />)
+    render(
+      <MemoryRouter>
+        <Footer />
+      </MemoryRouter>
+    )
     
     expect(screen.getByText('Events')).toBeInTheDocument()
     expect(screen.getByText('Owner Portal')).toBeInTheDocument()
@@ -21,7 +30,11 @@ describe('Footer', () => {
   })
 
   it('renders all support links', () => {
-    render(<Footer />)
+    render(
+      <MemoryRouter>
+        <Footer />
+      </MemoryRouter>
+    )
     
     expect(screen.getByText('Help Center')).toBeInTheDocument()
     expect(screen.getByText('Contact Us')).toBeInTheDocument()
@@ -29,7 +42,11 @@ describe('Footer', () => {
   })
 
   it('renders social media icons', () => {
-    render(<Footer />)
+    render(
+      <MemoryRouter>
+        <Footer />
+      </MemoryRouter>
+    )
     
     // Check for social media links by their href attributes
     expect(screen.getByRole('link', { name: /twitter/i })).toBeInTheDocument()
@@ -37,13 +54,21 @@ describe('Footer', () => {
   })
 
   it('displays version information', () => {
-    render(<Footer />)
+    render(
+      <MemoryRouter>
+        <Footer />
+      </MemoryRouter>
+    )
     
     expect(screen.getByText(/Version 0.1.0/)).toBeInTheDocument()
   })
 
   it('has proper link structure', () => {
-    render(<Footer />)
+    render(
+      <MemoryRouter>
+        <Footer />
+      </MemoryRouter>
+    )
     
     const eventsLink = screen.getByRole('link', { name: 'Events' })
     const ownerPortalLink = screen.getByRole('link', { name: 'Owner Portal' })

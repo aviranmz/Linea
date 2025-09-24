@@ -1,4 +1,6 @@
-import { createClient, type RedisClientOptions, type RedisClientType } from 'redis'
+import { createClient } from 'redis'
+type RedisClientType = ReturnType<typeof createClient>
+type RedisClientOptions = Parameters<typeof createClient>[0]
 import { getConfig } from '@linea/config'
 
 export interface SessionData {
@@ -44,7 +46,7 @@ export class SessionService {
       this.isConnected = true
     })
 
-    this.client.on('disconnect', () => {
+    this.client.on('end', () => {
       console.log('Redis Client Disconnected')
       this.isConnected = false
     })

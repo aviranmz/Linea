@@ -1,6 +1,7 @@
 import { render, screen, waitFor, fireEvent } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { BrowserRouter } from 'react-router-dom'
+import { HelmetProvider } from 'react-helmet-async'
 import { EventPage } from './EventPage'
 
 // Mock useParams
@@ -25,9 +26,11 @@ describe('EventPage', () => {
     mockFetch.mockImplementationOnce(() => new Promise(() => {})) // Never resolves
 
     render(
-      <BrowserRouter>
-        <EventPage />
-      </BrowserRouter>
+      <HelmetProvider>
+        <BrowserRouter>
+          <EventPage />
+        </BrowserRouter>
+      </HelmetProvider>
     )
     
     // Should show loading skeleton elements
@@ -53,9 +56,11 @@ describe('EventPage', () => {
     })
 
     render(
-      <BrowserRouter>
-        <EventPage />
-      </BrowserRouter>
+      <HelmetProvider>
+        <BrowserRouter>
+          <EventPage />
+        </BrowserRouter>
+      </HelmetProvider>
     )
     
     await waitFor(() => {
@@ -71,9 +76,11 @@ describe('EventPage', () => {
     })
 
     render(
-      <BrowserRouter>
-        <EventPage />
-      </BrowserRouter>
+      <HelmetProvider>
+        <BrowserRouter>
+          <EventPage />
+        </BrowserRouter>
+      </HelmetProvider>
     )
     
     await waitFor(() => {
@@ -86,9 +93,11 @@ describe('EventPage', () => {
     mockFetch.mockRejectedValueOnce(new Error('Network error'))
 
     render(
-      <BrowserRouter>
-        <EventPage />
-      </BrowserRouter>
+      <HelmetProvider>
+        <BrowserRouter>
+          <EventPage />
+        </BrowserRouter>
+      </HelmetProvider>
     )
     
     await waitFor(() => {
@@ -116,9 +125,11 @@ describe('EventPage', () => {
       })
 
     render(
-      <BrowserRouter>
-        <EventPage />
-      </BrowserRouter>
+      <HelmetProvider>
+        <BrowserRouter>
+          <EventPage />
+        </BrowserRouter>
+      </HelmetProvider>
     )
     
     await waitFor(() => {

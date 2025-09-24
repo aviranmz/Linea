@@ -925,7 +925,7 @@ app.get('/api/waitlist/export', async (request, reply) => {
   if (!eventId) { reply.code(400).send({ error: 'Missing eventId' }); return }
   try {
     const entries = await prisma.waitlistEntry.findMany({ where: { eventId, deletedAt: null }, orderBy: { createdAt: 'asc' } })
-    const rows: string[][] = [["email","eventId","status","createdAt"], ...entries.map((e) => [e.email as string, e.eventId as string, String(e.status), (e.createdAt as Date).toISOString()])]
+    const rows: string[][] = [["email","eventId","status","createdAt"], ...entries.map((e: any) => [e.email as string, e.eventId as string, String(e.status), (e.createdAt as Date).toISOString()])]
     const csv = rows.map(r => r.map(v => typeof v === 'string' && v.includes(',') ? `"${v.replace(/"/g,'""')}"` : String(v)).join(',')).join('\n')
     reply.header('Content-Type', 'text/csv')
     reply.header('Content-Disposition', `attachment; filename="waitlist-${eventId}.csv"`)
@@ -1009,7 +1009,11 @@ app.put('/api/owner/waitlist/:id', async (request, reply) => {
   const entry = await prisma.waitlistEntry.findUnique({ where: { id }, include: { event: true } })
   if (!entry || entry.deletedAt) { reply.code(404).send({ error: 'Not found' }); return }
   if (user.role === 'OWNER' && entry.event.ownerId !== user.id) { reply.code(403).send({ error: 'Forbidden' }); return }
-  const updated = await prisma.waitlistEntry.update({ where: { id }, data: { status: (body.status as any) || 'CONFIRMED' } })
+  const allowedStatuses = ['APPROVED','REJECTED','ARRIVED','CONFIRMED','CANCELLED'] as const
+  const nextStatus: typeof allowedStatuses[number] = body.status && (allowedStatuses as readonly string[]).includes(body.status)
+    ? body.status as typeof allowedStatuses[number]
+    : 'CONFIRMED'
+  const updated = await prisma.waitlistEntry.update({ where: { id }, data: { status: nextStatus } })
   reply.send({ entry: updated })
 })
 
