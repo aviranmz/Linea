@@ -46,7 +46,7 @@ export function CookieBanner() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-6">
         <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-2xl shadow-milano p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center gap-4">
           <div className="text-sm text-neutral-700 dark:text-neutral-200">
-            We use cookies to enhance your experience. Necessary cookies are always on. Analytics cookies help us improve the product.
+            We use necessary cookies for core functionality. Optional analytics cookies help us improve the product. We currently collect only your email from anonymous users. See our <a className="underline hover:text-accent-600" href="/privacy">Privacy Policy</a>.
           </div>
           <div className="ml-auto flex gap-2">
             <button onClick={decline} className="btn btn-outline">Decline</button>

@@ -394,13 +394,14 @@ export function OwnerPortal() {
                       {event.capacity && ` • Capacity: ${event.capacity}`}
                     </p>
                   </div>
-                  <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-4">
                     <Link
                       to={`/events/${event.slug}`}
                       className="text-indigo-600 hover:text-indigo-800 text-sm font-medium"
                     >
                       View
                     </Link>
+                    <Link to={`/owner/waitlist/${event.id}`} className="text-indigo-600 hover:text-indigo-800 text-sm font-medium">Waitlist</Link>
                     <button onClick={() => openEdit(event)} className="text-gray-600 hover:text-gray-800 text-sm font-medium">Edit</button>
                     <button onClick={() => handleDelete(event.id)} className="text-red-600 hover:text-red-800 text-sm font-medium">
                       Delete

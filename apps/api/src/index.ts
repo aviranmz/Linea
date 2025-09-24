@@ -342,7 +342,7 @@ const generateUniqueSlug = async (baseTitle: string) => {
 }
 
 // Health check
-app.get('/health', async (_request, reply) => {
+app.get('/health', async (_request, _reply) => {
   try {
     const services: Record<string, string> = {}
     
@@ -925,7 +925,7 @@ app.get('/api/waitlist/export', async (request, reply) => {
   if (!eventId) { reply.code(400).send({ error: 'Missing eventId' }); return }
   try {
     const entries = await prisma.waitlistEntry.findMany({ where: { eventId, deletedAt: null }, orderBy: { createdAt: 'asc' } })
-    const rows: string[][] = [["email","eventId","status","createdAt"], ...entries.map((e: any) => [e.email, e.eventId, String(e.status), e.createdAt.toISOString()])]
+    const rows: string[][] = [["email","eventId","status","createdAt"], ...entries.map((e) => [e.email as string, e.eventId as string, String(e.status), (e.createdAt as Date).toISOString()])]
     const csv = rows.map(r => r.map(v => typeof v === 'string' && v.includes(',') ? `"${v.replace(/"/g,'""')}"` : String(v)).join(',')).join('\n')
     reply.header('Content-Type', 'text/csv')
     reply.header('Content-Disposition', `attachment; filename="waitlist-${eventId}.csv"`)
@@ -982,10 +982,35 @@ app.get('/api/owner/theme', async (request, reply) => {
   if (!user) return
   try {
     const dbUser = await prisma.user.findUnique({ where: { id: user.id } })
-    reply.send({ theme: (dbUser as any)?.theme || null })
+    const themeValue = (dbUser as unknown as { theme?: unknown } | null)?.theme ?? null
+    reply.send({ theme: themeValue })
   } catch (error) {
     reply.code(500).send({ error: 'Failed to fetch theme' })
   }
+})
+
+// Owner waitlist management
+app.get('/api/owner/events/:eventId/waitlist', async (request, reply) => {
+  const user = await requireOwnerOrAdmin(request, reply)
+  if (!user) return
+  const { eventId } = request.params as { eventId: string }
+  const event = await prisma.event.findFirst({ where: { id: eventId, deletedAt: null }, select: { ownerId: true } })
+  if (!event) { reply.code(404).send({ error: 'Event not found' }); return }
+  if (user.role === 'OWNER' && event.ownerId !== user.id) { reply.code(403).send({ error: 'Forbidden' }); return }
+  const entries = await prisma.waitlistEntry.findMany({ where: { eventId, deletedAt: null }, orderBy: { createdAt: 'asc' } })
+  reply.send({ entries })
+})
+
+app.put('/api/owner/waitlist/:id', async (request, reply) => {
+  const user = await requireOwnerOrAdmin(request, reply)
+  if (!user) return
+  const { id } = request.params as { id: string }
+  const body = request.body as { status?: 'APPROVED'|'REJECTED'|'ARRIVED'|'CONFIRMED'|'CANCELLED' }
+  const entry = await prisma.waitlistEntry.findUnique({ where: { id }, include: { event: true } })
+  if (!entry || entry.deletedAt) { reply.code(404).send({ error: 'Not found' }); return }
+  if (user.role === 'OWNER' && entry.event.ownerId !== user.id) { reply.code(403).send({ error: 'Forbidden' }); return }
+  const updated = await prisma.waitlistEntry.update({ where: { id }, data: { status: (body.status as any) || 'CONFIRMED' } })
+  reply.send({ entry: updated })
 })
 
 app.put('/api/owner/theme', async (request, reply) => {
@@ -993,8 +1018,9 @@ app.put('/api/owner/theme', async (request, reply) => {
   if (!user) return
   try {
     const theme = request.body as Record<string, unknown>
-    const updated = await prisma.user.update({ where: { id: user.id }, data: { ...( { theme } as any ) } })
-    reply.send({ ok: true, theme: (updated as any).theme })
+    const updated = await prisma.user.update({ where: { id: user.id }, data: { theme } as Record<string, unknown> })
+    // @ts-expect-error Prisma JSON type
+    reply.send({ ok: true, theme: updated.theme })
   } catch (error) {
     reply.code(500).send({ error: 'Failed to update theme' })
   }
@@ -1105,10 +1131,9 @@ app.post('/auth/register-owner', async (request, reply) => {
 
 // Owner Registration Callback
 app.get('/auth/owner-callback', async (request, reply) => {
-  const { token, name, org: _org } = request.query as { 
+  const { token, name } = request.query as { 
     token?: string, 
     name?: string, 
-    org?: string 
   }
   
   if (!token) {
@@ -1424,7 +1449,7 @@ app.post('/auth/signout', async (request, reply) => {
     const token = (request.cookies as Record<string, string | undefined>)?.[cookieName]
     if (token) {
       await sessionService.deleteSession(token)
-      try { await prisma.session.deleteMany({ where: { token } }) } catch {}
+    try { await prisma.session.deleteMany({ where: { token } }) } catch (e) { app.log.warn({ e }, 'Failed to delete DB session during signout') }
     }
     reply.clearCookie(cookieName, { path: '/' })
     reply.send({ ok: true })

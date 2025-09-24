@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom'
+
 export function Footer() {
   return (
     <footer className="bg-white/95 dark:bg-neutral-900/95 backdrop-blur-md border-t border-neutral-200/50 dark:border-neutral-700/50 transition-colors duration-300">
@@ -40,19 +42,19 @@ export function Footer() {
             </h3>
             <ul className="space-y-3">
               <li>
-                <a href="/" className="text-body hover:text-accent-600 dark:hover:text-accent-400 transition-colors duration-200">
+                <Link to="/" className="text-body hover:text-accent-600 dark:hover:text-accent-400 transition-colors duration-200">
                   Events
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="/owner" className="text-body hover:text-accent-600 dark:hover:text-accent-400 transition-colors duration-200">
+                <Link to="/owner" className="text-body hover:text-accent-600 dark:hover:text-accent-400 transition-colors duration-200">
                   Owner Portal
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="/admin" className="text-body hover:text-accent-600 dark:hover:text-accent-400 transition-colors duration-200">
+                <Link to="/admin" className="text-body hover:text-accent-600 dark:hover:text-accent-400 transition-colors duration-200">
                   Admin
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
@@ -64,24 +66,24 @@ export function Footer() {
             </h3>
             <ul className="space-y-3">
               <li>
-                <a href="#" className="text-body hover:text-accent-600 dark:hover:text-accent-400 transition-colors duration-200">
+                <Link to="/help" className="text-body hover:text-accent-600 dark:hover:text-accent-400 transition-colors duration-200">
                   Help Center
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="text-body hover:text-accent-600 dark:hover:text-accent-400 transition-colors duration-200">
+                <Link to="/contact" className="text-body hover:text-accent-600 dark:hover:text-accent-400 transition-colors duration-200">
                   Contact Us
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="text-body hover:text-accent-600 dark:hover:text-accent-400 transition-colors duration-200">
+                <Link to="/privacy" className="text-body hover:text-accent-600 dark:hover:text-accent-400 transition-colors duration-200">
                   Privacy Policy
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="text-body hover:text-accent-600 dark:hover:text-accent-400 transition-colors duration-200">
+                <Link to="/terms" className="text-body hover:text-accent-600 dark:hover:text-accent-400 transition-colors duration-200">
                   Terms of Service
-                </a>
+                </Link>
               </li>
             </ul>
           </div>

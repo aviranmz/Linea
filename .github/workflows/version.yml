@@ -1,5 +1,8 @@
-name: Version & Build
-on: [push, pull_request]
+name: Version & Build (Daily)
+on:
+  schedule:
+    - cron: '0 3 * * *' # run daily at 03:00 UTC
+  workflow_dispatch:
 jobs:
   version_build:
     runs-on: ubuntu-latest

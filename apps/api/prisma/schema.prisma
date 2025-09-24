@@ -303,6 +303,9 @@ enum EventStatus {
 enum WaitlistStatus {
   PENDING
   CONFIRMED
+  APPROVED
+  REJECTED
+  ARRIVED
   CANCELLED
 }
 

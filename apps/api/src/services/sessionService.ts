@@ -1,4 +1,4 @@
-import { createClient, RedisClientType } from 'redis'
+import { createClient, type RedisClientOptions, type RedisClientType } from 'redis'
 import { getConfig } from '@linea/config'
 
 export interface SessionData {
@@ -11,7 +11,7 @@ export interface SessionData {
 }
 
 export class SessionService {
-  private client: RedisClientType
+  private client: RedisClientType | null
   private isConnected = false
 
   constructor() {
@@ -20,13 +20,13 @@ export class SessionService {
     // Check if Redis URL is available
     if (!config.redis.REDIS_URL || config.redis.REDIS_URL.includes('production-redis')) {
       console.warn('Redis not configured, falling back to database sessions')
-      this.client = null as any
+      this.client = null
       return
     }
     
-    const clientOptions: any = {
+    const clientOptions: RedisClientOptions = {
       url: config.redis.REDIS_URL,
-      database: config.redis.REDIS_DB || 0,
+      database: (config.redis.REDIS_DB as number | undefined) || 0,
     }
     
     if (config.redis.REDIS_PASSWORD) {
@@ -169,7 +169,7 @@ export class SessionService {
     const prefix = config.redis.REDIS_KEY_PREFIX || 'linea:'
     const pattern = `${prefix}session:*`
     
-    const keys = await this.client.keys(pattern)
+    const keys = this.client ? await this.client.keys(pattern) : []
     const sessionsToDelete: string[] = []
     
     for (const key of keys) {
@@ -188,7 +188,9 @@ export class SessionService {
     }
     
     if (sessionsToDelete.length > 0) {
-      await this.client.del(sessionsToDelete)
+      if (this.client) {
+        await this.client.del(sessionsToDelete)
+      }
     }
   }
 
@@ -211,7 +213,7 @@ export class SessionService {
     const prefix = config.redis.REDIS_KEY_PREFIX || 'linea:'
     const pattern = `${prefix}session:*`
     
-    const keys = await this.client.keys(pattern)
+    const keys = this.client ? await this.client.keys(pattern) : []
     const now = Date.now()
     const expiredKeys: string[] = []
     
