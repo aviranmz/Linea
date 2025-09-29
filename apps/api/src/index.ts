@@ -397,11 +397,15 @@ app.get('/health', async (_request, _reply) => {
 // Events API
 app.get('/api/events', async (request, _reply) => {
   try {
-    const { search, category, status, featured } = request.query as {
+    const { search, category, status, featured, city, owner, dateFrom, dateTo } = request.query as {
       search?: string
       category?: string
       status?: string
       featured?: string
+      city?: string
+      owner?: string
+      dateFrom?: string
+      dateTo?: string
     }
 
     const where: Record<string, unknown> = {
@@ -413,7 +417,9 @@ app.get('/api/events', async (request, _reply) => {
       where.OR = [
         { title: { contains: search, mode: 'insensitive' } },
         { description: { contains: search, mode: 'insensitive' } },
-        { shortDescription: { contains: search, mode: 'insensitive' } }
+        { shortDescription: { contains: search, mode: 'insensitive' } },
+        { owner: { name: { contains: search, mode: 'insensitive' } } },
+        { owner: { businessName: { contains: search, mode: 'insensitive' } } }
       ]
     }
 
@@ -427,13 +433,36 @@ app.get('/api/events', async (request, _reply) => {
 
     if (featured === 'true') {
       where.featured = true
+    } else if (featured === 'false') {
+      where.featured = false
+    }
+
+    if (city) {
+      where.venue = { city: { contains: city, mode: 'insensitive' } }
+    }
+
+    if (owner) {
+      where.owner = {
+        OR: [
+          { name: { contains: owner, mode: 'insensitive' } },
+          { businessName: { contains: owner, mode: 'insensitive' } }
+        ]
+      }
+    }
+
+    if (dateFrom) {
+      where.startDate = { gte: new Date(dateFrom) }
+    }
+
+    if (dateTo) {
+      where.startDate = { ...where.startDate, lte: new Date(dateTo) }
     }
 
     const events = await prisma.event.findMany({
       where,
       include: {
         owner: {
-          select: { id: true, name: true, email: true }
+          select: { id: true, name: true, email: true, businessName: true }
         },
         venue: {
           select: { id: true, name: true, address: true, city: true, country: true }
@@ -460,6 +489,81 @@ app.get('/api/events', async (request, _reply) => {
   }
 })
 
+// Get nearby events for a specific event
+app.get('/api/events/:slug/nearby', async (request, reply) => {
+  try {
+    const { slug } = request.params as { slug: string }
+    const { limit = '5', radius = '10' } = request.query as { limit?: string; radius?: string }
+    
+    // First get the reference event
+    const referenceEvent = await prisma.event.findFirst({
+      where: {
+        slug,
+        isPublic: true,
+        deletedAt: null
+      },
+      include: {
+        venue: true,
+        owner: true
+      }
+    })
+
+    if (!referenceEvent || !referenceEvent.venue) {
+      reply.code(404).send({ error: 'Event not found' })
+      return
+    }
+
+    // Find nearby events based on city and category
+    const nearbyEvents = await prisma.event.findMany({
+      where: {
+        isPublic: true,
+        deletedAt: null,
+        id: { not: referenceEvent.id }, // Exclude the reference event
+        OR: [
+          // Same city
+          { venue: { city: referenceEvent.venue.city } },
+          // Same category
+          { categoryId: referenceEvent.categoryId },
+          // Same owner's area (if available)
+          ...(referenceEvent.owner.areaId ? [{ owner: { areaId: referenceEvent.owner.areaId } }] : [])
+        ]
+      },
+      include: {
+        owner: {
+          select: { id: true, name: true, email: true, businessName: true }
+        },
+        venue: {
+          select: { id: true, name: true, address: true, city: true, country: true }
+        },
+        category: {
+          select: { id: true, name: true, slug: true, color: true, icon: true }
+        },
+        _count: {
+          select: { waitlist: true }
+        }
+      },
+      orderBy: [
+        { featured: 'desc' },
+        { startDate: 'asc' }
+      ],
+      take: parseInt(limit)
+    })
+
+    return { 
+      referenceEvent: {
+        id: referenceEvent.id,
+        title: referenceEvent.title,
+        slug: referenceEvent.slug,
+        venue: referenceEvent.venue
+      },
+      nearbyEvents 
+    }
+  } catch (error) {
+    app.log.error({ error }, 'Failed to fetch nearby events')
+    reply.code(500).send({ error: 'Failed to fetch nearby events' })
+  }
+})
+
 app.get('/api/events/:slug', async (request, reply) => {
   try {
   const { slug } = request.params as { slug: string }
@@ -472,7 +576,7 @@ app.get('/api/events/:slug', async (request, reply) => {
       },
       include: {
         owner: {
-          select: { id: true, name: true, email: true }
+          select: { id: true, name: true, email: true, businessName: true }
         },
         venue: {
           select: { id: true, name: true, address: true, city: true, country: true, latitude: true, longitude: true }
@@ -798,6 +902,220 @@ app.delete('/api/owner/shows/:id', async (request, reply) => {
   } catch (error) {
     app.log.error({ error }, 'Failed to delete show')
     reply.code(500).send({ error: 'Failed to delete show' })
+  }
+})
+
+// Photo Gallery API
+app.get('/api/owner/photo-gallery', async (request, reply) => {
+  try {
+    const user = await requireOwnerOrAdmin(request, reply)
+    if (!user) return
+
+    const photos = await prisma.photoGallery.findMany({
+      where: {
+        ownerId: user.id,
+        deletedAt: null
+      },
+      orderBy: [
+        { order: 'asc' },
+        { createdAt: 'desc' }
+      ]
+    })
+
+    reply.send({ photos })
+  } catch (error) {
+    request.log.error({ error }, 'Failed to fetch photo gallery')
+    reply.code(500).send({ error: 'Failed to fetch photo gallery' })
+  }
+})
+
+app.post('/api/owner/photo-gallery', async (request, reply) => {
+  try {
+    const user = await requireOwnerOrAdmin(request, reply)
+    if (!user) return
+
+    const { title, description, imageUrl, thumbnailUrl, altText, order } = request.body as {
+      title: string
+      description?: string
+      imageUrl: string
+      thumbnailUrl?: string
+      altText?: string
+      order?: number
+    }
+
+    const photo = await prisma.photoGallery.create({
+      data: {
+        title,
+        description,
+        imageUrl,
+        thumbnailUrl,
+        altText,
+        order: order || 0,
+        ownerId: user.id
+      }
+    })
+
+    reply.send({ photo })
+  } catch (error) {
+    request.log.error({ error }, 'Failed to create photo')
+    reply.code(500).send({ error: 'Failed to create photo' })
+  }
+})
+
+app.put('/api/owner/photo-gallery/:id', async (request, reply) => {
+  try {
+    const user = await requireOwnerOrAdmin(request, reply)
+    if (!user) return
+
+    const { id } = request.params as { id: string }
+    const { title, description, imageUrl, thumbnailUrl, altText, order, isActive } = request.body as {
+      title?: string
+      description?: string
+      imageUrl?: string
+      thumbnailUrl?: string
+      altText?: string
+      order?: number
+      isActive?: boolean
+    }
+
+    // Check if photo exists and belongs to user
+    const existing = await prisma.photoGallery.findFirst({
+      where: { id, ownerId: user.id, deletedAt: null }
+    })
+
+    if (!existing) {
+      reply.code(404).send({ error: 'Photo not found' })
+      return
+    }
+
+    const photo = await prisma.photoGallery.update({
+      where: { id },
+      data: {
+        ...(title !== undefined && { title }),
+        ...(description !== undefined && { description }),
+        ...(imageUrl !== undefined && { imageUrl }),
+        ...(thumbnailUrl !== undefined && { thumbnailUrl }),
+        ...(altText !== undefined && { altText }),
+        ...(order !== undefined && { order }),
+        ...(isActive !== undefined && { isActive })
+      }
+    })
+
+    reply.send({ photo })
+  } catch (error) {
+    request.log.error({ error }, 'Failed to update photo')
+    reply.code(500).send({ error: 'Failed to update photo' })
+  }
+})
+
+app.delete('/api/owner/photo-gallery/:id', async (request, reply) => {
+  try {
+    const user = await requireOwnerOrAdmin(request, reply)
+    if (!user) return
+
+    const { id } = request.params as { id: string }
+
+    // Check if photo exists and belongs to user
+    const existing = await prisma.photoGallery.findFirst({
+      where: { id, ownerId: user.id, deletedAt: null }
+    })
+
+    if (!existing) {
+      reply.code(404).send({ error: 'Photo not found' })
+      return
+    }
+
+    await prisma.photoGallery.update({
+      where: { id },
+      data: { deletedAt: new Date() }
+    })
+
+    reply.send({ ok: true })
+  } catch (error) {
+    request.log.error({ error }, 'Failed to delete photo')
+    reply.code(500).send({ error: 'Failed to delete photo' })
+  }
+})
+
+// Public Owner Profile API (for business cards)
+app.get('/api/owners/:ownerId/profile', async (request, reply) => {
+  try {
+    const { ownerId } = request.params as { ownerId: string }
+
+    const owner = await prisma.user.findFirst({
+      where: {
+        id: ownerId,
+        role: 'OWNER',
+        isActive: true,
+        deletedAt: null
+      },
+      select: {
+        id: true,
+        name: true,
+        businessName: true,
+        businessIntro: true,
+        logoUrl: true,
+        profilePictureUrl: true,
+        website: true,
+        address: true,
+        city: true,
+        country: true,
+        facebookUrl: true,
+        instagramUrl: true,
+        area: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            color: true,
+            icon: true
+          }
+        },
+        product: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            color: true,
+            icon: true
+          }
+        }
+      }
+    })
+
+    if (!owner) {
+      reply.code(404).send({ error: 'Owner not found' })
+      return
+    }
+
+    reply.send({ owner })
+  } catch (error) {
+    request.log.error({ error }, 'Failed to fetch owner profile')
+    reply.code(500).send({ error: 'Failed to fetch owner profile' })
+  }
+})
+
+// Public Photo Gallery API
+app.get('/api/owners/:ownerId/photo-gallery', async (request, reply) => {
+  try {
+    const { ownerId } = request.params as { ownerId: string }
+
+    const photos = await prisma.photoGallery.findMany({
+      where: {
+        ownerId,
+        isActive: true,
+        deletedAt: null
+      },
+      orderBy: [
+        { order: 'asc' },
+        { createdAt: 'desc' }
+      ]
+    })
+
+    reply.send({ photos })
+  } catch (error) {
+    request.log.error({ error }, 'Failed to fetch public photo gallery')
+    reply.code(500).send({ error: 'Failed to fetch photo gallery' })
   }
 })
 
@@ -1328,6 +1646,817 @@ app.put('/api/owner/theme', async (request, reply) => {
     reply.send({ ok: true, theme })
   } catch (error) {
     reply.code(500).send({ error: 'Failed to update theme' })
+  }
+})
+
+// Owner Profile Management
+app.get('/api/owner/profile', async (request, reply) => {
+  const user = await requireOwnerOrAdmin(request, reply)
+  if (!user) return
+  try {
+    const profile = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: {
+        name: true,
+        email: true,
+        phone: true,
+        businessName: true,
+        businessIntro: true,
+        logoUrl: true,
+        profilePictureUrl: true,
+        website: true,
+        address: true,
+        city: true,
+        country: true,
+        latitude: true,
+        longitude: true,
+        areaId: true,
+        area: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            color: true,
+            icon: true
+          }
+        },
+        productId: true,
+        product: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            color: true,
+            icon: true
+          }
+        },
+        facebookUrl: true,
+        instagramUrl: true
+      }
+    })
+    reply.send(profile)
+  } catch (error) {
+    request.log.error({ error }, 'Failed to fetch owner profile')
+    reply.code(500).send({ error: 'Failed to fetch profile' })
+  }
+})
+
+app.put('/api/owner/profile', async (request, reply) => {
+  const user = await requireOwnerOrAdmin(request, reply)
+  if (!user) return
+  try {
+    const { name, email, phone, businessName, businessIntro, website, address, city, country, latitude, longitude, areaId, productId, facebookUrl, instagramUrl } = request.body as {
+      name?: string
+      email?: string
+      phone?: string
+      businessName?: string
+      businessIntro?: string
+      website?: string
+      address?: string
+      city?: string
+      country?: string
+      latitude?: number
+      longitude?: number
+      areaId?: string
+      productId?: string
+      facebookUrl?: string
+      instagramUrl?: string
+    }
+
+    // Validate email if provided
+    if (email) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      if (!emailRegex.test(email)) {
+        reply.code(400).send({ error: 'Invalid email format' })
+        return
+      }
+      
+      // Check if email is already taken by another user
+      const existingUser = await prisma.user.findFirst({
+        where: { email, id: { not: user.id }, deletedAt: null }
+      })
+      if (existingUser) {
+        reply.code(400).send({ error: 'Email already taken by another user' })
+        return
+      }
+    }
+
+    const updated = await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        ...(name !== undefined && { name }),
+        ...(email !== undefined && { email }),
+        ...(phone !== undefined && { phone }),
+        ...(businessName !== undefined && { businessName }),
+        ...(businessIntro !== undefined && { businessIntro }),
+        ...(website !== undefined && { website }),
+        ...(address !== undefined && { address }),
+        ...(city !== undefined && { city }),
+        ...(country !== undefined && { country }),
+        ...(latitude !== undefined && { latitude }),
+        ...(longitude !== undefined && { longitude }),
+        ...(areaId !== undefined && { areaId }),
+        ...(productId !== undefined && { productId }),
+        ...(facebookUrl !== undefined && { facebookUrl }),
+        ...(instagramUrl !== undefined && { instagramUrl })
+      },
+      select: {
+        name: true,
+        email: true,
+        phone: true,
+        businessName: true,
+        businessIntro: true,
+        logoUrl: true,
+        profilePictureUrl: true,
+        website: true,
+        address: true,
+        city: true,
+        country: true,
+        latitude: true,
+        longitude: true,
+        areaId: true,
+        area: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            color: true,
+            icon: true
+          }
+        },
+        productId: true,
+        product: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            color: true,
+            icon: true
+          }
+        },
+        facebookUrl: true,
+        instagramUrl: true
+      }
+    })
+
+    reply.send(updated)
+  } catch (error) {
+    request.log.error({ error }, 'Failed to update owner profile')
+    reply.code(500).send({ error: 'Failed to update profile' })
+  }
+})
+
+// File Upload for Owner Profile (Logo)
+app.register(async function (fastify) {
+  await fastify.register(import('@fastify/multipart'), {
+    limits: {
+      fileSize: config.storage.UPLOAD_MAX_SIZE
+    }
+  })
+
+  app.post('/api/owner/upload/logo', async (request, reply) => {
+    const user = await requireOwnerOrAdmin(request, reply)
+    if (!user) return
+
+    try {
+      const data = await request.file()
+      if (!data) {
+        reply.code(400).send({ error: 'No file uploaded' })
+        return
+      }
+
+      // Validate file type
+      const allowedTypes = config.storage.UPLOAD_ALLOWED_TYPES.split(',')
+      if (!allowedTypes.includes(data.mimetype)) {
+        reply.code(400).send({ error: 'Invalid file type. Allowed: ' + allowedTypes.join(', ') })
+        return
+      }
+
+      // Generate unique filename
+      const fileExtension = data.filename.split('.').pop() || 'jpg'
+      const filename = `logo_${user.id}_${Date.now()}.${fileExtension}`
+      
+      // Save file to uploads directory
+      const uploadPath = path.join(config.storage.UPLOAD_PATH, filename)
+      const buffer = await data.toBuffer()
+      
+      // Ensure uploads directory exists
+      const fs = await import('fs')
+      const uploadDir = path.dirname(uploadPath)
+      if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true })
+      }
+      
+      fs.writeFileSync(uploadPath, buffer)
+
+      // Update user profile with logo URL
+      const logoUrl = `/uploads/${filename}`
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { logoUrl }
+      })
+
+      reply.send({ 
+        success: true, 
+        logoUrl,
+        message: 'Logo uploaded successfully' 
+      })
+    } catch (error) {
+      request.log.error({ error }, 'Failed to upload logo')
+      reply.code(500).send({ error: 'Failed to upload logo' })
+    }
+  })
+
+  app.post('/api/owner/upload/profile-picture', async (request, reply) => {
+    const user = await requireOwnerOrAdmin(request, reply)
+    if (!user) return
+
+    try {
+      const data = await request.file()
+      if (!data) {
+        reply.code(400).send({ error: 'No file uploaded' })
+        return
+      }
+
+      // Validate file type
+      const allowedTypes = config.storage.UPLOAD_ALLOWED_TYPES.split(',')
+      if (!allowedTypes.includes(data.mimetype)) {
+        reply.code(400).send({ error: 'Invalid file type. Allowed: ' + allowedTypes.join(', ') })
+        return
+      }
+
+      // Generate unique filename
+      const fileExtension = data.filename.split('.').pop() || 'jpg'
+      const filename = `profile_${user.id}_${Date.now()}.${fileExtension}`
+      
+      // Save file to uploads directory
+      const uploadPath = path.join(config.storage.UPLOAD_PATH, filename)
+      const buffer = await data.toBuffer()
+      
+      // Ensure uploads directory exists
+      const fs = await import('fs')
+      const uploadDir = path.dirname(uploadPath)
+      if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true })
+      }
+      
+      fs.writeFileSync(uploadPath, buffer)
+
+      // Update user profile with profile picture URL
+      const profilePictureUrl = `/uploads/${filename}`
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { profilePictureUrl }
+      })
+
+      reply.send({ 
+        success: true, 
+        profilePictureUrl,
+        message: 'Profile picture uploaded successfully' 
+      })
+    } catch (error) {
+      request.log.error({ error }, 'Failed to upload profile picture')
+      reply.code(500).send({ error: 'Failed to upload profile picture' })
+    }
+  })
+})
+
+// Public: Designers discovery
+app.get('/api/designers', async (request, reply) => {
+  try {
+    const { search, area, country } = request.query as {
+      search?: string
+      area?: string
+      country?: string
+    }
+
+    const where: Record<string, unknown> = {
+      role: 'OWNER',
+      isActive: true,
+      deletedAt: null
+    }
+
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        { businessName: { contains: search, mode: 'insensitive' } },
+        { businessIntro: { contains: search, mode: 'insensitive' } }
+      ]
+    }
+
+    if (area) {
+      where.city = { contains: area, mode: 'insensitive' }
+    }
+
+    if (country) {
+      where.country = { contains: country, mode: 'insensitive' }
+    }
+
+    const designers = await prisma.user.findMany({
+      where,
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        businessName: true,
+        businessIntro: true,
+        logoUrl: true,
+        profilePictureUrl: true,
+        website: true,
+        address: true,
+        city: true,
+        country: true,
+        latitude: true,
+        longitude: true,
+        _count: {
+          select: {
+            ownedEvents: true
+          }
+        }
+      },
+      orderBy: [
+        { businessName: 'asc' }
+      ]
+    })
+
+    reply.send({ designers })
+  } catch (error) {
+    app.log.error({ error }, 'Failed to fetch designers')
+    reply.code(500).send({ error: 'Failed to fetch designers' })
+  }
+})
+
+// Public: Categories for filtering
+app.get('/api/categories', async (request, reply) => {
+  try {
+    const categories = await prisma.category.findMany({
+      where: {
+        deletedAt: null
+      },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        color: true,
+        icon: true
+      },
+      orderBy: {
+        name: 'asc'
+      }
+    })
+
+    reply.send({ categories })
+  } catch (error) {
+    app.log.error({ error }, 'Failed to fetch categories')
+    reply.code(500).send({ error: 'Failed to fetch categories' })
+  }
+})
+
+// Public: Areas for filtering
+app.get('/api/areas', async (request, reply) => {
+  try {
+    const areas = await prisma.area.findMany({
+      where: {
+        deletedAt: null
+      },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        color: true,
+        icon: true
+      },
+      orderBy: {
+        name: 'asc'
+      }
+    })
+
+    reply.send({ areas })
+  } catch (error) {
+    app.log.error({ error }, 'Failed to fetch areas')
+    reply.code(500).send({ error: 'Failed to fetch areas' })
+  }
+})
+
+// Public: Products for filtering
+app.get('/api/products', async (request, reply) => {
+  try {
+    const products = await prisma.product.findMany({
+      where: {
+        deletedAt: null
+      },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        color: true,
+        icon: true
+      },
+      orderBy: {
+        name: 'asc'
+      }
+    })
+
+    reply.send({ products })
+  } catch (error) {
+    app.log.error({ error }, 'Failed to fetch products')
+    reply.code(500).send({ error: 'Failed to fetch products' })
+  }
+})
+
+// Admin: Categories management
+app.get('/api/admin/categories', async (request, reply) => {
+  const user = await requireAdmin(request, reply)
+  if (!user) return
+
+  try {
+    const categories = await prisma.category.findMany({
+      where: {
+        deletedAt: null
+      },
+      orderBy: {
+        name: 'asc'
+      }
+    })
+
+    reply.send({ categories })
+  } catch (error) {
+    app.log.error({ error }, 'Failed to fetch categories')
+    reply.code(500).send({ error: 'Failed to fetch categories' })
+  }
+})
+
+app.post('/api/admin/categories', async (request, reply) => {
+  const user = await requireAdmin(request, reply)
+  if (!user) return
+
+  try {
+    const { name, slug, description, color, icon, isActive } = request.body as {
+      name: string
+      slug: string
+      description?: string
+      color?: string
+      icon?: string
+      isActive?: boolean
+    }
+
+    // Check if slug already exists
+    const existingCategory = await prisma.category.findFirst({
+      where: { slug, deletedAt: null }
+    })
+
+    if (existingCategory) {
+      reply.code(409).send({ error: 'Category with this slug already exists' })
+      return
+    }
+
+    const category = await prisma.category.create({
+      data: {
+        name,
+        slug,
+        description,
+        color: color || '#3b82f6',
+        icon: icon || '🏷️',
+        isActive: isActive !== false
+      }
+    })
+
+    reply.send({ category })
+  } catch (error) {
+    app.log.error({ error }, 'Failed to create category')
+    reply.code(500).send({ error: 'Failed to create category' })
+  }
+})
+
+app.put('/api/admin/categories/:id', async (request, reply) => {
+  const user = await requireAdmin(request, reply)
+  if (!user) return
+
+  try {
+    const { id } = request.params as { id: string }
+    const { name, slug, description, color, icon, isActive } = request.body as {
+      name: string
+      slug: string
+      description?: string
+      color?: string
+      icon?: string
+      isActive?: boolean
+    }
+
+    // Check if slug already exists (excluding current category)
+    const existingCategory = await prisma.category.findFirst({
+      where: { 
+        slug, 
+        deletedAt: null,
+        id: { not: id }
+      }
+    })
+
+    if (existingCategory) {
+      reply.code(409).send({ error: 'Category with this slug already exists' })
+      return
+    }
+
+    const category = await prisma.category.update({
+      where: { id },
+      data: {
+        name,
+        slug,
+        description,
+        color,
+        icon,
+        isActive
+      }
+    })
+
+    reply.send({ category })
+  } catch (error) {
+    app.log.error({ error }, 'Failed to update category')
+    reply.code(500).send({ error: 'Failed to update category' })
+  }
+})
+
+app.delete('/api/admin/categories/:id', async (request, reply) => {
+  const user = await requireAdmin(request, reply)
+  if (!user) return
+
+  try {
+    const { id } = request.params as { id: string }
+
+    // Soft delete
+    await prisma.category.update({
+      where: { id },
+      data: { deletedAt: new Date() }
+    })
+
+    reply.send({ success: true })
+  } catch (error) {
+    app.log.error({ error }, 'Failed to delete category')
+    reply.code(500).send({ error: 'Failed to delete category' })
+  }
+})
+
+// Admin: Areas management
+app.get('/api/admin/areas', async (request, reply) => {
+  const user = await requireAdmin(request, reply)
+  if (!user) return
+
+  try {
+    const areas = await prisma.area.findMany({
+      where: {
+        deletedAt: null
+      },
+      orderBy: {
+        name: 'asc'
+      }
+    })
+
+    reply.send({ areas })
+  } catch (error) {
+    app.log.error({ error }, 'Failed to fetch areas')
+    reply.code(500).send({ error: 'Failed to fetch areas' })
+  }
+})
+
+app.post('/api/admin/areas', async (request, reply) => {
+  const user = await requireAdmin(request, reply)
+  if (!user) return
+
+  try {
+    const { name, slug, description, color, icon, isActive } = request.body as {
+      name: string
+      slug: string
+      description?: string
+      color?: string
+      icon?: string
+      isActive?: boolean
+    }
+
+    // Check if slug already exists
+    const existingArea = await prisma.area.findFirst({
+      where: { slug, deletedAt: null }
+    })
+
+    if (existingArea) {
+      reply.code(409).send({ error: 'Area with this slug already exists' })
+      return
+    }
+
+    const area = await prisma.area.create({
+      data: {
+        name,
+        slug,
+        description,
+        color: color || '#3b82f6',
+        icon: icon || '📍',
+        isActive: isActive !== false
+      }
+    })
+
+    reply.send({ area })
+  } catch (error) {
+    app.log.error({ error }, 'Failed to create area')
+    reply.code(500).send({ error: 'Failed to create area' })
+  }
+})
+
+app.put('/api/admin/areas/:id', async (request, reply) => {
+  const user = await requireAdmin(request, reply)
+  if (!user) return
+
+  try {
+    const { id } = request.params as { id: string }
+    const { name, slug, description, color, icon, isActive } = request.body as {
+      name: string
+      slug: string
+      description?: string
+      color?: string
+      icon?: string
+      isActive?: boolean
+    }
+
+    // Check if slug already exists (excluding current area)
+    const existingArea = await prisma.area.findFirst({
+      where: { 
+        slug, 
+        deletedAt: null,
+        id: { not: id }
+      }
+    })
+
+    if (existingArea) {
+      reply.code(409).send({ error: 'Area with this slug already exists' })
+      return
+    }
+
+    const area = await prisma.area.update({
+      where: { id },
+      data: {
+        name,
+        slug,
+        description,
+        color,
+        icon,
+        isActive
+      }
+    })
+
+    reply.send({ area })
+  } catch (error) {
+    app.log.error({ error }, 'Failed to update area')
+    reply.code(500).send({ error: 'Failed to update area' })
+  }
+})
+
+app.delete('/api/admin/areas/:id', async (request, reply) => {
+  const user = await requireAdmin(request, reply)
+  if (!user) return
+
+  try {
+    const { id } = request.params as { id: string }
+
+    // Soft delete
+    await prisma.area.update({
+      where: { id },
+      data: { deletedAt: new Date() }
+    })
+
+    reply.send({ success: true })
+  } catch (error) {
+    app.log.error({ error }, 'Failed to delete area')
+    reply.code(500).send({ error: 'Failed to delete area' })
+  }
+})
+
+// Admin: Products management
+app.get('/api/admin/products', async (request, reply) => {
+  const user = await requireAdmin(request, reply)
+  if (!user) return
+
+  try {
+    const products = await prisma.product.findMany({
+      where: {
+        deletedAt: null
+      },
+      orderBy: {
+        name: 'asc'
+      }
+    })
+
+    reply.send({ products })
+  } catch (error) {
+    app.log.error({ error }, 'Failed to fetch products')
+    reply.code(500).send({ error: 'Failed to fetch products' })
+  }
+})
+
+app.post('/api/admin/products', async (request, reply) => {
+  const user = await requireAdmin(request, reply)
+  if (!user) return
+
+  try {
+    const { name, slug, description, color, icon, isActive } = request.body as {
+      name: string
+      slug: string
+      description?: string
+      color?: string
+      icon?: string
+      isActive?: boolean
+    }
+
+    // Check if slug already exists
+    const existingProduct = await prisma.product.findFirst({
+      where: { slug, deletedAt: null }
+    })
+
+    if (existingProduct) {
+      reply.code(409).send({ error: 'Product with this slug already exists' })
+      return
+    }
+
+    const product = await prisma.product.create({
+      data: {
+        name,
+        slug,
+        description,
+        color: color || '#3b82f6',
+        icon: icon || '🏷️',
+        isActive: isActive !== false
+      }
+    })
+
+    reply.send({ product })
+  } catch (error) {
+    app.log.error({ error }, 'Failed to create product')
+    reply.code(500).send({ error: 'Failed to create product' })
+  }
+})
+
+app.put('/api/admin/products/:id', async (request, reply) => {
+  const user = await requireAdmin(request, reply)
+  if (!user) return
+
+  try {
+    const { id } = request.params as { id: string }
+    const { name, slug, description, color, icon, isActive } = request.body as {
+      name: string
+      slug: string
+      description?: string
+      color?: string
+      icon?: string
+      isActive?: boolean
+    }
+
+    // Check if slug already exists (excluding current product)
+    const existingProduct = await prisma.product.findFirst({
+      where: { 
+        slug, 
+        deletedAt: null,
+        id: { not: id }
+      }
+    })
+
+    if (existingProduct) {
+      reply.code(409).send({ error: 'Product with this slug already exists' })
+      return
+    }
+
+    const product = await prisma.product.update({
+      where: { id },
+      data: {
+        name,
+        slug,
+        description,
+        color,
+        icon,
+        isActive
+      }
+    })
+
+    reply.send({ product })
+  } catch (error) {
+    app.log.error({ error }, 'Failed to update product')
+    reply.code(500).send({ error: 'Failed to update product' })
+  }
+})
+
+app.delete('/api/admin/products/:id', async (request, reply) => {
+  const user = await requireAdmin(request, reply)
+  if (!user) return
+
+  try {
+    const { id } = request.params as { id: string }
+
+    // Soft delete
+    await prisma.product.update({
+      where: { id },
+      data: { deletedAt: new Date() }
+    })
+
+    reply.send({ success: true })
+  } catch (error) {
+    app.log.error({ error }, 'Failed to delete product')
+    reply.code(500).send({ error: 'Failed to delete product' })
   }
 })
 

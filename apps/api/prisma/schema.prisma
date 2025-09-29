@@ -22,10 +22,20 @@ model User {
   // Additional owner fields
   phone     String?
   businessName String?
+  businessIntro String?
+  logoUrl   String?
+  profilePictureUrl String?
   website   String?
   address   String?
   city      String?
   country   String?
+  latitude  Float?
+  longitude Float?
+  areaId    String?
+  productId String?
+  // Social media links
+  facebookUrl String?
+  instagramUrl String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   deletedAt DateTime?
@@ -39,6 +49,9 @@ model User {
   consents        Consent[]
   invitationsSent Invitation[] @relation("InvitationInviter")
   invitationsReceived Invitation[] @relation("InvitationInvitee")
+  area            Area?          @relation(fields: [areaId], references: [id])
+  product         Product?       @relation(fields: [productId], references: [id])
+  photoGallery    PhotoGallery[]
 
   @@index([email])
   @@index([role])
@@ -211,6 +224,46 @@ model Category {
   @@map("categories")
 }
 
+model Area {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  slug        String   @unique
+  description String?
+  color       String?
+  icon        String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  deletedAt   DateTime?
+
+  // Relations
+  users User[]
+
+  @@index([slug])
+  @@index([isActive])
+  @@map("areas")
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  slug        String   @unique
+  description String?
+  color       String?
+  icon        String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  deletedAt   DateTime?
+
+  // Relations
+  users User[]
+
+  @@index([slug])
+  @@index([isActive])
+  @@map("products")
+}
+
 model EmailVerification {
   id        String   @id @default(cuid())
   email     String
@@ -328,4 +381,27 @@ enum ConsentType {
   MARKETING
   NECESSARY
   FUNCTIONAL
+}
+
+model PhotoGallery {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  imageUrl    String
+  thumbnailUrl String?
+  altText     String?
+  order       Int      @default(0)
+  isActive    Boolean  @default(true)
+  ownerId     String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  deletedAt   DateTime?
+
+  // Relations
+  owner       User     @relation(fields: [ownerId], references: [id])
+
+  @@index([ownerId])
+  @@index([isActive])
+  @@index([order])
+  @@map("photo_gallery")
 }

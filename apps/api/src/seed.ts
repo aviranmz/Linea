@@ -86,9 +86,407 @@ async function main() {
         isActive: true,
       },
     }),
+    // Kitchen Design Categories
+    prisma.category.upsert({
+      where: { slug: 'kitchens' },
+      update: {},
+      create: {
+        name: 'Kitchens',
+        slug: 'kitchens',
+        description: 'Kitchen design, appliances, and cabinetry',
+        color: '#f59e0b',
+        icon: '🍳',
+        isActive: true,
+      },
+    }),
+    prisma.category.upsert({
+      where: { slug: 'kitchen-appliances' },
+      update: {},
+      create: {
+        name: 'Kitchen Appliances',
+        slug: 'kitchen-appliances',
+        description: 'Kitchen appliances, cooking equipment, and smart home solutions',
+        color: '#dc2626',
+        icon: '🔥',
+        isActive: true,
+      },
+    }),
+    prisma.category.upsert({
+      where: { slug: 'kitchen-cabinetry' },
+      update: {},
+      create: {
+        name: 'Kitchen Cabinetry',
+        slug: 'kitchen-cabinetry',
+        description: 'Kitchen cabinets, storage solutions, and organization systems',
+        color: '#7c3aed',
+        icon: '🗄️',
+        isActive: true,
+      },
+    }),
+    prisma.category.upsert({
+      where: { slug: 'kitchen-countertops' },
+      update: {},
+      create: {
+        name: 'Kitchen Countertops',
+        slug: 'kitchen-countertops',
+        description: 'Countertop materials, surfaces, and finishes',
+        color: '#059669',
+        icon: '🏗️',
+        isActive: true,
+      },
+    }),
+    // Furniture Categories
+    prisma.category.upsert({
+      where: { slug: 'furniture' },
+      update: {},
+      create: {
+        name: 'Furniture',
+        slug: 'furniture',
+        description: 'Furniture design, seating, and home decor',
+        color: '#0891b2',
+        icon: '🪑',
+        isActive: true,
+      },
+    }),
+    prisma.category.upsert({
+      where: { slug: 'seating' },
+      update: {},
+      create: {
+        name: 'Seating',
+        slug: 'seating',
+        description: 'Chairs, sofas, and seating solutions',
+        color: '#be185d',
+        icon: '🛋️',
+        isActive: true,
+      },
+    }),
+    prisma.category.upsert({
+      where: { slug: 'tables' },
+      update: {},
+      create: {
+        name: 'Tables',
+        slug: 'tables',
+        description: 'Dining tables, coffee tables, and work surfaces',
+        color: '#7c2d12',
+        icon: '🪵',
+        isActive: true,
+      },
+    }),
+    prisma.category.upsert({
+      where: { slug: 'storage' },
+      update: {},
+      create: {
+        name: 'Storage',
+        slug: 'storage',
+        description: 'Storage solutions, wardrobes, and organization systems',
+        color: '#4338ca',
+        icon: '📦',
+        isActive: true,
+      },
+    }),
+    prisma.category.upsert({
+      where: { slug: 'lighting' },
+      update: {},
+      create: {
+        name: 'Lighting',
+        slug: 'lighting',
+        description: 'Lighting fixtures, lamps, and illumination systems',
+        color: '#fbbf24',
+        icon: '💡',
+        isActive: true,
+      },
+    }),
+    prisma.category.upsert({
+      where: { slug: 'textiles' },
+      update: {},
+      create: {
+        name: 'Textiles',
+        slug: 'textiles',
+        description: 'Fabrics, upholstery, and textile design',
+        color: '#ec4899',
+        icon: '🧵',
+        isActive: true,
+      },
+    }),
+    prisma.category.upsert({
+      where: { slug: 'flooring' },
+      update: {},
+      create: {
+        name: 'Flooring',
+        slug: 'flooring',
+        description: 'Flooring materials, tiles, and surface treatments',
+        color: '#6b7280',
+        icon: '🏠',
+        isActive: true,
+      },
+    }),
+    prisma.category.upsert({
+      where: { slug: 'bathroom' },
+      update: {},
+      create: {
+        name: 'Bathroom',
+        slug: 'bathroom',
+        description: 'Bathroom fixtures, fittings, and design solutions',
+        color: '#0ea5e9',
+        icon: '🛁',
+        isActive: true,
+      },
+    }),
   ])
 
   console.log('✅ Created categories:', categories.map(c => c.name).join(', '))
+
+  // Create areas
+  const areas = await Promise.all([
+    prisma.area.upsert({
+      where: { slug: 'brera' },
+      update: {},
+      create: {
+        name: 'Brera',
+        slug: 'brera',
+        description: 'Historic artistic district with galleries, boutiques, and design studios',
+        color: '#8b5cf6',
+        icon: '🎨',
+        isActive: true,
+      },
+    }),
+    prisma.area.upsert({
+      where: { slug: '5vie' },
+      update: {},
+      create: {
+        name: '5vie',
+        slug: '5vie',
+        description: 'Design district with contemporary furniture showrooms and design studios',
+        color: '#06b6d4',
+        icon: '🏛️',
+        isActive: true,
+      },
+    }),
+    prisma.area.upsert({
+      where: { slug: 'porta-nuova' },
+      update: {},
+      create: {
+        name: 'Porta Nuova',
+        slug: 'porta-nuova',
+        description: 'Modern business district with contemporary architecture and design',
+        color: '#10b981',
+        icon: '🏢',
+        isActive: true,
+      },
+    }),
+    prisma.area.upsert({
+      where: { slug: 'navigli' },
+      update: {},
+      create: {
+        name: 'Navigli',
+        slug: 'navigli',
+        description: 'Historic canal district with trendy bars, restaurants, and creative spaces',
+        color: '#f59e0b',
+        icon: '🚤',
+        isActive: true,
+      },
+    }),
+    prisma.area.upsert({
+      where: { slug: 'quadrilatero-della-moda' },
+      update: {},
+      create: {
+        name: 'Quadrilatero della Moda',
+        slug: 'quadrilatero-della-moda',
+        description: 'Fashion district with luxury boutiques and high-end design',
+        color: '#ec4899',
+        icon: '👗',
+        isActive: true,
+      },
+    }),
+    prisma.area.upsert({
+      where: { slug: 'garibaldi' },
+      update: {},
+      create: {
+        name: 'Garibaldi',
+        slug: 'garibaldi',
+        description: 'Modern district with contemporary design and architecture',
+        color: '#3b82f6',
+        icon: '🏗️',
+        isActive: true,
+      },
+    }),
+    prisma.area.upsert({
+      where: { slug: 'tortona' },
+      update: {},
+      create: {
+        name: 'Tortona',
+        slug: 'tortona',
+        description: 'Design district with showrooms, studios, and creative spaces',
+        color: '#ef4444',
+        icon: '🎭',
+        isActive: true,
+      },
+    }),
+    prisma.area.upsert({
+      where: { slug: 'isola' },
+      update: {},
+      create: {
+        name: 'Isola',
+        slug: 'isola',
+        description: 'Emerging design district with contemporary architecture and creative spaces',
+        color: '#84cc16',
+        icon: '🏝️',
+        isActive: true,
+      },
+    }),
+  ])
+
+  console.log('✅ Created areas:', areas.map(a => a.name).join(', '))
+
+  // Create products
+  const products = await Promise.all([
+    prisma.product.upsert({
+      where: { slug: 'recessed-lights' },
+      update: {},
+      create: {
+        name: 'Recessed Lights',
+        slug: 'recessed-lights',
+        description: 'Built-in ceiling and wall lighting solutions',
+        color: '#fbbf24',
+        icon: '💡',
+        isActive: true,
+      },
+    }),
+    prisma.product.upsert({
+      where: { slug: 'spotlights' },
+      update: {},
+      create: {
+        name: 'Spotlights',
+        slug: 'spotlights',
+        description: 'Directional lighting fixtures for accent and task lighting',
+        color: '#3b82f6',
+        icon: '🔦',
+        isActive: true,
+      },
+    }),
+    prisma.product.upsert({
+      where: { slug: 'pendant-lights' },
+      update: {},
+      create: {
+        name: 'Pendant Lights',
+        slug: 'pendant-lights',
+        description: 'Hanging light fixtures for ambient and decorative lighting',
+        color: '#8b5cf6',
+        icon: '🕯️',
+        isActive: true,
+      },
+    }),
+    prisma.product.upsert({
+      where: { slug: 'chandeliers' },
+      update: {},
+      create: {
+        name: 'Chandeliers',
+        slug: 'chandeliers',
+        description: 'Decorative multi-light fixtures for grand spaces',
+        color: '#ec4899',
+        icon: '✨',
+        isActive: true,
+      },
+    }),
+    prisma.product.upsert({
+      where: { slug: 'wall-sconces' },
+      update: {},
+      create: {
+        name: 'Wall Sconces',
+        slug: 'wall-sconces',
+        description: 'Wall-mounted lighting fixtures for ambient and accent lighting',
+        color: '#10b981',
+        icon: '🕯️',
+        isActive: true,
+      },
+    }),
+    prisma.product.upsert({
+      where: { slug: 'table-lamps' },
+      update: {},
+      create: {
+        name: 'Table Lamps',
+        slug: 'table-lamps',
+        description: 'Portable lighting solutions for desks and side tables',
+        color: '#f59e0b',
+        icon: '🪔',
+        isActive: true,
+      },
+    }),
+    prisma.product.upsert({
+      where: { slug: 'floor-lamps' },
+      update: {},
+      create: {
+        name: 'Floor Lamps',
+        slug: 'floor-lamps',
+        description: 'Standing lighting fixtures for ambient and task lighting',
+        color: '#ef4444',
+        icon: '🏮',
+        isActive: true,
+      },
+    }),
+    prisma.product.upsert({
+      where: { slug: 'track-lighting' },
+      update: {},
+      create: {
+        name: 'Track Lighting',
+        slug: 'track-lighting',
+        description: 'Flexible lighting systems with adjustable fixtures',
+        color: '#06b6d4',
+        icon: '⚡',
+        isActive: true,
+      },
+    }),
+    prisma.product.upsert({
+      where: { slug: 'led-strips' },
+      update: {},
+      create: {
+        name: 'LED Strips',
+        slug: 'led-strips',
+        description: 'Flexible LED lighting strips for accent and decorative lighting',
+        color: '#84cc16',
+        icon: '🌈',
+        isActive: true,
+      },
+    }),
+    prisma.product.upsert({
+      where: { slug: 'outdoor-lighting' },
+      update: {},
+      create: {
+        name: 'Outdoor Lighting',
+        slug: 'outdoor-lighting',
+        description: 'Weather-resistant lighting for exterior spaces',
+        color: '#6b7280',
+        icon: '🌙',
+        isActive: true,
+      },
+    }),
+    prisma.product.upsert({
+      where: { slug: 'smart-lighting' },
+      update: {},
+      create: {
+        name: 'Smart Lighting',
+        slug: 'smart-lighting',
+        description: 'Connected lighting systems with app control and automation',
+        color: '#8b5cf6',
+        icon: '🤖',
+        isActive: true,
+      },
+    }),
+    prisma.product.upsert({
+      where: { slug: 'emergency-lighting' },
+      update: {},
+      create: {
+        name: 'Emergency Lighting',
+        slug: 'emergency-lighting',
+        description: 'Safety lighting systems for emergency situations',
+        color: '#dc2626',
+        icon: '🚨',
+        isActive: true,
+      },
+    }),
+  ])
+
+  console.log('✅ Created products:', products.map(p => p.name).join(', '))
 
   // Create venues
   const venues = await Promise.all([
