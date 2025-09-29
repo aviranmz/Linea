@@ -11,6 +11,7 @@ interface Event {
   startDate: string
   status: string
   capacity?: number
+  featured?: boolean
   metadata?: Record<string, unknown>
 }
 

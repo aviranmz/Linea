@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { getJson } from '../lib/api'
 import { SocialLinks } from './SocialLinks'
 import { PublicPhotoGallery } from './PublicPhotoGallery'

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { getJson } from '../lib/api'
 import { Link } from 'react-router-dom'
 
@@ -32,7 +32,7 @@ interface Category {
 export default function DesignersPage() {
   const [designers, setDesigners] = useState<Designer[]>([])
   const [filteredDesigners, setFilteredDesigners] = useState<Designer[]>([])
-  const [categories, setCategories] = useState<Category[]>([])
+  const [, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(true)
   const [filters, setFilters] = useState({
     search: '',
