@@ -946,10 +946,10 @@ app.post('/api/owner/photo-gallery', async (request, reply) => {
     const photo = await prisma.photoGallery.create({
       data: {
         title,
-        description,
+        description: description || null,
         imageUrl,
-        thumbnailUrl,
-        altText,
+        thumbnailUrl: thumbnailUrl || null,
+        altText: altText || null,
         order: order || 0,
         ownerId: user.id
       }
@@ -2114,7 +2114,7 @@ app.post('/api/admin/categories', async (request, reply) => {
       data: {
         name,
         slug,
-        description,
+        description: description || null,
         color: color || '#3b82f6',
         icon: icon || '🏷️',
         isActive: isActive !== false
@@ -2160,12 +2160,12 @@ app.put('/api/admin/categories/:id', async (request, reply) => {
     const category = await prisma.category.update({
       where: { id },
       data: {
-        name,
-        slug,
-        description,
-        color,
-        icon,
-        isActive
+        ...(name !== undefined && { name }),
+        ...(slug !== undefined && { slug }),
+        ...(description !== undefined && { description: description || null }),
+        ...(color !== undefined && { color }),
+        ...(icon !== undefined && { icon }),
+        ...(isActive !== undefined && { isActive })
       }
     })
 
@@ -2246,7 +2246,7 @@ app.post('/api/admin/areas', async (request, reply) => {
       data: {
         name,
         slug,
-        description,
+        description: description || null,
         color: color || '#3b82f6',
         icon: icon || '📍',
         isActive: isActive !== false
@@ -2292,12 +2292,12 @@ app.put('/api/admin/areas/:id', async (request, reply) => {
     const area = await prisma.area.update({
       where: { id },
       data: {
-        name,
-        slug,
-        description,
-        color,
-        icon,
-        isActive
+        ...(name !== undefined && { name }),
+        ...(slug !== undefined && { slug }),
+        ...(description !== undefined && { description: description || null }),
+        ...(color !== undefined && { color }),
+        ...(icon !== undefined && { icon }),
+        ...(isActive !== undefined && { isActive })
       }
     })
 
@@ -2378,7 +2378,7 @@ app.post('/api/admin/products', async (request, reply) => {
       data: {
         name,
         slug,
-        description,
+        description: description || null,
         color: color || '#3b82f6',
         icon: icon || '🏷️',
         isActive: isActive !== false
@@ -2424,12 +2424,12 @@ app.put('/api/admin/products/:id', async (request, reply) => {
     const product = await prisma.product.update({
       where: { id },
       data: {
-        name,
-        slug,
-        description,
-        color,
-        icon,
-        isActive
+        ...(name !== undefined && { name }),
+        ...(slug !== undefined && { slug }),
+        ...(description !== undefined && { description: description || null }),
+        ...(color !== undefined && { color }),
+        ...(icon !== undefined && { icon }),
+        ...(isActive !== undefined && { isActive })
       }
     })
 
