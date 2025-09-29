@@ -1262,23 +1262,6 @@ app.get('/api/waitlist/export', async (request, reply) => {
   }
 })
 
-// Categories API
-app.get('/api/categories', async (_request, reply) => {
-  try {
-    const categories = await prisma.category.findMany({
-      where: {
-        isActive: true,
-        deletedAt: null
-      },
-      orderBy: { name: 'asc' }
-    })
-
-    return { categories }
-  } catch (error) {
-    app.log.error({ error }, 'Failed to fetch categories')
-    reply.code(500).send({ error: 'Failed to fetch categories' })
-  }
-})
 
 // -------- Admin Overview (RBAC: ADMIN only) --------
 app.get('/api/admin/overview', async (request, reply) => {
