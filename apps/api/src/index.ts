@@ -455,7 +455,7 @@ app.get('/api/events', async (request, _reply) => {
     }
 
     if (dateTo) {
-      where.startDate = { ...where.startDate, lte: new Date(dateTo) }
+      where.startDate = { ...(where.startDate as object || {}), lte: new Date(dateTo) }
     }
 
     const events = await prisma.event.findMany({
@@ -1819,7 +1819,7 @@ app.register(async function (fastify) {
     if (!user) return
 
     try {
-      const data = await request.file()
+      const data = await (request as any).file()
       if (!data) {
         reply.code(400).send({ error: 'No file uploaded' })
         return
@@ -1872,7 +1872,7 @@ app.register(async function (fastify) {
     if (!user) return
 
     try {
-      const data = await request.file()
+      const data = await (request as any).file()
       if (!data) {
         reply.code(400).send({ error: 'No file uploaded' })
         return
