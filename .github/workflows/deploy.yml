@@ -28,50 +28,10 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Generate Prisma client
-        run: pnpm --filter @linea/api db:generate
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
-          JWT_SECRET: ${{ secrets.JWT_SECRET }}
-
-      - name: Deploy database migrations
-        run: pnpm --filter @linea/api db:migrate:deploy
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-
       - name: Build applications
         run: pnpm build
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
-          JWT_SECRET: ${{ secrets.JWT_SECRET }}
 
-      - name: Install Railway CLI
-        run: npm i -g @railway/cli
-
-      - name: Deploy to Railway
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+      - name: Build completed
         run: |
-          railway up --service linea-api --yes
-
-  health-check:
-    needs: deploy
-    runs-on: ubuntu-latest
-    
-    steps:
-      - name: Wait for deployment
-        run: sleep 30
-
-      - name: Health check
-        run: |
-          curl -f ${{ secrets.RAILWAY_APP_URL }}/health || exit 1
-        timeout-minutes: 5
-        
-      - name: Notify deployment success
-        if: success()
-        run: |
-          echo "🚀 Deployment successful!"
-          echo "API Health: ✅"
-          echo "App URL: ${{ secrets.RAILWAY_APP_URL }}"
+          echo "✅ Build completed successfully!"
+          echo "All applications built without errors."

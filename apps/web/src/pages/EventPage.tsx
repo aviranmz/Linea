@@ -2,6 +2,7 @@ import React from 'react'
 import { useParams } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { Helmet } from 'react-helmet-async'
+import { NearbyEvents } from '../components/NearbyEvents'
 
 interface Event {
   id: string
@@ -553,6 +554,11 @@ export function EventPage() {
           </div>
         </div>
       )}
+
+      {/* Nearby Events */}
+      <div className="mt-8">
+        <NearbyEvents eventSlug={event.slug} limit={5} />
+      </div>
       </div>
     </>
   )

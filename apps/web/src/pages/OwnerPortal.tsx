@@ -30,9 +30,17 @@ export function OwnerPortal() {
     alert('Magic link sent if the email exists. Check your inbox.')
   }
   const [events, setEvents] = useState<Event[]>([])
+  const [filteredEvents, setFilteredEvents] = useState<Event[]>([])
   const [loading, setLoading] = useState(true)
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [editTarget, setEditTarget] = useState<Event | null>(null)
+  const [filters, setFilters] = useState({
+    search: '',
+    status: '',
+    featured: '',
+    dateFrom: '',
+    dateTo: ''
+  })
   const [newEvent, setNewEvent] = useState({
     title: '',
     description: '',
@@ -70,6 +78,7 @@ export function OwnerPortal() {
       try {
         const data = await getJson<{ events: Event[] }>('/api/owner/events')
         setEvents(data.events || [])
+        setFilteredEvents(data.events || [])
       } catch {
         // ignore
       } finally {
@@ -78,6 +87,45 @@ export function OwnerPortal() {
     }
     load()
   }, [])
+
+  // Filter events based on current filters
+  useEffect(() => {
+    let filtered = [...events]
+
+    // Search filter
+    if (filters.search) {
+      const searchLower = filters.search.toLowerCase()
+      filtered = filtered.filter(event => 
+        event.title.toLowerCase().includes(searchLower) ||
+        (event.description && event.description.toLowerCase().includes(searchLower))
+      )
+    }
+
+    // Status filter
+    if (filters.status) {
+      filtered = filtered.filter(event => event.status === filters.status)
+    }
+
+    // Featured filter
+    if (filters.featured === 'true') {
+      filtered = filtered.filter(event => event.featured === true)
+    } else if (filters.featured === 'false') {
+      filtered = filtered.filter(event => event.featured === false)
+    }
+
+    // Date range filters
+    if (filters.dateFrom) {
+      const fromDate = new Date(filters.dateFrom)
+      filtered = filtered.filter(event => new Date(event.startDate) >= fromDate)
+    }
+
+    if (filters.dateTo) {
+      const toDate = new Date(filters.dateTo)
+      filtered = filtered.filter(event => new Date(event.startDate) <= toDate)
+    }
+
+    setFilteredEvents(filtered)
+  }, [events, filters])
 
   const handleCreateEvent = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -189,6 +237,12 @@ export function OwnerPortal() {
         >
           Create New Event
         </button>
+        <a
+          href="/owner/profile"
+          className="ml-4 text-indigo-600 hover:text-indigo-800 underline"
+        >
+          Business Profile
+        </a>
         <a
           href="/owner/theme"
           className="ml-4 text-indigo-600 hover:text-indigo-800 underline"
@@ -352,6 +406,100 @@ export function OwnerPortal() {
         <div className="px-6 py-4 border-b border-gray-200">
           <h2 className="text-xl font-semibold text-gray-900">Your Events</h2>
         </div>
+
+        {/* Events Filters */}
+        <div className="bg-white dark:bg-neutral-800 rounded-lg shadow-sm border border-neutral-200 dark:border-neutral-700 p-6 mb-6">
+          <h3 className="heading-5 mb-4">Filter Events</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            {/* Search */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Search
+              </label>
+              <input
+                type="text"
+                className="input w-full"
+                placeholder="Search events..."
+                value={filters.search}
+                onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
+              />
+            </div>
+
+            {/* Status */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Status
+              </label>
+              <select
+                className="input w-full"
+                value={filters.status}
+                onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value }))}
+              >
+                <option value="">All Status</option>
+                <option value="DRAFT">Draft</option>
+                <option value="PUBLISHED">Published</option>
+                <option value="CANCELLED">Cancelled</option>
+                <option value="COMPLETED">Completed</option>
+              </select>
+            </div>
+
+            {/* Featured */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Featured
+              </label>
+              <select
+                className="input w-full"
+                value={filters.featured}
+                onChange={(e) => setFilters(prev => ({ ...prev, featured: e.target.value }))}
+              >
+                <option value="">All Events</option>
+                <option value="true">Featured Only</option>
+                <option value="false">Non-Featured</option>
+              </select>
+            </div>
+
+            {/* Date From */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                From Date
+              </label>
+              <input
+                type="date"
+                className="input w-full"
+                value={filters.dateFrom}
+                onChange={(e) => setFilters(prev => ({ ...prev, dateFrom: e.target.value }))}
+              />
+            </div>
+
+            {/* Date To */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                To Date
+              </label>
+              <input
+                type="date"
+                className="input w-full"
+                value={filters.dateTo}
+                onChange={(e) => setFilters(prev => ({ ...prev, dateTo: e.target.value }))}
+              />
+            </div>
+          </div>
+
+          {/* Clear Filters */}
+          <div className="mt-4 flex justify-between items-center">
+            <div className="text-sm text-gray-600 dark:text-gray-400">
+              Showing {filteredEvents.length} of {events.length} events
+            </div>
+            <button
+              type="button"
+              onClick={() => setFilters({ search: '', status: '', featured: '', dateFrom: '', dateTo: '' })}
+              className="btn btn-outline btn-sm"
+            >
+              Clear Filters
+            </button>
+          </div>
+        </div>
         
         {loading ? (
           <div className="p-6">
@@ -361,9 +509,9 @@ export function OwnerPortal() {
               ))}
             </div>
           </div>
-        ) : events.length > 0 ? (
+        ) : filteredEvents.length > 0 ? (
           <div className="divide-y divide-gray-200">
-            {events.map((event) => (
+            {filteredEvents.map((event) => (
               <div key={event.id} className="p-6 hover:bg-gray-50">
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
@@ -408,8 +556,12 @@ export function OwnerPortal() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
             </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No events yet</h3>
-            <p className="text-gray-500 mb-4">Create your first event to get started.</p>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              {events.length === 0 ? 'No events yet' : 'No events match your filters'}
+            </h3>
+            <p className="text-gray-500 mb-4">
+              {events.length === 0 ? 'Create your first event to get started.' : 'Try adjusting your filters or clear them to see all events.'}
+            </p>
             <button
               onClick={() => setShowCreateForm(true)}
               className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700"

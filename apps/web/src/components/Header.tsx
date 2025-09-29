@@ -50,6 +50,26 @@ export function Header() {
               Events
             </Link>
             <Link 
+              to="/designers" 
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                isActive('/designers') 
+                  ? 'text-accent-600 bg-accent-50 dark:bg-accent-950/20 dark:text-accent-400' 
+                  : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:text-neutral-100 dark:hover:bg-neutral-800'
+              }`}
+            >
+              Designers
+            </Link>
+            <Link 
+              to="/salone-del-mobile" 
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                isActive('/salone-del-mobile') 
+                  ? 'text-accent-600 bg-accent-50 dark:bg-accent-950/20 dark:text-accent-400' 
+                  : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:text-neutral-100 dark:hover:bg-neutral-800'
+              }`}
+            >
+              Salone del Mobile
+            </Link>
+            <Link 
               to="/owner" 
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                 isActive('/owner') 
@@ -114,6 +134,28 @@ export function Header() {
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 Events
+              </Link>
+              <Link
+                to="/designers"
+                className={`block px-4 py-3 rounded-lg text-base font-medium transition-colors duration-200 ${
+                  isActive('/designers') 
+                    ? 'text-accent-600 bg-accent-50 dark:bg-accent-950/20 dark:text-accent-400' 
+                    : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:text-neutral-100 dark:hover:bg-neutral-800'
+                }`}
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Designers
+              </Link>
+              <Link
+                to="/salone-del-mobile"
+                className={`block px-4 py-3 rounded-lg text-base font-medium transition-colors duration-200 ${
+                  isActive('/salone-del-mobile') 
+                    ? 'text-accent-600 bg-accent-50 dark:bg-accent-950/20 dark:text-accent-400' 
+                    : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:text-neutral-100 dark:hover:bg-neutral-800'
+                }`}
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Salone del Mobile
               </Link>
               <Link
                 to="/owner"

@@ -1,31 +1,228 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import { getJson } from '../lib/api'
+import { NearbyEvents } from '../components/NearbyEvents'
 
 interface Event {
   id: string
   title: string
   slug: string
   description: string
+  shortDescription?: string
   startDate: string
+  endDate?: string
   status: string
+  capacity?: number
+  featured: boolean
+  owner?: {
+    id: string
+    name: string
+    businessName?: string
+  }
+  venue?: {
+    id: string
+    name: string
+    address: string
+    city: string
+    country: string
+  }
+  category?: {
+    id: string
+    name: string
+    slug: string
+    color: string
+    icon: string
+  }
+  _count?: {
+    waitlist: number
+  }
+}
+
+interface Category {
+  id: string
+  name: string
+  slug: string
+  color: string
+  icon: string
+}
+
+interface Area {
+  id: string
+  name: string
+  slug: string
+  color: string
+  icon: string
+}
+
+interface Product {
+  id: string
+  name: string
+  slug: string
+  color: string
+  icon: string
 }
 
 export function HomePage() {
   const [events, setEvents] = useState<Event[]>([])
+  const [filteredEvents, setFilteredEvents] = useState<Event[]>([])
+  const [categories, setCategories] = useState<Category[]>([])
+  const [areas, setAreas] = useState<Area[]>([])
+  const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
+  const [showFilters, setShowFilters] = useState(false)
+  const [showMap, setShowMap] = useState(false)
+  const [filters, setFilters] = useState({
+    search: '',
+    category: '',
+    featured: '',
+    dateFrom: '',
+    dateTo: '',
+    city: '',
+    owner: '',
+    area: '',
+    product: '',
+    hours: ''
+  })
 
   useEffect(() => {
-    // Fetch events from API
-    fetch('/api/events')
-      .then(res => res.json())
-      .then(data => {
-        setEvents(data.events || [])
+    const loadData = async () => {
+      try {
+        const [eventsData, categoriesData, areasData, productsData] = await Promise.all([
+          getJson<{ events: Event[] }>('/api/events'),
+          getJson<{ categories: Category[] }>('/api/categories'),
+          getJson<{ areas: Area[] }>('/api/areas'),
+          getJson<{ products: Product[] }>('/api/products')
+        ])
+        setEvents(eventsData.events || [])
+        setFilteredEvents(eventsData.events || [])
+        setCategories(categoriesData.categories || [])
+        setAreas(areasData.areas || [])
+        setProducts(productsData.products || [])
+      } catch (error) {
+        console.error('Failed to load events:', error)
+      } finally {
         setLoading(false)
-      })
-      .catch(() => {
-        setLoading(false)
-      })
+      }
+    }
+    loadData()
   }, [])
+
+  // Filter events based on current filters
+  useEffect(() => {
+    let filtered = [...events]
+
+    // Search filter
+    if (filters.search) {
+      const searchLower = filters.search.toLowerCase()
+      filtered = filtered.filter(event => 
+        event.title.toLowerCase().includes(searchLower) ||
+        (event.description && event.description.toLowerCase().includes(searchLower)) ||
+        (event.shortDescription && event.shortDescription.toLowerCase().includes(searchLower)) ||
+        (event.owner?.name && event.owner.name.toLowerCase().includes(searchLower)) ||
+        (event.owner?.businessName && event.owner.businessName.toLowerCase().includes(searchLower))
+      )
+    }
+
+    // Category filter
+    if (filters.category) {
+      filtered = filtered.filter(event => event.category?.slug === filters.category)
+    }
+
+    // Featured filter
+    if (filters.featured === 'true') {
+      filtered = filtered.filter(event => event.featured === true)
+    } else if (filters.featured === 'false') {
+      filtered = filtered.filter(event => event.featured === false)
+    }
+
+    // Date range filters
+    if (filters.dateFrom) {
+      const fromDate = new Date(filters.dateFrom)
+      filtered = filtered.filter(event => new Date(event.startDate) >= fromDate)
+    }
+
+    if (filters.dateTo) {
+      const toDate = new Date(filters.dateTo)
+      filtered = filtered.filter(event => new Date(event.startDate) <= toDate)
+    }
+
+    // City filter
+    if (filters.city) {
+      filtered = filtered.filter(event => 
+        event.venue?.city.toLowerCase().includes(filters.city.toLowerCase())
+      )
+    }
+
+    // Owner filter
+    if (filters.owner) {
+      filtered = filtered.filter(event => 
+        event.owner?.name.toLowerCase().includes(filters.owner.toLowerCase()) ||
+        (event.owner?.businessName && event.owner.businessName.toLowerCase().includes(filters.owner.toLowerCase()))
+      )
+    }
+
+    // Area filter (filter by venue city matching area)
+    if (filters.area) {
+      const selectedArea = areas.find(a => a.slug === filters.area)
+      if (selectedArea) {
+        filtered = filtered.filter(event => 
+          event.venue?.city.toLowerCase().includes(selectedArea.name.toLowerCase())
+        )
+      }
+    }
+
+    // Product filter (filter by owner's product specialty)
+    if (filters.product) {
+      const selectedProduct = products.find(p => p.slug === filters.product)
+      if (selectedProduct) {
+        // This would need to be enhanced when we have product data in events
+        // For now, we'll filter by owner name containing product name
+        filtered = filtered.filter(event => 
+          event.owner?.businessName?.toLowerCase().includes(selectedProduct.name.toLowerCase()) ||
+          event.owner?.name.toLowerCase().includes(selectedProduct.name.toLowerCase())
+        )
+      }
+    }
+
+    // Hours filter (filter by time of day)
+    if (filters.hours) {
+      filtered = filtered.filter(event => {
+        const eventTime = new Date(event.startDate)
+        const hour = eventTime.getHours()
+        
+        switch (filters.hours) {
+          case 'morning':
+            return hour >= 6 && hour < 12
+          case 'afternoon':
+            return hour >= 12 && hour < 18
+          case 'evening':
+            return hour >= 18 && hour < 22
+          case 'night':
+            return hour >= 22 || hour < 6
+          default:
+            return true
+        }
+      })
+    }
+
+    setFilteredEvents(filtered)
+  }, [events, filters, areas, products])
+
+  const handleClearFilters = () => {
+    setFilters({ search: '', category: '', featured: '', dateFrom: '', dateTo: '', city: '', owner: '', area: '', product: '', hours: '' })
+  }
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    })
+  }
+
+  const getActiveFiltersCount = () => {
+    return Object.values(filters).filter(value => value !== '').length
+  }
 
   return (
     <div className="relative">
@@ -36,22 +233,25 @@ export function HomePage() {
             <main className="mt-10 mx-auto max-w-7xl px-4 sm:mt-12 sm:px-6 md:mt-16 lg:mt-20 lg:px-8 xl:mt-28">
               <div className="sm:text-center lg:text-left">
                 <h1 className="heading-1">
-                  <span className="block xl:inline">Discover</span>{' '}
+                  <span className="block xl:inline">Welcome to</span>{' '}
                   <span className="block milano-accent xl:inline">
-                    Extraordinary Events
+                    Linea
                   </span>
                 </h1>
                 <p className="mt-6 text-body sm:mt-8 sm:text-lg sm:max-w-xl sm:mx-auto md:mt-8 md:text-xl lg:mx-0">
-                  Join exclusive events through our innovative waitlist platform. 
-                  Experience the future of event management with Milano-inspired design and email-only access.
+                  Your gateway to Milano Design Week and exclusive design events. 
+                  Discover extraordinary experiences, connect with designers, and explore the future of design through our innovative platform.
                 </p>
+                <div className="mt-4 text-sm text-neutral-600 dark:text-neutral-400">
+                  <p>✨ Email-only access • 🎨 Curated events • 🗺️ Nearby discoveries</p>
+                </div>
                 <div className="mt-8 sm:mt-10 sm:flex sm:justify-center lg:justify-start">
                   <div className="rounded-lg shadow-milano">
                     <Link
                       to="#events"
                       className="btn btn-primary px-8 py-3 text-base font-medium transform hover:scale-105 md:py-4 md:text-lg md:px-10"
                     >
-                      Explore Events
+                      Discover Design Events
                     </Link>
                   </div>
                   <div className="mt-3 sm:mt-0 sm:ml-3">
@@ -59,7 +259,7 @@ export function HomePage() {
                       to="/owner"
                       className="btn btn-outline px-8 py-3 text-base font-medium md:py-4 md:text-lg md:px-10"
                     >
-                      Create Event
+                      Join as Designer
                     </Link>
                   </div>
                 </div>
@@ -78,11 +278,198 @@ export function HomePage() {
         <div className="container">
           <div className="text-center">
             <h2 className="heading-2">
-              Featured Events
+              Discover Events
             </h2>
             <p className="mt-4 text-body text-lg">
-              Discover amazing events happening around you
+              Find amazing design events happening around you
             </p>
+          </div>
+
+          {/* Filter Controls */}
+          <div className="mt-8 bg-neutral-50 dark:bg-neutral-800 rounded-lg p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="heading-5">Filter Events</h3>
+              <div className="flex items-center space-x-2">
+                {getActiveFiltersCount() > 0 && (
+                  <span className="text-sm text-accent-600 dark:text-accent-400">
+                    {getActiveFiltersCount()} filter{getActiveFiltersCount() !== 1 ? 's' : ''} active
+                  </span>
+                )}
+                <button
+                  onClick={() => setShowFilters(!showFilters)}
+                  className="btn btn-outline btn-sm"
+                >
+                  {showFilters ? 'Hide Filters' : 'Show Filters'}
+                </button>
+                {getActiveFiltersCount() > 0 && (
+                  <button
+                    onClick={handleClearFilters}
+                    className="btn btn-outline btn-sm text-red-600 hover:text-red-800"
+                  >
+                    Clear All
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {showFilters && (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Search
+                  </label>
+                  <input
+                    type="text"
+                    className="input w-full"
+                    placeholder="Search events, designers, venues..."
+                    value={filters.search}
+                    onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Category
+                  </label>
+                  <select
+                    className="input w-full"
+                    value={filters.category}
+                    onChange={(e) => setFilters(prev => ({ ...prev, category: e.target.value }))}
+                  >
+                    <option value="">All Categories</option>
+                    {categories.map(cat => (
+                      <option key={cat.id} value={cat.slug}>{cat.icon} {cat.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Design District
+                  </label>
+                  <select
+                    className="input w-full"
+                    value={filters.area}
+                    onChange={(e) => setFilters(prev => ({ ...prev, area: e.target.value }))}
+                  >
+                    <option value="">All Areas</option>
+                    {areas.map(area => (
+                      <option key={area.id} value={area.slug}>{area.icon} {area.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Product Specialty
+                  </label>
+                  <select
+                    className="input w-full"
+                    value={filters.product}
+                    onChange={(e) => setFilters(prev => ({ ...prev, product: e.target.value }))}
+                  >
+                    <option value="">All Products</option>
+                    {products.map(product => (
+                      <option key={product.id} value={product.slug}>{product.icon} {product.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Time of Day
+                  </label>
+                  <select
+                    className="input w-full"
+                    value={filters.hours}
+                    onChange={(e) => setFilters(prev => ({ ...prev, hours: e.target.value }))}
+                  >
+                    <option value="">Any Time</option>
+                    <option value="morning">🌅 Morning (6AM-12PM)</option>
+                    <option value="afternoon">☀️ Afternoon (12PM-6PM)</option>
+                    <option value="evening">🌆 Evening (6PM-10PM)</option>
+                    <option value="night">🌙 Night (10PM-6AM)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Featured
+                  </label>
+                  <select
+                    className="input w-full"
+                    value={filters.featured}
+                    onChange={(e) => setFilters(prev => ({ ...prev, featured: e.target.value }))}
+                  >
+                    <option value="">All Events</option>
+                    <option value="true">⭐ Featured Only</option>
+                    <option value="false">Regular Events</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    From Date
+                  </label>
+                  <input
+                    type="date"
+                    className="input w-full"
+                    value={filters.dateFrom}
+                    onChange={(e) => setFilters(prev => ({ ...prev, dateFrom: e.target.value }))}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    To Date
+                  </label>
+                  <input
+                    type="date"
+                    className="input w-full"
+                    value={filters.dateTo}
+                    onChange={(e) => setFilters(prev => ({ ...prev, dateTo: e.target.value }))}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    City
+                  </label>
+                  <input
+                    type="text"
+                    className="input w-full"
+                    placeholder="e.g., Milano"
+                    value={filters.city}
+                    onChange={(e) => setFilters(prev => ({ ...prev, city: e.target.value }))}
+                  />
+                </div>
+
+                <div className="md:col-span-2 lg:col-span-3">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Designer/Organizer
+                  </label>
+                  <input
+                    type="text"
+                    className="input w-full"
+                    placeholder="Search by designer or business name..."
+                    value={filters.owner}
+                    onChange={(e) => setFilters(prev => ({ ...prev, owner: e.target.value }))}
+                  />
+                </div>
+              </div>
+            )}
+
+            <div className="mt-4 flex justify-between items-center">
+              <div className="text-sm text-gray-600 dark:text-gray-400">
+                Showing {filteredEvents.length} of {events.length} events
+              </div>
+              <button
+                onClick={() => setShowMap(!showMap)}
+                className="btn btn-outline btn-sm"
+              >
+                {showMap ? '📋 List View' : '🗺️ Map View'}
+              </button>
+            </div>
           </div>
 
           {loading ? (
@@ -98,13 +485,74 @@ export function HomePage() {
                 </div>
               ))}
             </div>
+          ) : showMap ? (
+            <div className="mt-12">
+              <div className="bg-white dark:bg-neutral-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+                <div className="h-96 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 flex items-center justify-center">
+                  <div className="text-center">
+                    <div className="text-6xl mb-4">🗺️</div>
+                    <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                      Interactive Map View
+                    </h3>
+                    <p className="text-gray-600 dark:text-gray-400 mb-4">
+                      {filteredEvents.length} events found
+                    </p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-4xl">
+                      {filteredEvents.slice(0, 6).map((event) => (
+                        <div key={event.id} className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+                          <div className="flex items-start justify-between mb-2">
+                            <h4 className="font-semibold text-sm text-gray-900 dark:text-gray-100">
+                              {event.title}
+                            </h4>
+                            {event.featured && (
+                              <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">
+                                ⭐ Featured
+                              </span>
+                            )}
+                          </div>
+                          {event.venue && (
+                            <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">
+                              📍 {event.venue.city}, {event.venue.country}
+                            </p>
+                          )}
+                          <p className="text-xs text-gray-500 dark:text-gray-500">
+                            {formatDate(event.startDate)}
+                          </p>
+                          {event.category && (
+                            <span 
+                              className="inline-block text-xs px-2 py-1 rounded-full mt-2"
+                              style={{ 
+                                backgroundColor: `${event.category.color}20`,
+                                color: event.category.color
+                              }}
+                            >
+                              {event.category.icon} {event.category.name}
+                            </span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    {filteredEvents.length > 6 && (
+                      <p className="text-sm text-gray-500 dark:text-gray-400 mt-4">
+                        And {filteredEvents.length - 6} more events...
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
           ) : (
             <div className="mt-12 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
-              {events.length > 0 ? (
-                events.map((event) => (
+              {filteredEvents.length > 0 ? (
+                filteredEvents.map((event) => (
                   <div key={event.id} className="card overflow-hidden hover:shadow-milano-lg transition-all duration-300 group">
                     <div className="h-48 bg-gradient-to-br from-accent-500 to-accent-600 flex items-center justify-center relative overflow-hidden">
                       <div className="absolute inset-0 bg-black/10"></div>
+                      {event.featured && (
+                        <div className="absolute top-4 right-4 bg-accent-500 text-white px-2 py-1 rounded-full text-xs font-semibold">
+                          Featured
+                        </div>
+                      )}
                       <div className="text-white text-center relative z-10">
                         <div className="text-4xl font-display font-bold mb-2">
                           {new Date(event.startDate).toLocaleDateString('en-US', { month: 'short' })}
@@ -115,20 +563,48 @@ export function HomePage() {
                       </div>
                     </div>
                     <div className="p-6">
-                      <h3 className="heading-4 mb-2">
-                        {event.title}
-                      </h3>
+                      <div className="flex items-start justify-between mb-2">
+                        <h3 className="heading-4 flex-1">
+                          {event.title}
+                        </h3>
+                        {event.category && (
+                          <span 
+                            className="ml-2 px-2 py-1 rounded-full text-xs font-medium"
+                            style={{ 
+                              backgroundColor: `${event.category.color}20`,
+                              color: event.category.color
+                            }}
+                          >
+                            {event.category.name}
+                          </span>
+                        )}
+                      </div>
+                      
                       <p className="text-body text-sm mb-4">
-                        {event.description || 'Join us for an amazing event!'}
+                        {event.shortDescription || event.description || 'Join us for an amazing event!'}
                       </p>
+
+                      {event.owner && (
+                        <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                          <span className="font-medium">By:</span> {event.owner.businessName || event.owner.name}
+                        </div>
+                      )}
+
+                      {event.venue && (
+                        <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                          <span className="font-medium">📍</span> {event.venue.city}, {event.venue.country}
+                        </div>
+                      )}
+
+                      {event._count && (
+                        <div className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                          <span className="font-medium">👥</span> {event._count.waitlist} people interested
+                        </div>
+                      )}
+
                       <div className="flex items-center justify-between">
                         <span className="text-caption">
-                          {new Date(event.startDate).toLocaleDateString('en-US', {
-                            weekday: 'long',
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric'
-                          })}
+                          {formatDate(event.startDate)}
                         </span>
                         <Link
                           to={`/events/${event.slug}`}
@@ -147,14 +623,53 @@ export function HomePage() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
                   </div>
-                  <h3 className="heading-4 mb-2">No events yet</h3>
-                  <p className="text-body">Check back soon for exciting events!</p>
+                  <h3 className="heading-4 mb-2">
+                    {getActiveFiltersCount() > 0 ? 'No events match your filters' : 'No events yet'}
+                  </h3>
+                  <p className="text-body mb-4">
+                    {getActiveFiltersCount() > 0 
+                      ? 'Try adjusting your filters or clear them to see all events.'
+                      : 'Check back soon for exciting events!'
+                    }
+                  </p>
+                  {getActiveFiltersCount() > 0 && (
+                    <button
+                      onClick={handleClearFilters}
+                      className="btn btn-outline"
+                    >
+                      Clear Filters
+                    </button>
+                  )}
                 </div>
               )}
             </div>
           )}
         </div>
       </div>
+
+      {/* Nearby Events Section */}
+      {filteredEvents.length > 0 && (
+        <div className="section bg-neutral-50 dark:bg-neutral-800">
+          <div className="container">
+            <div className="text-center mb-8">
+              <h2 className="heading-2 mb-4">
+                Discover More Events
+              </h2>
+              <p className="text-body text-lg">
+                Find related events happening in your area or industry
+              </p>
+            </div>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {filteredEvents.slice(0, 2).map((event) => (
+                <div key={event.id}>
+                  <NearbyEvents eventSlug={event.slug} limit={3} showTitle={true} />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Features Section */}
       <div className="section bg-neutral-50 dark:bg-neutral-800">
@@ -164,7 +679,7 @@ export function HomePage() {
               Why Choose Linea?
             </h2>
             <p className="text-body text-lg">
-              Simple, secure, and designed for the modern event-goer
+              The premier platform for Milano Design Week and design events
             </p>
           </div>
           
@@ -177,7 +692,7 @@ export function HomePage() {
                 Email-Only Access
               </h3>
               <p className="text-body">
-                No passwords needed. Just your email address to access exclusive events.
+                Seamless access to exclusive design events with just your email. No complex registrations.
               </p>
             </div>
             
@@ -186,10 +701,10 @@ export function HomePage() {
                 <span className="text-2xl">📋</span>
               </div>
               <h3 className="heading-4 mb-2">
-                Waitlist Management
+                Curated Design Events
               </h3>
               <p className="text-body">
-                Join waitlists for sold-out events and get notified when spots open up.
+                Access handpicked design events, exhibitions, and workshops from leading designers and studios.
               </p>
             </div>
             
@@ -198,10 +713,10 @@ export function HomePage() {
                 <span className="text-2xl">🗺️</span>
               </div>
               <h3 className="heading-4 mb-2">
-                Nearby Discoveries
+                Milano Design Network
               </h3>
               <p className="text-body">
-                Find restaurants, museums, and attractions near your events.
+                Discover design districts, showrooms, and cultural landmarks around Milano Design Week.
               </p>
             </div>
           </div>
