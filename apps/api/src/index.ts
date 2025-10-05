@@ -2468,7 +2468,7 @@ app.get('/api/analytics/owner', async (request, reply) => {
         by: ['ipAddress', 'userId'],
         where: { eventId: { in: eventIds }, createdAt: { gte: startDate } },
         _count: { id: true }
-      }).then(results => results.length),
+      }).then((results: any) => results.length),
       
       // Total interactions
       prisma.eventInteraction.count({
@@ -2484,7 +2484,7 @@ app.get('/api/analytics/owner', async (request, reply) => {
         take: 5
       }).then((results: any) => 
         results.map((r: any) => {
-          const event = ownerEvents.find(e => e.id === r.eventId)
+          const event = ownerEvents.find((e: any) => e.id === r.eventId)
           return {
             eventId: r.eventId,
             eventTitle: event?.title || 'Unknown',
