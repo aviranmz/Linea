@@ -61,8 +61,8 @@ export function Layout({ children }: LayoutProps) {
             {children}
           </div>
           {showEmailModal && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
-              <div className="bg-whitebg-neutral-900 border border-neutral-200border-neutral-700 rounded-2xl p-6 w-full max-w-md shadow-milano">
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+              <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-2xl p-6 w-full max-w-md shadow-2xl shadow-black/20">
                 <h2 className="heading-3 mb-2">{t('api.stayInLoop')}</h2>
                 <p className="text-body mb-4">{t('api.stayInLoopDescription')}</p>
                 <form onSubmit={submitEmail} className="space-y-4">
