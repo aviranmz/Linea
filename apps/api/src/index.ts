@@ -435,6 +435,78 @@ const generateUniqueSlug = async (baseTitle: string) => {
   return `${base}-${crypto.randomUUID().slice(0, 6)}`
 }
 
+// Temporary admin data endpoint (remove after use)
+app.get('/admin-data', async (request, reply) => {
+  try {
+    // Get admin users
+    const adminUsers = await prisma.user.findMany({
+      where: {
+        role: 'ADMIN',
+        deletedAt: null
+      },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+        createdAt: true,
+        lastLoginAt: true,
+        isActive: true
+      }
+    })
+    
+    // Get email verifications for admin users
+    const emailVerifications = await prisma.emailVerification.findMany({
+      where: {
+        user: {
+          role: 'ADMIN'
+        }
+      },
+      select: {
+        id: true,
+        email: true,
+        token: true,
+        expiresAt: true,
+        verifiedAt: true,
+        createdAt: true,
+        user: {
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            role: true
+          }
+        }
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    })
+    
+    // Get total user count
+    const totalUsers = await prisma.user.count({
+      where: {
+        deletedAt: null
+      }
+    })
+    
+    const result = {
+      summary: {
+        totalUsers,
+        adminUsers: adminUsers.length,
+        emailVerifications: emailVerifications.length
+      },
+      adminUsers,
+      emailVerifications
+    }
+    
+    reply.send(result)
+  } catch (error) {
+    app.log.error({ error }, 'Failed to fetch admin data')
+    reply.code(500).send({ error: 'Failed to fetch admin data' })
+  }
+})
+
 // Health check
 app.get('/health', async (_request, _reply) => {
   try {
