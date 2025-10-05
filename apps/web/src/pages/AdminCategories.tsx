@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { getJson, postJson, putJson, deleteJson } from '../lib/api'
+import { useLanguage } from '../hooks/useLanguage'
 
 interface Category {
   id: string
@@ -16,6 +17,7 @@ interface Category {
 export default function AdminCategories() {
   const [authLoading, setAuthLoading] = useState(true)
   const [isAdmin, setIsAdmin] = useState(false)
+  const { t } = useLanguage()
   const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(true)
   const [showCreateForm, setShowCreateForm] = useState(false)
@@ -87,7 +89,7 @@ export default function AdminCategories() {
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this category?')) return
+    if (!confirm(t('confirm.deleteCategory'))) return
 
     try {
       await deleteJson(`/api/admin/categories/${id}`)

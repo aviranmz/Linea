@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { getJson, postJson, putJson, deleteJson } from '../lib/api'
+import { useLanguage } from '../hooks/useLanguage'
 
 interface Product {
   id: string
@@ -16,6 +17,7 @@ interface Product {
 export default function AdminProducts() {
   const [authLoading, setAuthLoading] = useState(true)
   const [isAdmin, setIsAdmin] = useState(false)
+  const { t } = useLanguage()
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
   const [showCreateForm, setShowCreateForm] = useState(false)
@@ -87,7 +89,7 @@ export default function AdminProducts() {
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this product?')) return
+    if (!confirm(t('confirm.deleteProduct'))) return
 
     try {
       await deleteJson(`/api/admin/products/${id}`)

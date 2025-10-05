@@ -37,6 +37,11 @@ A modern event management platform with email-only access, waitlist functionalit
    pnpm dev
    ```
 
+   - Frontend (Vite): http://localhost:3050
+   - Backend (Fastify): http://localhost:9050
+     - API Docs (Swagger UI): http://localhost:9050/docs
+     - Health Check: http://localhost:9050/health
+
 ## 🏗️ Architecture
 
 ### Tech Stack
@@ -85,6 +90,8 @@ linea/
 ### Available Scripts
 
 - `pnpm dev` - Start all development servers
+- `pnpm --filter @linea/api dev` - Start only the backend on http://localhost:9050
+- `pnpm --filter @linea/web dev` - Start only the frontend on http://localhost:3050
 - `pnpm build` - Build all packages
 - `pnpm test` - Run all tests
 - `pnpm lint` - Lint all packages
@@ -134,6 +141,13 @@ See `.env.example` for required environment variables.
 This project is licensed under the MIT License.
 
 ## 🔗 Links
+
+### Local URLs
+
+- Frontend (dev): http://localhost:3050
+- Backend (dev): http://localhost:9050
+- API Docs (Swagger UI): http://localhost:9050/docs
+- Health Check: http://localhost:9050/health
 
 - [Project Board](https://app.asana.com/1/1211186475239403/project/1211419367649012/board/1211420999627060)
 - [API Documentation](https://api.linea.app/docs)

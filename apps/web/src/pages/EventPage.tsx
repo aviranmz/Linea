@@ -1,75 +1,11 @@
 import React from 'react'
 import { useParams } from 'react-router-dom'
 import { useState, useEffect } from 'react'
-import { Helmet } from 'react-helmet-async'
 import { NearbyEvents } from '../components/NearbyEvents'
-
-interface Event {
-  id: string
-  title: string
-  slug: string
-  description: string
-  shortDescription?: string
-  startDate: string
-  endDate?: string
-  status: string
-  capacity?: number
-  youtubeUrl?: string
-  metadata?: {
-    productName?: string | null
-    heroImageUrl?: string | null
-    longDescription?: string | null
-    valueProposition?: string | null
-    features?: string[]
-    awards?: string[]
-    social?: Record<string,string> | null
-    videoUrl?: string | null
-    pressKitUrl?: string | null
-    contact?: { email?: string; phone?: string; whatsapp?: string; telegram?: string } | null
-    schedule?: Array<{ title: string; startsAt: string; endsAt?: string }>
-    qrUrl?: string | null
-  }
-  venue?: {
-    id: string
-    name: string
-    address: string
-    city: string
-    country: string
-    latitude?: number
-    longitude?: number
-  }
-  owner?: {
-    id: string
-    name: string
-    email: string
-  }
-  category?: {
-    id: string
-    name: string
-    slug: string
-    color: string
-    icon: string
-  }
-  shows?: Array<{
-    id: string
-    title: string
-    description?: string
-    startDate: string
-    endDate?: string
-    youtubeUrl?: string
-  }>
-  nearbyPlaces?: Array<{
-    id: string
-    name: string
-    address: string
-    category: string
-    distance?: number
-    website?: string
-  }>
-  _count?: {
-    waitlist: number
-  }
-}
+import { Event } from '../types/Event'
+import { EventSEO } from '../components/SEO'
+import { useLanguage } from '../hooks/useLanguage'
+import { useAnalytics } from '../lib/analytics'
 
 export function EventPage() {
   const { slug } = useParams<{ slug: string }>()
@@ -78,18 +14,55 @@ export function EventPage() {
   const [email, setEmail] = useState('')
   const [isJoining, setIsJoining] = useState(false)
   const [joined, setJoined] = useState(false)
+  const { t } = useLanguage()
+  const analytics = useAnalytics()
 
   useEffect(() => {
+    let handleScroll: (() => void) | null = null
+    
     if (slug) {
       fetch(`/api/events/${slug}`)
         .then(res => res.json())
         .then(data => {
           setEvent(data.event)
           setLoading(false)
+          
+          // Track event view
+          if (data.event?.id) {
+            analytics.trackEventView(data.event.id)
+            
+            // Track scroll events with throttling
+            let maxScroll = 0
+            let lastScrollTime = 0
+            const SCROLL_THROTTLE_MS = 1000 // Only track scroll every 1 second
+            
+            handleScroll = () => {
+              const now = Date.now()
+              if (now - lastScrollTime < SCROLL_THROTTLE_MS) return
+              
+              const scrollPercentage = Math.round((window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100)
+              if (scrollPercentage > maxScroll) {
+                maxScroll = scrollPercentage
+                lastScrollTime = now
+                analytics.trackScroll(data.event.id, scrollPercentage)
+              }
+            }
+            
+            window.addEventListener('scroll', handleScroll)
+          }
         })
         .catch(() => {
           setLoading(false)
         })
+    }
+    
+    // Cleanup function
+    return () => {
+      if (handleScroll) {
+        window.removeEventListener('scroll', handleScroll)
+      }
+      // Reset analytics tracking when component unmounts
+      analytics.reset()
     }
   }, [slug])
 
@@ -113,6 +86,9 @@ export function EventPage() {
       if (response.ok) {
         setJoined(true)
         setEmail('')
+        
+        // Track waitlist join
+        analytics.trackWaitlistJoin(event.id)
       }
     } catch (error) {
       console.error('Failed to join waitlist:', error)
@@ -136,14 +112,15 @@ export function EventPage() {
   if (!event) {
     return (
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 text-center">
-        <h1 className="text-4xl font-bold text-gray-900 mb-4">Event Not Found</h1>
-        <p className="text-gray-600">The event you're looking for doesn't exist.</p>
+        <h1 className="text-4xl font-bold text-gray-900 mb-4">{t('event.notFound')}</h1>
+        <p className="text-gray-600">{t('event.notFoundDescription')}</p>
       </div>
     )
   }
 
-  // Generate JSON-LD structured data
-  const generateJsonLd = () => {
+  // Generate JSON-LD structured data (unused)
+  /*
+  const _generateJsonLd = () => {
     if (!event) return null
     
     const jsonLd = {
@@ -197,98 +174,160 @@ export function EventPage() {
     
     return JSON.stringify(jsonLd)
   }
+  */
 
-  const pageTitle = event ? `${event.title} | Linea Events` : 'Event | Linea Events'
-  const pageDescription = event ? (event.shortDescription || event.description?.substring(0, 160) + '...' || 'Join us for an amazing event!') : 'Event details and registration'
-  const pageUrl = `${window.location.origin}/events/${slug}`
-  const eventImage = event?.metadata?.heroImageUrl || `${window.location.origin}/og-event-${slug}.jpg`
 
   return (
     <>
-      <Helmet>
-        <title>{pageTitle}</title>
-        <meta name="description" content={pageDescription} />
-        <link rel="canonical" href={pageUrl} />
-        
-        {/* Open Graph */}
-        <meta property="og:title" content={pageTitle} />
-        <meta property="og:description" content={pageDescription} />
-        <meta property="og:url" content={pageUrl} />
-        <meta property="og:type" content="event" />
-        <meta property="og:image" content={eventImage} />
-        <meta property="og:site_name" content="Linea Events" />
-        
-        {/* Twitter Card */}
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={pageTitle} />
-        <meta name="twitter:description" content={pageDescription} />
-        <meta name="twitter:image" content={eventImage} />
-        
-        {/* Event specific meta tags */}
-        {event && (
-          <>
-            <meta property="event:start_time" content={event.startDate} />
-            {event.endDate && <meta property="event:end_time" content={event.endDate} />}
-            {event.venue && (
-              <>
-                <meta property="event:location:name" content={event.venue.name} />
-                <meta property="event:location:address" content={`${event.venue.address}, ${event.venue.city}, ${event.venue.country}`} />
-                {event.venue.latitude && <meta property="event:location:latitude" content={event.venue.latitude.toString()} />}
-                {event.venue.longitude && <meta property="event:location:longitude" content={event.venue.longitude.toString()} />}
-              </>
-            )}
-          </>
-        )}
-        
-        {/* JSON-LD Structured Data */}
-        {event && (
-          <script type="application/ld+json">
-            {generateJsonLd()}
-          </script>
-        )}
-      </Helmet>
+      <EventSEO 
+        event={{
+          title: event.title,
+          slug: event.slug,
+          description: event.description || undefined,
+          shortDescription: event.shortDescription || undefined,
+          startDate: event.startDate,
+          endDate: event.endDate || undefined,
+          capacity: event.capacity || undefined,
+          category: event.category?.name || undefined,
+          venue: event.venue ? {
+            name: event.venue.name,
+            address: event.venue.address,
+            city: event.venue.city,
+            country: event.venue.country,
+            latitude: event.venue.latitude,
+            longitude: event.venue.longitude
+          } : undefined,
+          organizer: event.owner ? {
+            name: event.owner.name,
+            email: event.owner.email,
+            businessName: event.owner.businessName
+          } : undefined,
+          metadata: event.metadata ? {
+            heroImageUrl: event.metadata.heroImageUrl || undefined
+          } : undefined
+        }}
+        breadcrumbs={[
+          { name: 'Home', url: 'https://linea-production.up.railway.app/' },
+          { name: 'Events', url: 'https://linea-production.up.railway.app/designers' },
+          { name: event.title, url: `https://linea-production.up.railway.app/events/${event.slug}` }
+        ]}
+      />
       
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      {/* Event Header */}
+      {/* Professional Event Header */}
       <div className="mb-8">
-        <h1 className="text-4xl font-bold text-gray-900 mb-4">{event.title}</h1>
-        <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
-          <div className="flex items-center">
-            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-            {new Date(event.startDate).toLocaleDateString('en-US', {
-              weekday: 'long',
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric',
-              hour: '2-digit',
-              minute: '2-digit'
-            })}
+        <div className="bg-gradient-to-r from-white via-gray-50/30 to-white rounded-2xl border border-gray-200/50 p-6 shadow-sm">
+          <div className="flex flex-col lg:flex-row lg:items-start gap-6">
+            {/* Title Section */}
+            <div className="flex-1">
+              {/* Complete Event Information Block */}
+              <div className="flex flex-col lg:flex-row lg:items-start gap-6">
+                {/* All Event Details in One Block */}
+                <div className="flex-1">
+                  <div className="space-y-4">
+                    {/* Title and Description */}
+                    <div>
+                      <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 leading-tight mb-2">{event.title}</h1>
+                      {event.shortDescription && (
+                        <p className="text-lg text-gray-600 leading-relaxed">{event.shortDescription}</p>
+                      )}
+                    </div>
+                    
+                    {/* Event Details - Responsive Grid */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-sm text-gray-600">
+                      <div className="flex items-center bg-white/60 rounded-lg px-3 py-2 shadow-sm">
+                        <svg className="w-4 h-4 mr-2 text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <span className="font-medium text-gray-700 text-xs sm:text-sm">
+                          {new Date(event.startDate).toLocaleDateString('en-US', {
+                            weekday: 'long',
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </span>
+                      </div>
+                      {event.endDate && (
+                        <div className="flex items-center bg-white/60 rounded-lg px-3 py-2 shadow-sm">
+                          <svg className="w-4 h-4 mr-2 text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          <span className="font-medium text-gray-700 text-xs sm:text-sm">
+                            {t('event.ends')}: {new Date(event.endDate).toLocaleDateString('en-US', {
+                              weekday: 'long',
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
+                          </span>
+                        </div>
+                      )}
+                      {event.capacity && (
+                        <div className="flex items-center bg-white/60 rounded-lg px-3 py-2 shadow-sm">
+                          <svg className="w-4 h-4 mr-2 text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                          </svg>
+                          <span className="font-medium text-gray-700 text-xs sm:text-sm">{t('event.capacity')}: {event.capacity}</span>
+                        </div>
+                      )}
+                      {event.venue && (
+                        <div className="flex items-center bg-white/60 rounded-lg px-3 py-2 shadow-sm">
+                          <svg className="w-4 h-4 mr-2 text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                          </svg>
+                          <span className="font-medium text-gray-700 text-xs sm:text-sm">{event.venue.name}, {event.venue.city}</span>
+                        </div>
+                      )}
+                      {event.category && (
+                        <div className="flex items-center sm:col-span-2 lg:col-span-1">
+                          <span 
+                            className="inline-flex items-center px-3 py-2 rounded-lg text-xs sm:text-sm font-medium shadow-sm"
+                            style={{ backgroundColor: event.category.color + '20', color: event.category.color }}
+                          >
+                            {event.category.icon} {event.category.name}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Professional QR Code - Responsive */}
+                {event.metadata?.qrUrl && (
+                  <div className="flex-shrink-0 w-full lg:w-auto">
+                    <div className="bg-white border border-gray-200/60 rounded-2xl p-4 shadow-sm hover:shadow-md transition-all duration-300 group">
+                      <div className="flex flex-col items-center">
+                        <div className="relative">
+                          <div className="w-24 h-24 sm:w-28 sm:h-28 bg-white rounded-xl shadow-sm border border-gray-100 flex items-center justify-center">
+                            <img 
+                              src={event.metadata.qrUrl} 
+                              alt="Event QR Code" 
+                              className="w-20 h-20 sm:w-24 sm:h-24 rounded-lg" 
+                            />
+                          </div>
+                          <div className="absolute -top-1 -right-1 sm:-top-2 sm:-right-2 w-6 h-6 sm:w-7 sm:h-7 bg-gradient-to-br from-accent-500 to-accent-600 rounded-full flex items-center justify-center shadow-lg">
+                            <svg className="w-3 h-3 sm:w-4 sm:h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                        </div>
+                        <div className="mt-2 sm:mt-3 text-center">
+                          <p className="text-xs sm:text-sm font-semibold text-gray-800 mb-1">Quick Access</p>
+                          <p className="text-xs text-gray-500 leading-tight">Scan to join event</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
-          {event.endDate && (
-            <div className="flex items-center">
-              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              Ends: {new Date(event.endDate).toLocaleDateString('en-US', {
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-              })}
-            </div>
-          )}
-          {event.capacity && (
-            <div className="flex items-center">
-              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-              </svg>
-              Capacity: {event.capacity}
-            </div>
-          )}
         </div>
       </div>
 
@@ -302,7 +341,7 @@ export function EventPage() {
       {/* Product Summary */}
       {(event.metadata?.productName || event.metadata?.valueProposition) && (
         <div className="mb-8">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-2">{event.metadata?.productName || 'Product'}</h2>
+          <h2 className="text-2xl font-semibold text-gray-900 mb-2">{event.metadata?.productName || t('event.product')}</h2>
           {event.metadata?.valueProposition && (
             <p className="text-gray-700">{event.metadata.valueProposition}</p>
           )}
@@ -311,7 +350,7 @@ export function EventPage() {
 
       {/* Event Description */}
       <div className="mb-8">
-        <h2 className="text-2xl font-semibold text-gray-900 mb-4">About This Event</h2>
+        <h2 className="text-2xl font-semibold text-gray-900 mb-4">{t('event.aboutEvent')}</h2>
         <div className="prose max-w-none">
           <p className="text-gray-600 leading-relaxed">
             {event.metadata?.longDescription || event.description || 'Join us for an amazing event! More details coming soon.'}
@@ -324,7 +363,7 @@ export function EventPage() {
         <div className="mb-8 grid md:grid-cols-2 gap-6">
           {event.metadata?.features && event.metadata.features.length > 0 && (
             <div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">Features</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">{t('event.features')}</h3>
               <ul className="list-disc pl-6 text-gray-700 space-y-1">
                 {event.metadata.features.map((f, i) => (
                   <li key={i}>{f}</li>
@@ -334,7 +373,7 @@ export function EventPage() {
           )}
           {event.metadata?.awards && event.metadata.awards.length > 0 && (
             <div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">Awards</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">{t('event.awards')}</h3>
               <ul className="list-disc pl-6 text-gray-700 space-y-1">
                 {event.metadata.awards.map((a, i) => (
                   <li key={i}>{a}</li>
@@ -348,7 +387,7 @@ export function EventPage() {
       {/* Product Video */}
       {(event.metadata?.videoUrl || event.youtubeUrl) && (
         <div className="mb-8">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-4">Event Video</h2>
+          <h2 className="text-2xl font-semibold text-gray-900 mb-4">{t('event.video')}</h2>
           <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden">
             <iframe
               src={event.metadata?.videoUrl || event.youtubeUrl!}
@@ -356,6 +395,14 @@ export function EventPage() {
               className="w-full h-full"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
+              onError={(e) => {
+                console.warn('Video iframe failed to load:', e);
+                // Hide the iframe container if it fails to load
+                const container = e.currentTarget.parentElement;
+                if (container) {
+                  container.style.display = 'none';
+                }
+              }}
             />
           </div>
         </div>
@@ -364,10 +411,10 @@ export function EventPage() {
       {/* Press & Socials */}
       {(event.metadata?.pressKitUrl || event.metadata?.social) && (
         <div className="mb-8">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-4">Press & Social</h2>
+          <h2 className="text-2xl font-semibold text-gray-900 mb-4">{t('event.pressSocial')}</h2>
           <div className="flex flex-wrap gap-3">
             {event.metadata?.pressKitUrl && (
-              <a href={event.metadata.pressKitUrl} className="btn btn-outline" target="_blank" rel="noreferrer">Download Press Kit</a>
+              <a href={event.metadata.pressKitUrl} className="btn btn-outline" target="_blank" rel="noreferrer">{t('event.downloadPressKit')}</a>
             )}
             {event.metadata?.social && Object.entries(event.metadata.social).map(([k, v]) => v ? (
               <a key={k} href={v as string} target="_blank" rel="noreferrer" className="text-indigo-600 hover:text-indigo-800 underline capitalize">{k}</a>
@@ -376,33 +423,27 @@ export function EventPage() {
         </div>
       )}
 
-      {/* Contact & QR */}
-      {(event.metadata?.contact || event.metadata?.qrUrl) && (
-        <div className="mb-8 grid md:grid-cols-2 gap-6">
-          {event.metadata?.contact && (
-            <div className="bg-white border border-gray-200 rounded-lg p-6">
-              <h3 className="text-lg font-semibold mb-2">Contact</h3>
-              <div className="space-y-1 text-gray-700">
-                {event.metadata.contact.email && <div>Email: <a className="text-indigo-600" href={`mailto:${event.metadata.contact.email}`}>{event.metadata.contact.email}</a></div>}
-                {event.metadata.contact.phone && <div>Phone: <a className="text-indigo-600" href={`tel:${event.metadata.contact.phone}`}>{event.metadata.contact.phone}</a></div>}
-                {event.metadata.contact.whatsapp && <div>WhatsApp: <a className="text-indigo-600" href={event.metadata.contact.whatsapp}>Open</a></div>}
-                {event.metadata.contact.telegram && <div>Telegram: <a className="text-indigo-600" href={event.metadata.contact.telegram}>Open</a></div>}
-              </div>
+
+      {/* Contact Information */}
+      {event.metadata?.contact && (
+        <div className="mb-8">
+          <h2 className="text-2xl font-semibold text-gray-900 mb-4">{t('event.contact')}</h2>
+          <div className="bg-white border border-gray-200 rounded-lg p-6">
+            <div className="space-y-1 text-gray-700">
+              {event.metadata.contact.email && <div>{t('event.email')}: <a className="text-indigo-600" href={`mailto:${event.metadata.contact.email}`}>{event.metadata.contact.email}</a></div>}
+              {event.metadata.contact.phone && <div>{t('event.phone')}: <a className="text-indigo-600" href={`tel:${event.metadata.contact.phone}`}>{event.metadata.contact.phone}</a></div>}
+              {event.metadata.contact.whatsapp && <div>{t('event.whatsapp')}: <a className="text-indigo-600" href={event.metadata.contact.whatsapp}>{t('event.open')}</a></div>}
+              {event.metadata.contact.telegram && <div>{t('event.telegram')}: <a className="text-indigo-600" href={event.metadata.contact.telegram}>{t('event.open')}</a></div>}
             </div>
-          )}
-          {event.metadata?.qrUrl && (
-            <div className="bg-white border border-gray-200 rounded-lg p-6 flex items-center justify-center">
-              <img src={event.metadata.qrUrl} alt="QR" className="max-h-48" />
-            </div>
-          )}
+          </div>
         </div>
       )}
 
       {/* Waitlist Form */}
       <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg p-8">
-        <h2 className="text-2xl font-semibold text-gray-900 mb-4">Join the Waitlist</h2>
+        <h2 className="text-2xl font-semibold text-gray-900 mb-4">{t('event.joinWaitlist')}</h2>
         <p className="text-gray-600 mb-6">
-          Enter your email to join the waitlist for this event. You'll be notified when spots become available.
+          {t('event.joinWaitlistDescription')}
         </p>
         
         {joined ? (
@@ -412,8 +453,8 @@ export function EventPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
               <div>
-                <h3 className="text-sm font-medium text-green-800">Successfully joined the waitlist!</h3>
-                <p className="text-sm text-green-700 mt-1">We'll notify you when spots become available.</p>
+                <h3 className="text-sm font-medium text-green-800">{t('event.successfullyJoined')}</h3>
+                <p className="text-sm text-green-700 mt-1">{t('event.notifyWhenAvailable')}</p>
               </div>
             </div>
           </div>
@@ -423,16 +464,17 @@ export function EventPage() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter your email address"
+              placeholder={t('event.enterEmail')}
               required
               className="flex-1 px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
             />
             <button
               type="submit"
               disabled={isJoining}
+              onClick={() => analytics.trackButtonClick(event.id, 'waitlist-join')}
               className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-medium rounded-md hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
             >
-              {isJoining ? 'Joining...' : 'Join Waitlist'}
+              {isJoining ? t('event.joining') : t('event.joinWaitlist')}
             </button>
           </form>
         )}
@@ -441,7 +483,7 @@ export function EventPage() {
       {/* Venue Information */}
       {event.venue && (
         <div className="mb-8">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-4">Venue</h2>
+          <h2 className="text-2xl font-semibold text-gray-900 mb-4">{t('event.venue')}</h2>
           <div className="bg-white border border-gray-200 rounded-lg p-6">
             <h3 className="text-lg font-medium text-gray-900 mb-2">{event.venue.name}</h3>
             <p className="text-gray-600 mb-4">
@@ -458,7 +500,7 @@ export function EventPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
-                View on Google Maps
+                {t('event.viewOnGoogleMaps')}
               </a>
             )}
           </div>
@@ -468,7 +510,7 @@ export function EventPage() {
       {/* Shows */}
       {event.shows && event.shows.length > 0 && (
         <div className="mb-8">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-4">Shows</h2>
+          <h2 className="text-2xl font-semibold text-gray-900 mb-4">{t('event.shows')}</h2>
           <div className="grid gap-4">
             {event.shows.map((show) => (
               <div key={show.id} className="bg-white border border-gray-200 rounded-lg p-6">
@@ -505,6 +547,14 @@ export function EventPage() {
                       className="w-full h-full"
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                       allowFullScreen
+                      onError={(e) => {
+                        console.warn('Show video iframe failed to load:', e);
+                        // Hide the iframe container if it fails to load
+                        const container = e.currentTarget.parentElement;
+                        if (container) {
+                          container.style.display = 'none';
+                        }
+                      }}
                     />
                   </div>
                 )}
@@ -517,7 +567,7 @@ export function EventPage() {
       {/* Nearby Places */}
       {event.nearbyPlaces && event.nearbyPlaces.length > 0 && (
         <div className="mb-8">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-4">Nearby Places</h2>
+          <h2 className="text-2xl font-semibold text-gray-900 mb-4">{t('event.nearbyPlaces')}</h2>
           <div className="grid md:grid-cols-2 gap-4">
             {event.nearbyPlaces.slice(0, 6).map((place) => (
               <div key={place.id} className="bg-white border border-gray-200 rounded-lg p-4">
@@ -531,7 +581,7 @@ export function EventPage() {
                       </span>
                       {place.distance && (
                         <span className="ml-2 text-xs text-gray-500">
-                          {Math.round(place.distance)}m away
+                          {Math.round(place.distance)}m {t('event.away')}
                         </span>
                       )}
                     </div>

@@ -77,15 +77,15 @@ export function NearbyEvents({ eventSlug, limit = 5, showTitle = true }: NearbyE
 
   if (loading) {
     return (
-      <div className="bg-white dark:bg-neutral-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         {showTitle && (
-          <h3 className="heading-4 mb-4">📍 Nearby Events</h3>
+          <h3 className="heading-4 mb-4">Nearby Events</h3>
         )}
         <div className="space-y-4">
           {[...Array(3)].map((_, i) => (
             <div key={i} className="animate-pulse">
-              <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-2"></div>
-              <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+              <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+              <div className="h-3 bg-gray-200 rounded w-1/2"></div>
             </div>
           ))}
         </div>
@@ -98,46 +98,46 @@ export function NearbyEvents({ eventSlug, limit = 5, showTitle = true }: NearbyE
   }
 
   return (
-    <div className="bg-white dark:bg-neutral-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
       {showTitle && (
         <div className="flex items-center mb-4">
-          <span className="text-2xl mr-2">📍</span>
+          <span className="text-2xl mr-2 text-gray-400">Nearby</span>
           <h3 className="heading-4">Nearby Events</h3>
         </div>
       )}
       
       <div className="space-y-4">
         {nearbyEvents.map((event) => (
-          <div key={event.id} className="border border-gray-200 dark:border-gray-600 rounded-lg p-4 hover:shadow-md transition-shadow">
+          <div key={event.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
             <div className="flex items-start justify-between mb-2">
-              <h4 className="font-semibold text-gray-900 dark:text-gray-100 text-sm">
+              <h4 className="font-semibold text-gray-900 text-sm">
                 <Link 
                   to={`/events/${event.slug}`}
-                  className="hover:text-accent-600 dark:hover:text-accent-400 transition-colors"
+                  className="hover:text-accent-600 transition-colors"
                 >
                   {event.title}
                 </Link>
               </h4>
               {event.featured && (
-                <span className="text-xs bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400 px-2 py-1 rounded-full">
-                  ⭐ Featured
+                <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">
+                  Featured
                 </span>
               )}
             </div>
             
-            <p className="text-sm text-gray-600 dark:text-gray-300 mb-2 line-clamp-2">
+            <p className="text-sm text-gray-600 mb-2 line-clamp-2">
               {event.shortDescription || event.description || 'Join us for an amazing event!'}
             </p>
 
-            <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+            <div className="flex items-center justify-between text-xs text-gray-500">
               <div className="flex items-center space-x-4">
                 {event.venue && (
                   <span className="flex items-center">
-                    📍 {event.venue.city}
+                    {event.venue.city}
                   </span>
                 )}
                 <span className="flex items-center">
-                  📅 {formatDate(event.startDate)}
+                  {formatDate(event.startDate)}
                 </span>
               </div>
               
@@ -155,14 +155,14 @@ export function NearbyEvents({ eventSlug, limit = 5, showTitle = true }: NearbyE
             </div>
 
             {event.owner && (
-              <div className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+              <div className="text-xs text-gray-500 mt-2">
                 By: {event.owner.businessName || event.owner.name}
               </div>
             )}
 
             {event._count && event._count.waitlist > 0 && (
-              <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                👥 {event._count.waitlist} people interested
+              <div className="text-xs text-gray-500 mt-1">
+                {event._count.waitlist} people interested
               </div>
             )}
           </div>
@@ -173,7 +173,7 @@ export function NearbyEvents({ eventSlug, limit = 5, showTitle = true }: NearbyE
         <div className="mt-4 text-center">
           <Link 
             to="/events"
-            className="text-sm text-accent-600 dark:text-accent-400 hover:text-accent-700 dark:hover:text-accent-300 transition-colors"
+            className="text-sm text-accent-600 hover:text-accent-700 transition-colors"
           >
             View all events →
           </Link>

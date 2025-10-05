@@ -19,7 +19,7 @@
   "server": {
     "API_URL": "https://linea-staging-api.up.railway.app",
     "FRONTEND_URL": "https://linea-staging.up.railway.app",
-    "PORT": 9030,
+    "PORT": 9050,
     "HOST": "0.0.0.0",
     "CORS_ORIGIN": "https://linea-staging.up.railway.app",
     "CORS_CREDENTIALS": true

@@ -2,7 +2,7 @@ export default function PrivacyPolicy() {
   return (
     <div className="container section">
       <h1 className="heading-2 mb-4">Privacy Policy</h1>
-      <div className="prose dark:prose-invert max-w-none">
+      <div className="proseprose-invert max-w-none">
         <p>Effective date: 2025-09-24</p>
         <h2>What We Collect</h2>
         <p>We currently collect only your email address for the purpose of joining event waitlists and receiving updates. We do not collect names, phone numbers, payment data, or precise location.</p>

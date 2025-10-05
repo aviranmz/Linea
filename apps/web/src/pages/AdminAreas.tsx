@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { getJson, postJson, putJson, deleteJson } from '../lib/api'
+import { useLanguage } from '../hooks/useLanguage'
 
 interface Area {
   id: string
@@ -16,6 +17,7 @@ interface Area {
 export default function AdminAreas() {
   const [authLoading, setAuthLoading] = useState(true)
   const [isAdmin, setIsAdmin] = useState(false)
+  const { t } = useLanguage()
   const [areas, setAreas] = useState<Area[]>([])
   const [loading, setLoading] = useState(true)
   const [showCreateForm, setShowCreateForm] = useState(false)
@@ -87,7 +89,7 @@ export default function AdminAreas() {
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this area?')) return
+    if (!confirm(t('confirm.deleteArea'))) return
 
     try {
       await deleteJson(`/api/admin/areas/${id}`)

@@ -48,7 +48,7 @@ const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379', {
 
 // Register plugins
 await app.register(cors, {
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  origin: process.env.FRONTEND_URL || 'http://localhost:3050',
   credentials: true
 })
 
@@ -70,7 +70,7 @@ await app.register(swagger, {
     },
     servers: [
       {
-        url: process.env.API_URL || 'http://localhost:3001',
+        url: process.env.API_URL || 'http://localhost:9050',
         description: 'Development server'
       }
     ]
@@ -159,7 +159,7 @@ process.on('SIGINT', () => gracefulShutdown('SIGINT'))
 // Start server
 const start = async () => {
   try {
-    const port = parseInt(process.env.PORT || '3001')
+    const port = parseInt(process.env.PORT || '9050')
     const host = process.env.HOST || '0.0.0.0'
     
     await app.listen({ port, host })

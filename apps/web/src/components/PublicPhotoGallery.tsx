@@ -43,7 +43,7 @@ export function PublicPhotoGallery({
   }[gridCols]
 
   return (
-    <div className="bg-white dark:bg-neutral-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
       <div className="flex items-center mb-4">
         <span className="text-2xl mr-2">📸</span>
         <h3 className="heading-4">Photo Gallery</h3>
@@ -53,7 +53,7 @@ export function PublicPhotoGallery({
         {activePhotos.map((photo) => (
           <div key={photo.id} className="relative group">
             <div 
-              className="aspect-square bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden cursor-pointer hover:shadow-lg transition-shadow"
+              className="aspect-square bg-gray-100 rounded-lg overflow-hidden cursor-pointer hover:shadow-lg transition-shadow"
               onClick={() => setSelectedPhoto(photo)}
             >
               <img
@@ -66,11 +66,11 @@ export function PublicPhotoGallery({
             
             {showTitles && (
               <div className="mt-2">
-                <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+                <h4 className="text-sm font-medium text-gray-900 truncate">
                   {photo.title}
                 </h4>
                 {photo.description && (
-                  <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2">
+                  <p className="text-xs text-gray-500 line-clamp-2">
                     {photo.description}
                   </p>
                 )}

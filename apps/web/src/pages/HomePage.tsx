@@ -2,41 +2,10 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { getJson } from '../lib/api'
 import { NearbyEvents } from '../components/NearbyEvents'
-
-interface Event {
-  id: string
-  title: string
-  slug: string
-  description: string
-  shortDescription?: string
-  startDate: string
-  endDate?: string
-  status: string
-  capacity?: number
-  featured: boolean
-  owner?: {
-    id: string
-    name: string
-    businessName?: string
-  }
-  venue?: {
-    id: string
-    name: string
-    address: string
-    city: string
-    country: string
-  }
-  category?: {
-    id: string
-    name: string
-    slug: string
-    color: string
-    icon: string
-  }
-  _count?: {
-    waitlist: number
-  }
-}
+import { Event } from '../types/Event'
+import { EventList } from '../components/EventList'
+import { HomeSEO } from '../components/SEO'
+import { useLanguage } from '../hooks/useLanguage'
 
 interface Category {
   id: string
@@ -63,6 +32,7 @@ interface Product {
 }
 
 export function HomePage() {
+  const { t } = useLanguage()
   const [events, setEvents] = useState<Event[]>([])
   const [filteredEvents, setFilteredEvents] = useState<Event[]>([])
   const [categories, setCategories] = useState<Category[]>([])
@@ -226,24 +196,44 @@ export function HomePage() {
 
   return (
     <div className="relative">
+      <HomeSEO 
+        featuredEvents={filteredEvents.slice(0, 6).map(event => ({
+          title: event.title,
+          slug: event.slug,
+          startDate: event.startDate,
+          venue: event.venue?.name
+        }))}
+        stats={{
+          totalEvents: events.length,
+          totalDesigners: 0, // TODO: Get from API
+          totalAttendees: 0 // TODO: Get from API
+        }}
+      />
       {/* Hero Section */}
       <div className="relative overflow-hidden">
-        <div className="container">
+        {/* Background Image with 70% opacity */}
+        <div 
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{
+            backgroundImage: 'url(/assets/linea_light.png)',
+            opacity: 0.2
+          }}
+        />
+        <div className="container relative z-10">
           <div className="relative z-10 pb-8 sm:pb-16 md:pb-20 lg:max-w-2xl lg:w-full lg:pb-28 xl:pb-32">
             <main className="mt-10 mx-auto max-w-7xl px-4 sm:mt-12 sm:px-6 md:mt-16 lg:mt-20 lg:px-8 xl:mt-28">
               <div className="sm:text-center lg:text-left">
                 <h1 className="heading-1">
-                  <span className="block xl:inline">Welcome to</span>{' '}
+                  <span className="block xl:inline">{t('common.welcome')}</span>{' '}
                   <span className="block milano-accent xl:inline">
                     Linea
                   </span>
                 </h1>
                 <p className="mt-6 text-body sm:mt-8 sm:text-lg sm:max-w-xl sm:mx-auto md:mt-8 md:text-xl lg:mx-0">
-                  Your gateway to Milano Design Week and exclusive design events. 
-                  Discover extraordinary experiences, connect with designers, and explore the future of design through our innovative platform.
+                  {t('common.heroSubtitle')}
                 </p>
-                <div className="mt-4 text-sm text-neutral-600 dark:text-neutral-400">
-                  <p>✨ Email-only access • 🎨 Curated events • 🗺️ Nearby discoveries</p>
+                <div className="mt-4 text-sm text-neutral-600">
+                  <p>{t('common.heroFeatures')}</p>
                 </div>
                 <div className="mt-8 sm:mt-10 sm:flex sm:justify-center lg:justify-start">
                   <div className="rounded-lg shadow-milano">
@@ -274,7 +264,7 @@ export function HomePage() {
       </div>
 
       {/* Events Section */}
-      <div id="events" className="section bg-white dark:bg-neutral-900">
+      <div id="events" className="section bg-white">
         <div className="container">
           <div className="text-center">
             <h2 className="heading-2">
@@ -286,13 +276,13 @@ export function HomePage() {
           </div>
 
           {/* Filter Controls */}
-          <div className="mt-8 bg-neutral-50 dark:bg-neutral-800 rounded-lg p-6">
+          <div className="mt-8 bg-neutral-50 rounded-lg p-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="heading-5">Filter Events</h3>
+              <h3 className="heading-5">{t('common.filterEvents')}</h3>
               <div className="flex items-center space-x-2">
                 {getActiveFiltersCount() > 0 && (
-                  <span className="text-sm text-accent-600 dark:text-accent-400">
-                    {getActiveFiltersCount()} filter{getActiveFiltersCount() !== 1 ? 's' : ''} active
+                  <span className="text-sm text-accent-600">
+                    {getActiveFiltersCount()} {getActiveFiltersCount() !== 1 ? t('common.filtersActive') : t('common.filterActive')}
                   </span>
                 )}
                 <button
@@ -315,28 +305,28 @@ export function HomePage() {
             {showFilters && (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Search
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('common.search')}
                   </label>
                   <input
                     type="text"
                     className="input w-full"
-                    placeholder="Search events, designers, venues..."
+                    placeholder={t('common.searchPlaceholder')}
                     value={filters.search}
                     onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Category
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('common.category')}
                   </label>
                   <select
                     className="input w-full"
                     value={filters.category}
                     onChange={(e) => setFilters(prev => ({ ...prev, category: e.target.value }))}
                   >
-                    <option value="">All Categories</option>
+                    <option value="">{t('common.allCategories')}</option>
                     {categories.map(cat => (
                       <option key={cat.id} value={cat.slug}>{cat.icon} {cat.name}</option>
                     ))}
@@ -344,15 +334,15 @@ export function HomePage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Design District
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('common.designDistrict')}
                   </label>
                   <select
                     className="input w-full"
                     value={filters.area}
                     onChange={(e) => setFilters(prev => ({ ...prev, area: e.target.value }))}
                   >
-                    <option value="">All Areas</option>
+                    <option value="">{t('common.allAreas')}</option>
                     {areas.map(area => (
                       <option key={area.id} value={area.slug}>{area.icon} {area.name}</option>
                     ))}
@@ -360,15 +350,15 @@ export function HomePage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Product Specialty
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('common.productSpecialty')}
                   </label>
                   <select
                     className="input w-full"
                     value={filters.product}
                     onChange={(e) => setFilters(prev => ({ ...prev, product: e.target.value }))}
                   >
-                    <option value="">All Products</option>
+                    <option value="">{t('common.allProducts')}</option>
                     {products.map(product => (
                       <option key={product.id} value={product.slug}>{product.icon} {product.name}</option>
                     ))}
@@ -376,40 +366,40 @@ export function HomePage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Time of Day
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('common.timeOfDay')}
                   </label>
                   <select
                     className="input w-full"
                     value={filters.hours}
                     onChange={(e) => setFilters(prev => ({ ...prev, hours: e.target.value }))}
                   >
-                    <option value="">Any Time</option>
-                    <option value="morning">🌅 Morning (6AM-12PM)</option>
-                    <option value="afternoon">☀️ Afternoon (12PM-6PM)</option>
-                    <option value="evening">🌆 Evening (6PM-10PM)</option>
-                    <option value="night">🌙 Night (10PM-6AM)</option>
+                    <option value="">{t('common.anyTime')}</option>
+                    <option value="morning">{t('common.morning')}</option>
+                    <option value="afternoon">{t('common.afternoon')}</option>
+                    <option value="evening">{t('common.evening')}</option>
+                    <option value="night">{t('common.night')}</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Featured
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('common.featured')}
                   </label>
                   <select
                     className="input w-full"
                     value={filters.featured}
                     onChange={(e) => setFilters(prev => ({ ...prev, featured: e.target.value }))}
                   >
-                    <option value="">All Events</option>
-                    <option value="true">⭐ Featured Only</option>
-                    <option value="false">Regular Events</option>
+                    <option value="">{t('common.allEvents')}</option>
+                    <option value="true">{t('common.featuredOnly')}</option>
+                    <option value="false">{t('common.regularEvents')}</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    From Date
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('common.dateFrom')}
                   </label>
                   <input
                     type="date"
@@ -420,8 +410,8 @@ export function HomePage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    To Date
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('common.dateTo')}
                   </label>
                   <input
                     type="date"
@@ -432,8 +422,8 @@ export function HomePage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    City
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('common.city')}
                   </label>
                   <input
                     type="text"
@@ -445,13 +435,13 @@ export function HomePage() {
                 </div>
 
                 <div className="md:col-span-2 lg:col-span-3">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Designer/Organizer
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('common.designerOrganizer')}
                   </label>
                   <input
                     type="text"
                     className="input w-full"
-                    placeholder="Search by designer or business name..."
+                    placeholder={t('common.searchByDesigner')}
                     value={filters.owner}
                     onChange={(e) => setFilters(prev => ({ ...prev, owner: e.target.value }))}
                   />
@@ -460,14 +450,14 @@ export function HomePage() {
             )}
 
             <div className="mt-4 flex justify-between items-center">
-              <div className="text-sm text-gray-600 dark:text-gray-400">
-                Showing {filteredEvents.length} of {events.length} events
+              <div className="text-sm text-gray-600">
+                {t('common.showing')} {filteredEvents.length} {t('common.of')} {events.length} {t('common.events')}
               </div>
               <button
                 onClick={() => setShowMap(!showMap)}
                 className="btn btn-outline btn-sm"
               >
-                {showMap ? '📋 List View' : '🗺️ Map View'}
+                {showMap ? 'List View' : 'Map View'}
               </button>
             </div>
           </div>
@@ -476,46 +466,46 @@ export function HomePage() {
             <div className="mt-12 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
               {[...Array(3)].map((_, i) => (
                 <div key={i} className="card overflow-hidden animate-pulse">
-                  <div className="h-48 bg-neutral-200 dark:bg-neutral-700"></div>
+                  <div className="h-48 bg-neutral-200"></div>
                   <div className="p-6">
-                    <div className="h-4 bg-neutral-200 dark:bg-neutral-700 rounded w-3/4 mb-2"></div>
-                    <div className="h-3 bg-neutral-200 dark:bg-neutral-700 rounded w-1/2 mb-4"></div>
-                    <div className="h-3 bg-neutral-200 dark:bg-neutral-700 rounded w-full"></div>
+                    <div className="h-4 bg-neutral-200 rounded w-3/4 mb-2"></div>
+                    <div className="h-3 bg-neutral-200 rounded w-1/2 mb-4"></div>
+                    <div className="h-3 bg-neutral-200 rounded w-full"></div>
                   </div>
                 </div>
               ))}
             </div>
           ) : showMap ? (
             <div className="mt-12">
-              <div className="bg-white dark:bg-neutral-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
-                <div className="h-96 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 flex items-center justify-center">
+              <div className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
+                <div className="h-96 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
                   <div className="text-center">
-                    <div className="text-6xl mb-4">🗺️</div>
-                    <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                    <div className="text-6xl mb-4 text-gray-400">Map</div>
+                    <h3 className="text-xl font-semibold text-gray-700 mb-2">
                       Interactive Map View
                     </h3>
-                    <p className="text-gray-600 dark:text-gray-400 mb-4">
+                    <p className="text-gray-600 mb-4">
                       {filteredEvents.length} events found
                     </p>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-4xl">
                       {filteredEvents.slice(0, 6).map((event) => (
-                        <div key={event.id} className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+                        <div key={event.id} className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
                           <div className="flex items-start justify-between mb-2">
-                            <h4 className="font-semibold text-sm text-gray-900 dark:text-gray-100">
+                            <h4 className="font-semibold text-sm text-gray-900">
                               {event.title}
                             </h4>
                             {event.featured && (
                               <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">
-                                ⭐ Featured
+                                Featured
                               </span>
                             )}
                           </div>
                           {event.venue && (
-                            <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">
-                              📍 {event.venue.city}, {event.venue.country}
+                            <p className="text-xs text-gray-600 mb-2">
+                              {event.venue.city}, {event.venue.country}
                             </p>
                           )}
-                          <p className="text-xs text-gray-500 dark:text-gray-500">
+                          <p className="text-xs text-gray-500">
                             {formatDate(event.startDate)}
                           </p>
                           {event.category && (
@@ -533,7 +523,7 @@ export function HomePage() {
                       ))}
                     </div>
                     {filteredEvents.length > 6 && (
-                      <p className="text-sm text-gray-500 dark:text-gray-400 mt-4">
+                      <p className="text-sm text-gray-500 mt-4">
                         And {filteredEvents.length - 6} more events...
                       </p>
                     )}
@@ -542,83 +532,21 @@ export function HomePage() {
               </div>
             </div>
           ) : (
-            <div className="mt-12 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="mt-12">
               {filteredEvents.length > 0 ? (
-                filteredEvents.map((event) => (
-                  <div key={event.id} className="card overflow-hidden hover:shadow-milano-lg transition-all duration-300 group">
-                    <div className="h-48 bg-gradient-to-br from-accent-500 to-accent-600 flex items-center justify-center relative overflow-hidden">
-                      <div className="absolute inset-0 bg-black/10"></div>
-                      {event.featured && (
-                        <div className="absolute top-4 right-4 bg-accent-500 text-white px-2 py-1 rounded-full text-xs font-semibold">
-                          Featured
-                        </div>
-                      )}
-                      <div className="text-white text-center relative z-10">
-                        <div className="text-4xl font-display font-bold mb-2">
-                          {new Date(event.startDate).toLocaleDateString('en-US', { month: 'short' })}
-                        </div>
-                        <div className="text-2xl font-semibold">
-                          {new Date(event.startDate).getDate()}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="p-6">
-                      <div className="flex items-start justify-between mb-2">
-                        <h3 className="heading-4 flex-1">
-                          {event.title}
-                        </h3>
-                        {event.category && (
-                          <span 
-                            className="ml-2 px-2 py-1 rounded-full text-xs font-medium"
-                            style={{ 
-                              backgroundColor: `${event.category.color}20`,
-                              color: event.category.color
-                            }}
-                          >
-                            {event.category.name}
-                          </span>
-                        )}
-                      </div>
-                      
-                      <p className="text-body text-sm mb-4">
-                        {event.shortDescription || event.description || 'Join us for an amazing event!'}
-                      </p>
-
-                      {event.owner && (
-                        <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                          <span className="font-medium">By:</span> {event.owner.businessName || event.owner.name}
-                        </div>
-                      )}
-
-                      {event.venue && (
-                        <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                          <span className="font-medium">📍</span> {event.venue.city}, {event.venue.country}
-                        </div>
-                      )}
-
-                      {event._count && (
-                        <div className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                          <span className="font-medium">👥</span> {event._count.waitlist} people interested
-                        </div>
-                      )}
-
-                      <div className="flex items-center justify-between">
-                        <span className="text-caption">
-                          {formatDate(event.startDate)}
-                        </span>
-                        <Link
-                          to={`/events/${event.slug}`}
-                          className="btn btn-outline text-sm"
-                        >
-                          View Details
-                        </Link>
-                      </div>
-                    </div>
-                  </div>
-                ))
+                <EventList 
+                  events={filteredEvents}
+                  variant="grid"
+                  showOwner={true}
+                  showCategory={true}
+                  showWaitlist={true}
+                  onEventClick={(event) => {
+                    window.location.href = `/events/${event.slug}`
+                  }}
+                />
               ) : (
                 <div className="col-span-full text-center py-12">
-                  <div className="text-neutral-400 dark:text-neutral-500 mb-4">
+                  <div className="text-neutral-400 mb-4">
                     <svg className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
@@ -649,7 +577,7 @@ export function HomePage() {
 
       {/* Nearby Events Section */}
       {filteredEvents.length > 0 && (
-        <div className="section bg-neutral-50 dark:bg-neutral-800">
+        <div className="section bg-neutral-50">
           <div className="container">
             <div className="text-center mb-8">
               <h2 className="heading-2 mb-4">
@@ -672,7 +600,7 @@ export function HomePage() {
       )}
 
       {/* Features Section */}
-      <div className="section bg-neutral-50 dark:bg-neutral-800">
+      <div className="section bg-neutral-50">
         <div className="container">
           <div className="text-center mb-16">
             <h2 className="heading-2 mb-4">
@@ -685,7 +613,7 @@ export function HomePage() {
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="text-center group">
-              <div className="w-16 h-16 bg-gradient-to-br from-accent-100 to-accent-200 dark:from-accent-900/20 dark:to-accent-800/20 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-200">
+              <div className="w-16 h-16 bg-gradient-to-br from-accent-100 to-accent-200 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-200">
                 <span className="text-2xl">📧</span>
               </div>
               <h3 className="heading-4 mb-2">
@@ -697,7 +625,7 @@ export function HomePage() {
             </div>
             
             <div className="text-center group">
-              <div className="w-16 h-16 bg-gradient-to-br from-milano-sage/20 to-milano-sage/30 dark:from-milano-sage/20 dark:to-milano-sage/30 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-200">
+              <div className="w-16 h-16 bg-gradient-to-br from-milano-sage/20 to-milano-sage/30 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-200">
                 <span className="text-2xl">📋</span>
               </div>
               <h3 className="heading-4 mb-2">
@@ -709,8 +637,8 @@ export function HomePage() {
             </div>
             
             <div className="text-center group">
-              <div className="w-16 h-16 bg-gradient-to-br from-milano-terracotta/20 to-milano-terracotta/30 dark:from-milano-terracotta/20 dark:to-milano-terracotta/30 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-200">
-                <span className="text-2xl">🗺️</span>
+              <div className="w-16 h-16 bg-gradient-to-br from-milano-terracotta/20 to-milano-terracotta/30 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-200">
+                <span className="text-2xl text-gray-400">Map</span>
               </div>
               <h3 className="heading-4 mb-2">
                 Milano Design Network
@@ -724,11 +652,11 @@ export function HomePage() {
       </div>
 
       {/* CTA Section */}
-      <div className="bg-gradient-to-r from-accent-600 to-accent-700 dark:from-accent-700 dark:to-accent-800">
+      <div className="bg-gradient-to-r from-accent-600 to-accent-700">
         <div className="container py-12 lg:py-16 lg:flex lg:items-center lg:justify-between">
           <h2 className="text-3xl font-display font-bold tracking-tight text-white sm:text-4xl">
-            <span className="block">Ready to create your event?</span>
-            <span className="block text-accent-200">Start building your community today.</span>
+            <span className="block">{t('common.readyToCreate')}</span>
+            <span className="block text-accent-200">{t('common.startBuilding')}</span>
           </h2>
           <div className="mt-8 flex lg:mt-0 lg:flex-shrink-0">
             <div className="inline-flex rounded-lg shadow-milano">

@@ -24,11 +24,28 @@ export default defineConfig({
     },
   },
   server: {
-    port: 3030,
+    port: 3050,
     host: true,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:9050',
+        changeOrigin: true,
+        secure: false,
+      },
+      '/auth': {
+        target: 'http://localhost:9050',
+        changeOrigin: true,
+        secure: false,
+      },
+      '/uploads': {
+        target: 'http://localhost:9050',
+        changeOrigin: true,
+        secure: false,
+      }
+    }
   },
   preview: {
-    port: 3030,
+    port: 3050,
     host: true,
   },
   test: {

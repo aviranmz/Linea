@@ -1,12 +1,12 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
 import { getJson } from '../lib/api'
 
-type Theme = 'light' | 'dark' | 'system'
+type Theme = 'light'
 
 interface ThemeContextType {
   theme: Theme
   setTheme: (theme: Theme) => void
-  actualTheme: 'light' | 'dark'
+  actualTheme: 'light'
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
@@ -16,62 +16,50 @@ interface ThemeProviderProps {
 }
 
 export function ThemeProvider({ children }: ThemeProviderProps) {
-  const [theme, setTheme] = useState<Theme>('system')
-  const [actualTheme, setActualTheme] = useState<'light' | 'dark'>('light')
+  const [theme, setTheme] = useState<Theme>('light')
+  const [actualTheme, setActualTheme] = useState<'light'>('light')
 
   useEffect(() => {
-    // Get saved theme from localStorage or default to system
-    const savedTheme = localStorage.getItem('theme') as Theme
-    if (savedTheme && ['light', 'dark', 'system'].includes(savedTheme)) {
-      setTheme(savedTheme)
-    }
+    // Always use light theme
+    setTheme('light')
+    setActualTheme('light')
   }, [])
 
   useEffect(() => {
     const root = window.document.documentElement
     
-    if (theme === 'system') {
-      const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
-      setActualTheme(systemTheme)
-      root.classList.toggle('dark', systemTheme === 'dark')
-    } else {
-      setActualTheme(theme)
-      root.classList.toggle('dark', theme === 'dark')
-    }
+    // Always use light theme - remove any dark classes
+    setActualTheme('light')
+    root.classList.remove('dark')
     
     // Save theme preference
-    localStorage.setItem('theme', theme)
+    localStorage.setItem('theme', 'light')
   }, [theme])
 
-  // Load owner theme variables (colors) once on mount
+  // Load owner theme variables (colors, typography, logo) once on mount
   useEffect(() => {
     getJson<{ theme: Record<string,string> | null }>('/api/owner/theme')
       .then((res) => {
         const t = res.theme || {}
         const root = window.document.documentElement
+        
+        // Colors
         if (t.primary) root.style.setProperty('--color-primary', String(t.primary))
         if (t.secondary) root.style.setProperty('--color-secondary', String(t.secondary))
         if (t.text) root.style.setProperty('--color-text', String(t.text))
         if (t.background) root.style.setProperty('--color-bg', String(t.background))
+        
+        // Typography
+        if (t.fontFamily) root.style.setProperty('--font-family', String(t.fontFamily))
+        if (t.fontSize) root.style.setProperty('--font-size', String(t.fontSize))
+        if (t.fontWeight) root.style.setProperty('--font-weight', String(t.fontWeight))
+        
+        // Logo
+        if (t.logo) root.style.setProperty('--owner-logo', `url(${String(t.logo)})`)
       })
       .catch(() => {})
   }, [])
 
-  useEffect(() => {
-    // Listen for system theme changes
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
-    const handleChange = () => {
-      if (theme === 'system') {
-        const systemTheme = mediaQuery.matches ? 'dark' : 'light'
-        setActualTheme(systemTheme)
-        const root = window.document.documentElement
-        root.classList.toggle('dark', systemTheme === 'dark')
-      }
-    }
-
-    mediaQuery.addEventListener('change', handleChange)
-    return () => mediaQuery.removeEventListener('change', handleChange)
-  }, [theme])
 
   return (
     <ThemeContext.Provider value={{ theme, setTheme, actualTheme }}>

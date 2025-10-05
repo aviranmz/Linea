@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { getJson } from '../lib/api'
 import { Link } from 'react-router-dom'
+import { DesignersPageSEO } from '../components/SEO'
 
 interface Designer {
   id: string
@@ -97,7 +98,7 @@ export default function DesignersPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-neutral-900">
+      <div className="min-h-screen bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="animate-pulse space-y-6">
             <div className="h-8 bg-gray-200 rounded w-1/3"></div>
@@ -116,7 +117,11 @@ export default function DesignersPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-neutral-900">
+    <div className="min-h-screen bg-gray-50">
+      <DesignersPageSEO 
+        designers={filteredDesigners}
+        totalDesigners={designers.length}
+      />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Header */}
         <div className="text-center mb-12">
@@ -129,12 +134,12 @@ export default function DesignersPage() {
         </div>
 
         {/* Filters */}
-        <div className="bg-white dark:bg-neutral-800 rounded-lg shadow-sm border border-neutral-200 dark:border-neutral-700 p-6 mb-8">
+        <div className="bg-white rounded-lg shadow-sm border border-neutral-200 p-6 mb-8">
           <h3 className="heading-4 mb-4">Filter Designers</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Search */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 Search
               </label>
               <input
@@ -148,7 +153,7 @@ export default function DesignersPage() {
 
             {/* Area (City) */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 Area
               </label>
               <select
@@ -165,7 +170,7 @@ export default function DesignersPage() {
 
             {/* Country */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 Country
               </label>
               <select
@@ -194,7 +199,7 @@ export default function DesignersPage() {
 
           {/* Filter Status */}
           <div className="mt-4 flex justify-between items-center">
-            <div className="text-sm text-gray-600 dark:text-gray-400">
+            <div className="text-sm text-gray-600">
               Showing {filteredDesigners.length} of {designers.length} designers
             </div>
           </div>
@@ -204,7 +209,7 @@ export default function DesignersPage() {
         {filteredDesigners.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredDesigners.map((designer) => (
-              <div key={designer.id} className="bg-white dark:bg-neutral-800 rounded-lg shadow-sm border border-neutral-200 dark:border-neutral-700 overflow-hidden hover:shadow-md transition-shadow">
+              <div key={designer.id} className="bg-white rounded-lg shadow-sm border border-neutral-200 overflow-hidden hover:shadow-md transition-shadow">
                 <div className="p-6">
                   {/* Designer Info */}
                   <div className="flex items-start space-x-4 mb-4">
@@ -215,20 +220,20 @@ export default function DesignersPage() {
                         className="w-16 h-16 rounded-full object-cover border border-gray-200"
                       />
                     ) : (
-                      <div className="w-16 h-16 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                      <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center">
                         <span className="text-2xl text-gray-400">
                           {designer.name.charAt(0).toUpperCase()}
                         </span>
                       </div>
                     )}
                     <div className="flex-1 min-w-0">
-                      <h3 className="heading-5 text-gray-900 dark:text-white truncate">
+                      <h3 className="heading-5 text-gray-900 truncate">
                         {designer.name}
                       </h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 truncate">
+                      <p className="text-sm text-gray-600 truncate">
                         {designer.businessName}
                       </p>
-                      <p className="text-xs text-gray-500 dark:text-gray-500">
+                      <p className="text-xs text-gray-500">
                         {designer.city}, {designer.country}
                       </p>
                     </div>
@@ -236,13 +241,13 @@ export default function DesignersPage() {
 
                   {/* Business Intro */}
                   {designer.businessIntro && (
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 line-clamp-3">
+                    <p className="text-sm text-gray-600 mb-4 line-clamp-3">
                       {designer.businessIntro}
                     </p>
                   )}
 
                   {/* Stats */}
-                  <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-500 mb-4">
+                  <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
                     <span>{designer._count.ownedEvents} events</span>
                     {designer.website && (
                       <a 
@@ -274,10 +279,10 @@ export default function DesignersPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
               </svg>
             </div>
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
               {designers.length === 0 ? 'No designers found' : 'No designers match your filters'}
             </h3>
-            <p className="text-gray-500 dark:text-gray-400">
+            <p className="text-gray-500">
               {designers.length === 0 ? 'Designers will appear here once they join the platform.' : 'Try adjusting your filters to see more designers.'}
             </p>
           </div>

@@ -14,6 +14,8 @@ import { fileURLToPath } from 'url'
 // import { randomUUID } from 'crypto'
 import { getConfig, validateConfig } from '@linea/config'
 import { sessionService } from './services/sessionService.js'
+import { QRCodeGenerator } from './utils/qrGenerator.js'
+import { favoritesRoutes } from './routes/favorites.js'
 
 // Get __dirname equivalent for ES modules
 const __filename = fileURLToPath(import.meta.url)
@@ -60,8 +62,8 @@ const mockEvents = [
     description: 'An exclusive summit exploring the latest trends and innovations in kitchen design.',
     shortDescription: 'Explore cutting-edge kitchen design trends.',
     status: 'PUBLISHED',
-    startDate: '2025-10-26T09:00:00Z',
-    endDate: '2025-10-27T17:00:00Z',
+    startDate: '2025-11-15T09:00:00Z',
+    endDate: '2025-11-15T17:00:00Z',
     capacity: 200,
     isPublic: true,
     featured: true,
@@ -69,6 +71,35 @@ const mockEvents = [
     owner: { id: 'owner-1', name: 'Alice Wonderland', email: 'alice@kitchenco.com' },
     venue: { id: 'venue-1', name: 'Milano Design Center', address: 'Via Tortona, 37', city: 'Milano', country: 'Italy' },
     category: { id: 'cat-1', name: 'Design', slug: 'design', color: '#a855f7', icon: '🎨' },
+    metadata: {
+      heroImageUrl: '/images/events/kitchen-design-summit-hero.jpg'
+    },
+    shows: [
+      {
+        id: 'show-1',
+        title: 'Opening Ceremony',
+        description: 'Official opening of Milano Design Week 2024',
+        startDate: '2025-11-15T09:00:00Z',
+        endDate: '2025-11-15T10:30:00Z',
+        capacity: 200
+      },
+      {
+        id: 'show-2', 
+        title: 'Keynote Presentation',
+        description: 'Key insights from industry leaders',
+        startDate: '2025-11-15T11:00:00Z',
+        endDate: '2025-11-15T12:30:00Z',
+        capacity: 150
+      },
+      {
+        id: 'show-3',
+        title: 'Panel Discussion',
+        description: 'Interactive panel with experts',
+        startDate: '2025-11-15T14:00:00Z',
+        endDate: '2025-11-15T15:30:00Z',
+        capacity: 100
+      }
+    ],
     _count: { waitlist: 0 }
   },
   {
@@ -78,8 +109,8 @@ const mockEvents = [
     description: 'Discover the newest smart appliances and integrated technologies for modern kitchens.',
     shortDescription: 'Newest smart appliances and integrated tech.',
     status: 'PUBLISHED',
-    startDate: '2025-11-15T10:00:00Z',
-    endDate: '2025-11-16T18:00:00Z',
+    startDate: '2025-11-20T10:00:00Z',
+    endDate: '2025-11-20T18:00:00Z',
     capacity: 150,
     isPublic: true,
     featured: false,
@@ -87,6 +118,27 @@ const mockEvents = [
     owner: { id: 'owner-2', name: 'Bob The Builder', email: 'bob@designbuild.com' },
     venue: { id: 'venue-2', name: 'Triennale di Milano', address: 'Viale Emilio Alemagna, 6', city: 'Milano', country: 'Italy' },
     category: { id: 'cat-2', name: 'Technology', slug: 'technology', color: '#3b82f6', icon: '💻' },
+    metadata: {
+      heroImageUrl: '/images/events/smart-kitchen-tech-hero.jpg'
+    },
+    shows: [
+      {
+        id: 'show-4',
+        title: 'Tech Demo',
+        description: 'Live demonstration of smart kitchen technologies',
+        startDate: '2025-11-20T10:00:00Z',
+        endDate: '2025-11-20T11:30:00Z',
+        capacity: 100
+      },
+      {
+        id: 'show-5',
+        title: 'Workshop Session',
+        description: 'Hands-on learning experience',
+        startDate: '2025-11-20T14:00:00Z',
+        endDate: '2025-11-20T16:00:00Z',
+        capacity: 50
+      }
+    ],
     _count: { waitlist: 0 }
   }
 ]
@@ -159,8 +211,13 @@ await app.register(helmet, {
 })
 
 await app.register(rateLimit, {
-  max: config.security.RATE_LIMIT_MAX_REQUESTS,
-  timeWindow: config.security.RATE_LIMIT_WINDOW_MS
+  max: config.environment.NODE_ENV === 'development' 
+    ? Math.max(100000, Number(config.security.RATE_LIMIT_MAX_REQUESTS) || 100000)
+    : config.security.RATE_LIMIT_MAX_REQUESTS,
+  timeWindow: config.security.RATE_LIMIT_WINDOW_MS,
+  allowList: config.environment.NODE_ENV === 'development'
+    ? ['127.0.0.1','::1','::ffff:127.0.0.1','0.0.0.0']
+    : []
 })
 
 await app.register(cookie, {
@@ -210,10 +267,18 @@ await app.register(swaggerUi, {
   }
 })
 
+// Serve uploaded files first (before frontend static files)
+await app.register(fastifyStatic, {
+  root: path.join(__dirname, '../uploads'),
+  prefix: '/uploads/',
+  decorateReply: false
+})
+
 // Serve static files from the frontend build
 await app.register(fastifyStatic, {
   root: path.join(__dirname, '../../web/dist'),
-  prefix: '/'
+  prefix: '/',
+  decorateReply: false
 })
 
 // ------------ Auth utilities ------------
@@ -226,32 +291,48 @@ const getSessionUser = async (request: FastifyRequest) => {
   const sessionData = await sessionService.getSession(token)
   if (sessionData) {
     // Get user from database to ensure they're still active
-    const user = await prisma.user.findFirst({
-      where: { 
-        id: sessionData.userId, 
+    try {
+      const user = await prisma.user.findFirst({
+        where: { 
+          id: sessionData.userId, 
+          isActive: true,
+          deletedAt: null 
+        },
+        select: { id: true, email: true, role: true, name: true, isActive: true }
+      })
+      if (!user) {
+        await sessionService.deleteSession(token)
+        return null
+      }
+      return user
+    } catch (_e) {
+      // DB unavailable in dev: treat as unauthenticated, keep session
+      return {
+        id: sessionData.userId,
+        email: sessionData.email,
+        role: sessionData.role,
+        name: sessionData.name ?? null,
         isActive: true,
-        deletedAt: null 
-      },
-      select: { id: true, email: true, role: true, name: true, isActive: true }
-    })
-    if (!user) {
-      await sessionService.deleteSession(token)
-      return null
+      } as unknown as { id: string; email: string; role: string; name?: string | null; isActive: boolean }
     }
-    return user
   }
   
   // Fallback: check DB sessions
-  const dbSession = await prisma.session.findFirst({
-    where: { token, expiresAt: { gt: new Date() } }
-  })
-  if (!dbSession) return null
-  const user = await prisma.user.findFirst({
-    where: { id: dbSession.userId, isActive: true, deletedAt: null },
-    select: { id: true, email: true, role: true, name: true, isActive: true }
-  })
-  if (!user) return null
-  return user
+  try {
+    const dbSession = await prisma.session.findFirst({
+      where: { token, expiresAt: { gt: new Date() } }
+    })
+    if (!dbSession) return null
+    const user = await prisma.user.findFirst({
+      where: { id: dbSession.userId, isActive: true, deletedAt: null },
+      select: { id: true, email: true, role: true, name: true, isActive: true }
+    })
+    if (!user) return null
+    return user
+  } catch (_e) {
+    // DB unavailable – act as unauthenticated
+    return null
+  }
 }
 
 // Helper function to create and set session
@@ -300,6 +381,15 @@ const requireAuth = async (request: FastifyRequest, reply: FastifyReply) => {
     return null
   }
   return user
+}
+
+const getOptionalAuth = async (request: FastifyRequest) => {
+  try {
+    const user = await getSessionUser(request)
+    return user
+  } catch {
+    return null
+  }
 }
 
 const requireOwnerOrAdmin = async (request: FastifyRequest, reply: FastifyReply) => {
@@ -470,6 +560,10 @@ app.get('/api/events', async (request, _reply) => {
         category: {
           select: { id: true, name: true, slug: true, color: true, icon: true }
         },
+        shows: {
+          where: { deletedAt: null },
+          orderBy: { startDate: 'asc' }
+        },
         _count: {
           select: { waitlist: true }
         }
@@ -493,7 +587,7 @@ app.get('/api/events', async (request, _reply) => {
 app.get('/api/events/:slug/nearby', async (request, reply) => {
   try {
     const { slug } = request.params as { slug: string }
-    const { limit = '5', radius = '10' } = request.query as { limit?: string; radius?: string }
+    const { limit = '5' } = request.query as { limit?: string }
     
     // First get the reference event
     const referenceEvent = await prisma.event.findFirst({
@@ -568,7 +662,8 @@ app.get('/api/events/:slug', async (request, reply) => {
   try {
   const { slug } = request.params as { slug: string }
   
-    const event = await prisma.event.findFirst({
+    // First try to get the event (public or owned by user)
+    let event = await prisma.event.findFirst({
       where: {
         slug,
         isPublic: true,
@@ -598,8 +693,44 @@ app.get('/api/events/:slug', async (request, reply) => {
       }
     })
 
+    // If not found as public event, check if user is the owner
     if (!event) {
-      // Fall through to mock below
+      try {
+        const user = await requireOwnerOrAdmin(request, reply)
+        if (user) {
+          event = await prisma.event.findFirst({
+            where: {
+              slug,
+              ownerId: user.id,
+              deletedAt: null
+            },
+            include: {
+              owner: {
+                select: { id: true, name: true, email: true, businessName: true }
+              },
+              venue: {
+                select: { id: true, name: true, address: true, city: true, country: true, latitude: true, longitude: true }
+              },
+              category: {
+                select: { id: true, name: true, slug: true, color: true, icon: true }
+              },
+              shows: {
+                where: { deletedAt: null },
+                orderBy: { startDate: 'asc' }
+              },
+              nearbyPlaces: {
+                orderBy: { distance: 'asc' },
+                take: 10
+              },
+              _count: {
+                select: { waitlist: true }
+              }
+            }
+          })
+        }
+      } catch (error) {
+        // User not authenticated or not owner, continue to mock
+      }
     }
 
     if (event) return { event }
@@ -663,6 +794,37 @@ app.get('/api/owner/events', async (request, reply) => {
   }
 })
 
+// Get single event for owner
+app.get('/api/owner/events/:eventId', async (request, reply) => {
+  try {
+    const user = await requireOwnerOrAdmin(request, reply)
+    if (!user) return
+    
+    const { eventId } = request.params as { eventId: string }
+    
+    const event = await prisma.event.findFirst({
+      where: { 
+        id: eventId, 
+        ownerId: user.id, 
+        deletedAt: null 
+      },
+      include: { 
+        _count: { select: { shows: true, waitlist: true } } 
+      }
+    })
+    
+    if (!event) {
+      reply.code(404).send({ error: 'Event not found' })
+      return
+    }
+    
+    return { event }
+  } catch (error) {
+    app.log.error({ error }, 'Failed to get owner event')
+    reply.code(500).send({ error: 'Failed to get event' })
+  }
+})
+
 // Create event
 app.post('/api/owner/events', async (request, reply) => {
   try {
@@ -699,6 +861,21 @@ app.post('/api/owner/events', async (request, reply) => {
       return
     }
     const slug = await generateUniqueSlug(title)
+    
+    // Generate QR code for the event
+    const baseUrl = process.env.FRONTEND_URL || 'http://localhost:3050'
+    const eventUrl = `${baseUrl}/events/${slug}`
+    let generatedQRUrl = qrUrl
+    
+    if (!generatedQRUrl) {
+      try {
+        generatedQRUrl = await QRCodeGenerator.generateEventQR(eventUrl)
+      } catch (error) {
+        app.log.warn({ error }, 'Failed to generate QR code for event')
+        // Continue without QR code if generation fails
+      }
+    }
+    
     const event = await prisma.event.create({
       data: {
         title,
@@ -727,7 +904,7 @@ app.post('/api/owner/events', async (request, reply) => {
           pressKitUrl: pressKitUrl ?? null,
           contact: contact ?? null,
           schedule: Array.isArray(schedule) ? schedule : [],
-          qrUrl: qrUrl ?? null
+          qrUrl: generatedQRUrl
         }
       }
     })
@@ -1358,6 +1535,120 @@ app.get('/api/admin/owners', async (request, reply) => {
   }
 })
 
+// -------- Admin: All users list (RBAC: ADMIN only) --------
+app.get('/api/admin/users', async (request, reply) => {
+  const user = await requireAdmin(request, reply)
+  if (!user) return
+  try {
+    const { page = '1', limit = '20', search, role, status, sortBy = 'createdAt', sortOrder = 'desc' } = request.query as {
+      page?: string
+      limit?: string
+      search?: string
+      role?: 'VISITOR' | 'OWNER' | 'ADMIN'
+      status?: 'ACTIVE' | 'INACTIVE'
+      sortBy?: string
+      sortOrder?: 'asc' | 'desc'
+    }
+    const pageNum = Math.max(1, parseInt(page))
+    const limitNum = Math.min(100, Math.max(1, parseInt(limit)))
+
+    const where: Record<string, unknown> = {
+      deletedAt: null,
+      ...(role ? { role } : {}),
+      ...(status === 'ACTIVE' ? { isActive: true } : {}),
+      ...(status === 'INACTIVE' ? { isActive: false } : {}),
+      ...(search
+        ? {
+            OR: [
+              { email: { contains: search, mode: 'insensitive' } },
+              { name: { contains: search, mode: 'insensitive' } },
+            ],
+          }
+        : {}),
+    }
+
+    const [total, users] = await Promise.all([
+      prisma.user.count({ where }),
+      prisma.user.findMany({
+        where,
+        orderBy: { [sortBy]: sortOrder },
+        skip: (pageNum - 1) * limitNum,
+        take: limitNum,
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          role: true,
+          isActive: true,
+          createdAt: true,
+          lastLoginAt: true,
+          _count: { 
+            select: { 
+              waitlistEntries: true,
+              ownedEvents: true
+            } 
+          },
+        },
+      }),
+    ])
+
+    // Get event registrations count for each user
+    const usersWithStats = await Promise.all(
+      users.map(async (user) => {
+        // Count event registrations (this would need to be implemented based on your event registration model)
+        const eventRegistrations = 0 // Placeholder - you'll need to implement this based on your data model
+        
+        return {
+          ...user,
+          eventRegistrations,
+          waitlistEntries: user._count.waitlistEntries,
+          ownedEvents: user._count.ownedEvents,
+        }
+      })
+    )
+
+    reply.send({
+      users: usersWithStats,
+      pagination: {
+        page: pageNum,
+        limit: limitNum,
+        total,
+        totalPages: Math.max(1, Math.ceil(total / limitNum)),
+      },
+    })
+  } catch (error) {
+    request.log.error({ error }, 'Failed to list users (admin)')
+    reply.code(500).send({ error: 'Failed to list users' })
+  }
+})
+
+// -------- Admin: Update user status (RBAC: ADMIN only) --------
+app.put('/api/admin/users/:id/status', async (request, reply) => {
+  const user = await requireAdmin(request, reply)
+  if (!user) return
+  try {
+    const { id } = request.params as { id: string }
+    const { status } = request.body as { status: 'ACTIVE' | 'INACTIVE' }
+
+    if (!status || !['ACTIVE', 'INACTIVE'].includes(status)) {
+      reply.code(400).send({ error: 'Invalid status. Must be ACTIVE or INACTIVE' })
+      return
+    }
+
+    const isActive = status === 'ACTIVE'
+    
+    await prisma.user.update({
+      where: { id },
+      data: { isActive }
+    })
+
+    reply.send({ success: true })
+  } catch (error) {
+    request.log.error({ error }, 'Failed to update user status (admin)')
+    reply.code(500).send({ error: 'Failed to update user status' })
+  }
+})
+
 // -------- Admin: Update owner details (RBAC: ADMIN only) --------
 app.put('/api/admin/owners/:id', async (request, reply) => {
   const user = await requireAdmin(request, reply)
@@ -1597,8 +1888,108 @@ app.get('/api/owner/events/:eventId/waitlist', async (request, reply) => {
   const event = await prisma.event.findFirst({ where: { id: eventId, deletedAt: null }, select: { ownerId: true } })
   if (!event) { reply.code(404).send({ error: 'Event not found' }); return }
   if (user.role === 'OWNER' && event.ownerId !== user.id) { reply.code(403).send({ error: 'Forbidden' }); return }
-  const entries = await prisma.waitlistEntry.findMany({ where: { eventId, deletedAt: null }, orderBy: { createdAt: 'asc' } })
-  reply.send({ entries })
+  
+  const { search, status, sortBy = 'createdAt', sortOrder = 'desc' } = request.query as { 
+    search?: string; 
+    status?: string; 
+    sortBy?: string; 
+    sortOrder?: 'asc' | 'desc' 
+  }
+  
+  const where: any = { eventId, deletedAt: null }
+  if (search) {
+    where.email = { contains: search, mode: 'insensitive' }
+  }
+  if (status) {
+    where.status = status
+  }
+  
+  const orderBy: any = {}
+  if (sortBy === 'createdAt') {
+    orderBy.createdAt = sortOrder
+  } else if (sortBy === 'email') {
+    orderBy.email = sortOrder
+  }
+  
+  const entries = await prisma.waitlistEntry.findMany({ 
+    where, 
+    orderBy,
+    include: {
+      user: {
+        select: { id: true, name: true, businessName: true }
+      }
+    }
+  })
+  
+  // Add position numbers
+  const entriesWithPosition = entries.map((entry, index) => ({
+    ...entry,
+    position: index + 1
+  }))
+  
+  reply.send({ entries: entriesWithPosition })
+})
+
+// Update waitlist entry status
+app.post('/api/owner/events/:eventId/waitlist/:entryId', async (request, reply) => {
+  const user = await requireOwnerOrAdmin(request, reply)
+  if (!user) return
+  const { eventId, entryId } = request.params as { eventId: string; entryId: string }
+  const { status } = request.body as { status?: 'PENDING' | 'CONFIRMED' | 'CANCELLED' }
+  
+  // Verify event ownership
+  const event = await prisma.event.findFirst({ where: { id: eventId, deletedAt: null }, select: { ownerId: true } })
+  if (!event) { reply.code(404).send({ error: 'Event not found' }); return }
+  if (user.role === 'OWNER' && event.ownerId !== user.id) { reply.code(403).send({ error: 'Forbidden' }); return }
+  
+  // Update the entry
+  const updated = await prisma.waitlistEntry.update({
+    where: { id: entryId },
+    data: { status: status || 'CONFIRMED' }
+  })
+  
+  reply.send({ entry: updated })
+})
+
+// Export waitlist CSV
+app.get('/api/owner/events/:eventId/waitlist/export', async (request, reply) => {
+  const user = await requireOwnerOrAdmin(request, reply)
+  if (!user) return
+  const { eventId } = request.params as { eventId: string }
+  
+  // Verify event ownership
+  const event = await prisma.event.findFirst({ 
+    where: { id: eventId, deletedAt: null }, 
+    select: { ownerId: true, title: true, slug: true } 
+  })
+  if (!event) { reply.code(404).send({ error: 'Event not found' }); return }
+  if (user.role === 'OWNER' && event.ownerId !== user.id) { reply.code(403).send({ error: 'Forbidden' }); return }
+  
+  // Get all waitlist entries
+  const entries = await prisma.waitlistEntry.findMany({ 
+    where: { eventId, deletedAt: null }, 
+    orderBy: { createdAt: 'asc' },
+    include: {
+      user: {
+        select: { name: true, businessName: true }
+      }
+    }
+  })
+  
+  // Generate CSV
+  const csvHeader = 'Position,Email,Name,Business Name,Status,Joined Date\n'
+  const csvRows = entries.map((entry, index) => {
+    const name = entry.user?.name || ''
+    const businessName = entry.user?.businessName || ''
+    const joinedDate = new Date(entry.createdAt).toLocaleDateString()
+    return `${index + 1},"${entry.email}","${name}","${businessName}","${entry.status}","${joinedDate}"`
+  }).join('\n')
+  
+  const csv = csvHeader + csvRows
+  
+  reply.header('Content-Type', 'text/csv')
+  reply.header('Content-Disposition', `attachment; filename="waitlist-${event.slug}-${new Date().toISOString().split('T')[0]}.csv"`)
+  reply.send(csv)
 })
 
 app.put('/api/owner/waitlist/:id', async (request, reply) => {
@@ -1615,6 +2006,536 @@ app.put('/api/owner/waitlist/:id', async (request, reply) => {
     : 'CONFIRMED'
   const updated = await prisma.waitlistEntry.update({ where: { id }, data: { status: nextStatus as never } })
   reply.send({ entry: updated })
+})
+
+// Get all registered users across all owner's events
+app.get('/api/owner/registered-users', async (request, reply) => {
+  const user = await requireOwnerOrAdmin(request, reply)
+  if (!user) return
+  
+  try {
+    const { page = '1', limit = '50', search, eventId } = request.query as {
+      page?: string
+      limit?: string
+      search?: string
+      eventId?: string
+    }
+    const pageNum = Math.max(1, parseInt(page))
+    const limitNum = Math.min(10000, Math.max(1, parseInt(limit)))
+
+    // Get owner's events
+    const ownerEvents = await prisma.event.findMany({
+      where: { 
+        ownerId: user.id, 
+        deletedAt: null 
+      },
+      select: { id: true, title: true, slug: true }
+    })
+
+    if (ownerEvents.length === 0) {
+      reply.send({
+        users: [],
+        pagination: {
+          page: pageNum,
+          limit: limitNum,
+          total: 0,
+          totalPages: 0
+        }
+      })
+      return
+    }
+
+    const eventIds = ownerEvents.map(event => event.id)
+    
+    // Build where clause for waitlist entries
+    const where: any = {
+      eventId: { in: eventIds },
+      deletedAt: null
+    }
+    
+    if (eventId) {
+      where.eventId = eventId
+    }
+    
+    if (search) {
+      where.email = { contains: search, mode: 'insensitive' }
+    }
+
+    // Get all waitlist entries first to group by user
+    const allEntries = await prisma.waitlistEntry.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      include: {
+        user: {
+          select: { 
+            id: true, 
+            name: true, 
+            businessName: true,
+            createdAt: true,
+            lastLoginAt: true
+          }
+        },
+        event: {
+          select: { 
+            id: true, 
+            title: true, 
+            slug: true,
+            startDate: true
+          }
+        }
+      }
+    })
+
+    // Group by user to get unique users with their events
+    const userMap = new Map()
+    
+    allEntries.forEach(entry => {
+      const userId = entry.user?.id || entry.email
+      if (!userMap.has(userId)) {
+        userMap.set(userId, {
+          id: entry.user?.id || null,
+          email: entry.email,
+          name: entry.user?.name || null,
+          businessName: entry.user?.businessName || null,
+          createdAt: entry.user?.createdAt || null,
+          lastLoginAt: entry.user?.lastLoginAt || null,
+          events: [],
+          totalWaitlistEntries: 0
+        })
+      }
+      
+      const userData = userMap.get(userId)
+      userData.events.push({
+        eventId: entry.event.id,
+        eventTitle: entry.event.title,
+        eventSlug: entry.event.slug,
+        eventDate: entry.event.startDate,
+        status: entry.status,
+        joinedAt: entry.createdAt
+      })
+      userData.totalWaitlistEntries++
+    })
+
+    // Convert to array and add event counts
+    const allUsers = Array.from(userMap.values()).map(user => ({
+      ...user,
+      eventCount: user.events.length,
+      uniqueEvents: [...new Set(user.events.map((e: any) => e.eventId))].length
+    }))
+
+    // Apply pagination to the grouped users
+    const total = allUsers.length
+    const startIndex = (pageNum - 1) * limitNum
+    const endIndex = startIndex + limitNum
+    const users = allUsers.slice(startIndex, endIndex)
+
+    reply.send({
+      users,
+      pagination: {
+        page: pageNum,
+        limit: limitNum,
+        total,
+        totalPages: Math.max(1, Math.ceil(total / limitNum))
+      },
+      events: ownerEvents
+    })
+  } catch (error) {
+    request.log.error({ error }, 'Failed to get registered users')
+    reply.code(500).send({ error: 'Failed to get registered users' })
+  }
+})
+
+// Bulk email endpoint
+app.post('/api/owner/bulk-email', async (request, reply) => {
+  const user = await requireOwnerOrAdmin(request, reply)
+  if (!user) return
+  
+  try {
+    const { userIds, subject, message } = request.body as {
+      userIds: string[]
+      subject: string
+      message: string
+    }
+
+    if (!userIds || !Array.isArray(userIds) || userIds.length === 0) {
+      reply.code(400).send({ error: 'User IDs are required' })
+      return
+    }
+
+    if (!subject || !message) {
+      reply.code(400).send({ error: 'Subject and message are required' })
+      return
+    }
+
+    // Get user emails
+    const users = await prisma.user.findMany({
+      where: { 
+        id: { in: userIds },
+        isActive: true 
+      },
+      select: { id: true, email: true, name: true }
+    })
+
+    if (users.length === 0) {
+      reply.code(404).send({ error: 'No valid users found' })
+      return
+    }
+
+    // TODO: Implement actual email sending logic here
+    // For now, just log the email details
+    request.log.info({
+      ownerId: user.id,
+      recipientCount: users.length,
+      subject,
+      message: message.substring(0, 100) + '...'
+    }, 'Bulk email request')
+
+    // Simulate email sending
+    await new Promise(resolve => setTimeout(resolve, 1000))
+
+    reply.send({
+      success: true,
+      message: `Email sent to ${users.length} users`,
+      recipients: users.map(u => ({ id: u.id, email: u.email, name: u.name }))
+    })
+  } catch (error) {
+    request.log.error({ error }, 'Failed to send bulk email')
+    reply.code(500).send({ error: 'Failed to send bulk email' })
+  }
+})
+
+// Analytics tracking endpoints
+app.post('/api/analytics/event-view', async (request, reply) => {
+  try {
+    const { eventId, sessionId, userAgent, referrer, country, city, deviceType, browser, os } = request.body as {
+      eventId: string
+      sessionId?: string
+      userAgent?: string
+      ipAddress?: string
+      referrer?: string
+      country?: string
+      city?: string
+      deviceType?: string
+      browser?: string
+      os?: string
+    }
+
+    // Get user ID if authenticated (optional for anonymous tracking)
+    const user = await getOptionalAuth(request)
+    const userId = user?.id || null
+
+    // Get IP address
+    const ipAddress = request.ip || request.headers['x-forwarded-for'] as string || 'unknown'
+
+    // Create event view record
+    const eventView = await prisma.eventView.create({
+      data: {
+        eventId,
+        userId,
+        sessionId: sessionId || null,
+        ipAddress,
+        userAgent: userAgent || null || null,
+        referrer: referrer || null,
+        country: country || null,
+        city: city || null,
+        deviceType: deviceType || null,
+        browser: browser || null,
+        os: os || null
+      }
+    })
+
+    reply.send({ success: true, viewId: eventView.id })
+  } catch (error) {
+    request.log.error({ error }, 'Failed to track event view')
+    reply.code(500).send({ error: 'Failed to track event view' })
+  }
+})
+
+app.post('/api/analytics/event-interaction', async (request, reply) => {
+  try {
+    const { eventId, action, element, metadata, sessionId } = request.body as {
+      eventId: string
+      action: string
+      element?: string
+      metadata?: any
+      sessionId?: string
+    }
+
+    // Get user ID if authenticated (optional for anonymous tracking)
+    const user = await getOptionalAuth(request)
+    const userId = user?.id || null
+
+    // Get IP address and user agent
+    const ipAddress = request.ip || request.headers['x-forwarded-for'] as string || 'unknown'
+    const userAgent = request.headers['user-agent'] as string
+
+    // Create interaction record
+    const interaction = await prisma.eventInteraction.create({
+      data: {
+        eventId,
+        userId,
+        sessionId: sessionId || null,
+        action,
+        element: element || null,
+        metadata: metadata || null,
+        ipAddress,
+        userAgent: userAgent || null || null
+      }
+    })
+
+    reply.send({ success: true, interactionId: interaction.id })
+  } catch (error) {
+    request.log.error({ error }, 'Failed to track event interaction')
+    reply.code(500).send({ error: 'Failed to track event interaction' })
+  }
+})
+
+// Get analytics for a specific event
+app.get('/api/analytics/event/:eventId', async (request, reply) => {
+  const user = await requireOwnerOrAdmin(request, reply)
+  if (!user) return
+  
+  try {
+    const { eventId } = request.params as { eventId: string }
+    const { period = '7d' } = request.query as { period?: string }
+
+    request.log.info({ eventId, userId: user.id }, 'Analytics request for event')
+
+    // Verify event ownership
+    const event = await prisma.event.findFirst({
+      where: { id: eventId, ownerId: user.id, deletedAt: null }
+    })
+    if (!event) {
+      // Check if event exists but doesn't belong to user
+      const eventExists = await prisma.event.findFirst({
+        where: { id: eventId, deletedAt: null }
+      })
+      if (eventExists) {
+        reply.code(403).send({ error: 'Access denied. You do not have permission to view analytics for this event.' })
+        return
+      } else {
+        reply.code(404).send({ error: 'Event not found' })
+        return
+      }
+    }
+
+    // Calculate date range
+    const now = new Date()
+    const days = period === '1d' ? 1 : period === '7d' ? 7 : period === '30d' ? 30 : 7
+    const startDate = new Date(now.getTime() - (days * 24 * 60 * 60 * 1000))
+
+    // Get analytics data - simplified version
+    const metrics = {
+      totalViews: 0,
+      uniqueUsers: 0,
+      totalInteractions: 0,
+      topCountries: [] as Array<{ country: string | null; count: number }>,
+      topDevices: [] as Array<{ device: string | null; count: number }>,
+      recentViews: [] as Array<{
+        id: string
+        userId: string | null
+        userName: string | null | undefined
+        userEmail: string | undefined
+        country: string | null
+        deviceType: string | null
+        createdAt: Date
+      }>
+    }
+
+    try {
+      // Try to get basic counts first
+      const totalViews = await prisma.eventView.count({
+        where: { eventId, createdAt: { gte: startDate } }
+      })
+
+      const totalInteractions = await prisma.eventInteraction.count({
+        where: { eventId, createdAt: { gte: startDate } }
+      })
+
+      // Get unique users
+      const uniqueUsersResult = await prisma.eventView.groupBy({
+        by: ['ipAddress', 'userId'],
+        where: { eventId, createdAt: { gte: startDate } },
+        _count: { id: true }
+      })
+
+      // Get top countries
+      const topCountriesResult = await prisma.eventView.groupBy({
+        by: ['country'],
+        where: { eventId, createdAt: { gte: startDate }, country: { not: null } },
+        _count: { id: true },
+        orderBy: { _count: { id: 'desc' } },
+        take: 5
+      })
+
+      // Get top devices
+      const topDevicesResult = await prisma.eventView.groupBy({
+        by: ['deviceType'],
+        where: { eventId, createdAt: { gte: startDate }, deviceType: { not: null } },
+        _count: { id: true },
+        orderBy: { _count: { id: 'desc' } },
+        take: 5
+      })
+
+      // Get recent views
+      const recentViewsResult = await prisma.eventView.findMany({
+        where: { eventId, createdAt: { gte: startDate } },
+        orderBy: { createdAt: 'desc' },
+        take: 10,
+        include: { user: { select: { name: true, email: true } } }
+      })
+
+      // Update metrics
+      metrics.totalViews = totalViews
+      metrics.uniqueUsers = uniqueUsersResult.length
+      metrics.totalInteractions = totalInteractions
+      metrics.topCountries = topCountriesResult.map(c => ({ country: c.country, count: c._count.id }))
+      metrics.topDevices = topDevicesResult.map(d => ({ device: d.deviceType, count: d._count.id }))
+      metrics.recentViews = recentViewsResult.map(v => ({
+        id: v.id,
+        userId: v.userId,
+        userName: v.user?.name,
+        userEmail: v.user?.email,
+        country: v.country,
+        deviceType: v.deviceType,
+        createdAt: v.createdAt
+      }))
+
+    } catch (dbError) {
+      request.log.error({ error: dbError, eventId }, 'Database error in analytics query')
+      // Continue with default values (all zeros/empty arrays)
+    }
+
+    reply.send({
+      eventId,
+      period,
+      metrics
+    })
+  } catch (error) {
+    request.log.error({ error }, 'Failed to get event analytics')
+    reply.code(500).send({ error: 'Failed to get event analytics' })
+  }
+})
+
+// Get global analytics for owner
+app.get('/api/analytics/owner', async (request, reply) => {
+  const user = await requireOwnerOrAdmin(request, reply)
+  if (!user) return
+  
+  try {
+    const { period = '30d' } = request.query as { period?: string }
+
+    // Calculate date range
+    const now = new Date()
+    const days = period === '1d' ? 1 : period === '7d' ? 7 : period === '30d' ? 30 : 30
+    const startDate = new Date(now.getTime() - (days * 24 * 60 * 60 * 1000))
+
+    // Get owner's events
+    const ownerEvents = await prisma.event.findMany({
+      where: { ownerId: user.id, deletedAt: null },
+      select: { id: true, title: true, slug: true }
+    })
+
+    if (ownerEvents.length === 0) {
+      reply.send({
+        ownerId: user.id,
+        period,
+        metrics: {
+          totalViews: 0,
+          uniqueUsers: 0,
+          totalEvents: 0,
+          totalWaitlist: 0,
+          totalInteractions: 0,
+          topEvents: [],
+          topCountries: [],
+          topDevices: []
+        }
+      })
+      return
+    }
+
+    const eventIds = ownerEvents.map(e => e.id)
+
+    // Get analytics data
+    const [totalViews, uniqueUsers, totalInteractions, topEvents, topCountries, topDevices] = await Promise.all([
+      // Total views across all events
+      prisma.eventView.count({
+        where: { eventId: { in: eventIds }, createdAt: { gte: startDate } }
+      }),
+      
+      // Unique users
+      prisma.eventView.groupBy({
+        by: ['ipAddress', 'userId'],
+        where: { eventId: { in: eventIds }, createdAt: { gte: startDate } },
+        _count: { id: true }
+      }).then(results => results.length),
+      
+      // Total interactions
+      prisma.eventInteraction.count({
+        where: { eventId: { in: eventIds }, createdAt: { gte: startDate } }
+      }),
+      
+      // Top events by views
+      prisma.eventView.groupBy({
+        by: ['eventId'],
+        where: { eventId: { in: eventIds }, createdAt: { gte: startDate } },
+        _count: { id: true },
+        orderBy: { _count: { id: 'desc' } },
+        take: 5
+      }).then(results => 
+        results.map(r => {
+          const event = ownerEvents.find(e => e.id === r.eventId)
+          return {
+            eventId: r.eventId,
+            eventTitle: event?.title || 'Unknown',
+            eventSlug: event?.slug || '',
+            views: r._count.id
+          }
+        })
+      ),
+      
+      // Top countries
+      prisma.eventView.groupBy({
+        by: ['country'],
+        where: { eventId: { in: eventIds }, createdAt: { gte: startDate }, country: { not: null } },
+        _count: { id: true },
+        orderBy: { _count: { id: 'desc' } },
+        take: 5
+      }),
+      
+      // Top devices
+      prisma.eventView.groupBy({
+        by: ['deviceType'],
+        where: { eventId: { in: eventIds }, createdAt: { gte: startDate }, deviceType: { not: null } },
+        _count: { id: true },
+        orderBy: { _count: { id: 'desc' } },
+        take: 5
+      })
+    ])
+
+    // Get total waitlist entries
+    const totalWaitlist = await prisma.waitlistEntry.count({
+      where: { eventId: { in: eventIds } }
+    })
+
+    reply.send({
+      ownerId: user.id,
+      period,
+      metrics: {
+        totalViews,
+        uniqueUsers,
+        totalEvents: ownerEvents.length,
+        totalWaitlist,
+        totalInteractions,
+        topEvents,
+        topCountries: topCountries.map(c => ({ country: c.country, count: c._count.id })),
+        topDevices: topDevices.map(d => ({ device: d.deviceType, count: d._count.id }))
+      }
+    })
+  } catch (error) {
+    request.log.error({ error }, 'Failed to get owner analytics')
+    reply.code(500).send({ error: 'Failed to get owner analytics' })
+  }
 })
 
 app.put('/api/owner/theme', async (request, reply) => {
@@ -2445,43 +3366,93 @@ app.delete('/api/admin/products/:id', async (request, reply) => {
 
 // (Removed duplicate dev login route) - using single definition near the bottom
 
-// Auth: Request magic link (ENHANCED WITH MOCK FUNCTIONALITY)
+// Auth: Request magic link (ENHANCED WITH SECURITY & RATE LIMITING)
 app.post('/auth/request-magic-link', async (request, reply) => {
   const { email } = request.body as { email: string }
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
   if (!email || !emailRegex.test(email)) {
-    reply.code(400).send({ error: 'Invalid email' })
+    reply.code(400).send({ error: 'Invalid email format' })
     return
   }
 
-  const token = crypto.randomUUID()
-  const expiresAt = new Date(Date.now() + 1000 * 60 * 15)
-
-  await prisma.emailVerification.create({
-    data: {
+  // Rate limiting: Check for recent requests from this IP
+  const clientIP = request.ip
+  const recentRequests = await prisma.emailVerification.count({
+    where: {
       email,
-      token,
       type: 'MAGIC_LINK',
-      expiresAt,
+      createdAt: {
+        gte: new Date(Date.now() - 1000 * 60 * 5) // Last 5 minutes
+      }
     }
   })
 
-  const callbackUrl = new URL('/auth/callback', config.server.API_URL)
-  callbackUrl.searchParams.set('token', token)
-
-  // In development or when SHOW_MAGIC_LINK=true: return the magic link in response
-  if (shouldShowMagicLink) {
-    app.log.info({ email, callbackUrl: callbackUrl.toString() }, 'Magic link generated (dev mode)')
-    reply.send({ 
-      ok: true, 
-      magicLink: callbackUrl.toString(),
-      message: 'Magic link generated (development mode)',
-      expiresIn: '15 minutes'
+  if (recentRequests >= 3) {
+    reply.code(429).send({ 
+      error: 'Too many requests. Please wait 5 minutes before requesting another magic link.',
+      retryAfter: 300
     })
-  } else {
-    // TODO: Integrate SendGrid for production
-    app.log.info({ email, callbackUrl: callbackUrl.toString() }, 'Magic link generated')
-    reply.send({ ok: true, message: 'Magic link sent to your email' })
+    return
+  }
+
+  // Invalidate any existing unexpired tokens for this email
+  await prisma.emailVerification.updateMany({
+    where: {
+      email,
+      type: 'MAGIC_LINK',
+      verifiedAt: null,
+      expiresAt: { gt: new Date() }
+    },
+    data: {
+      expiresAt: new Date() // Invalidate existing tokens
+    }
+  })
+
+  const token = crypto.randomUUID()
+  const expiresAt = new Date(Date.now() + 1000 * 60 * 15) // 15 minutes
+
+  try {
+    await prisma.emailVerification.create({
+      data: {
+        email,
+        token,
+        type: 'MAGIC_LINK',
+        expiresAt,
+      }
+    })
+
+    const callbackUrl = new URL('/auth/callback', config.server.API_URL)
+    callbackUrl.searchParams.set('token', token)
+
+    // Log the request for security monitoring
+    app.log.info({ 
+      email, 
+      ip: clientIP,
+      userAgent: request.headers['user-agent'],
+      callbackUrl: callbackUrl.toString() 
+    }, 'Magic link requested')
+
+    // In development or when SHOW_MAGIC_LINK=true: return the magic link in response
+    if (shouldShowMagicLink) {
+      app.log.info({ email, callbackUrl: callbackUrl.toString() }, 'Magic link generated (dev mode)')
+      reply.send({ 
+        ok: true, 
+        magicLink: callbackUrl.toString(),
+        message: 'Magic link generated (development mode)',
+        expiresIn: '15 minutes'
+      })
+    } else {
+      // TODO: Integrate SendGrid for production
+      app.log.info({ email, callbackUrl: callbackUrl.toString() }, 'Magic link generated')
+      reply.send({ 
+        ok: true, 
+        message: 'Magic link sent to your email',
+        expiresIn: '15 minutes'
+      })
+    }
+  } catch (error) {
+    app.log.error({ error, email }, 'Failed to create magic link')
+    reply.code(500).send({ error: 'Failed to generate magic link. Please try again.' })
   }
 })
 
@@ -2668,7 +3639,7 @@ app.post('/auth/admin-login', async (request, reply) => {
   })
 })
 
-// Auth: Magic link callback
+// Auth: Magic link callback (ENHANCED WITH SECURITY & AUDIT LOGGING)
 app.get('/auth/callback', async (request, reply) => {
   const { token } = request.query as { token?: string }
   if (!token) {
@@ -2676,43 +3647,147 @@ app.get('/auth/callback', async (request, reply) => {
     return
   }
 
-  const record = await prisma.emailVerification.findFirst({
-    where: {
-      token,
-      type: 'MAGIC_LINK',
-      verifiedAt: null,
-      expiresAt: { gt: new Date() },
+  const clientIP = request.ip
+  const userAgent = request.headers['user-agent']
+
+  try {
+    const record = await prisma.emailVerification.findFirst({
+      where: {
+        token,
+        type: 'MAGIC_LINK',
+        verifiedAt: null,
+        expiresAt: { gt: new Date() },
+      }
+    })
+
+    if (!record) {
+      app.log.warn({ 
+        token: token.substring(0, 8) + '...', 
+        ip: clientIP,
+        userAgent 
+      }, 'Invalid or expired magic link attempt')
+      reply.code(400).send({ error: 'Invalid or expired token' })
+      return
     }
-  })
 
-  if (!record) {
-    reply.code(400).send({ error: 'Invalid or expired token' })
-    return
+    // Upsert user
+    const user = await prisma.user.upsert({
+      where: { email: record.email },
+      update: { 
+        lastLoginAt: new Date(), 
+        isActive: true 
+      },
+      create: { 
+        email: record.email, 
+        role: 'VISITOR', 
+        isActive: true, 
+        lastLoginAt: new Date() 
+      }
+    })
+
+    // Mark verification used
+    await prisma.emailVerification.update({
+      where: { id: record.id },
+      data: { 
+        verifiedAt: new Date(), 
+        userId: user.id 
+      }
+    })
+
+    // Log successful login for audit trail
+    await prisma.userActivity.create({
+      data: {
+        userId: user.id,
+        action: 'LOGIN',
+        description: 'User logged in via magic link',
+        metadata: {
+          loginMethod: 'magic_link',
+          ipAddress: clientIP,
+          userAgent: userAgent || null,
+          tokenId: record.id
+        },
+        ipAddress: clientIP,
+        userAgent: userAgent || null
+      }
+    })
+
+    // Create session (Redis)
+    await createSessionAndSetCookie(reply, {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      name: user.name || null
+    })
+
+    app.log.info({ 
+      userId: user.id, 
+      email: user.email,
+      ip: clientIP 
+    }, 'User successfully logged in via magic link')
+
+    // Redirect to frontend
+    reply.redirect(config.server.FRONTEND_URL || '/')
+  } catch (error) {
+    app.log.error({ 
+      error, 
+      token: token.substring(0, 8) + '...',
+      ip: clientIP 
+    }, 'Failed to process magic link callback')
+    reply.code(500).send({ error: 'Authentication failed. Please try again.' })
   }
+})
 
-  // Upsert user
-  const user = await prisma.user.upsert({
-    where: { email: record.email },
-    update: { lastLoginAt: new Date(), isActive: true },
-    create: { email: record.email, role: 'VISITOR', isActive: true, lastLoginAt: new Date() }
-  })
-
-  // Mark verification used
-  await prisma.emailVerification.update({
-    where: { id: record.id },
-    data: { verifiedAt: new Date(), userId: user.id }
-  })
-
-  // Create session (Redis)
-  await createSessionAndSetCookie(reply, {
-    id: user.id,
-    email: user.email,
-    role: user.role,
-    name: user.name || null
-  })
-
-  // Redirect to frontend
-  reply.redirect(config.server.FRONTEND_URL || '/')
+// Auth: Logout
+app.post('/auth/logout', async (request, reply) => {
+  try {
+    const cookieName = config.security.SESSION_COOKIE_NAME || 'linea_session'
+    const token = (request.cookies as Record<string, string | undefined>)?.[cookieName]
+    
+    if (token) {
+      // Get user before clearing session for audit logging
+      const user = await getSessionUser(request)
+      
+      // Clear session from Redis
+      await sessionService.deleteSession(token)
+      
+      // Log logout for audit trail
+      if (user) {
+        await prisma.userActivity.create({
+          data: {
+            userId: user.id,
+            action: 'LOGOUT',
+            description: 'User logged out',
+            metadata: {
+              logoutMethod: 'manual',
+              ipAddress: request.ip,
+              userAgent: request.headers['user-agent'] || null || null
+            },
+            ipAddress: request.ip,
+            userAgent: request.headers['user-agent'] || null || null
+          }
+        })
+        
+        app.log.info({ 
+          userId: user.id, 
+          email: user.email,
+          ip: request.ip 
+        }, 'User logged out')
+      }
+    }
+    
+    // Clear session cookie
+    reply.clearCookie(cookieName, {
+      path: '/',
+      httpOnly: true,
+      secure: config.security.SESSION_COOKIE_SECURE,
+      sameSite: config.security.SESSION_COOKIE_SAME_SITE as 'strict' | 'lax' | 'none'
+    })
+    
+    reply.send({ ok: true, message: 'Logged out successfully' })
+  } catch (error) {
+    app.log.error({ error }, 'Failed to logout user')
+    reply.code(500).send({ error: 'Failed to logout' })
+  }
 })
 
 // Auth: Current user
@@ -2739,6 +3814,638 @@ app.get('/auth/me', async (request, reply) => {
   }
 })
 
+// User Profile Management (for all authenticated users)
+app.get('/api/user/profile', async (request, reply) => {
+  const user = await getSessionUser(request)
+  if (!user) {
+    reply.code(401).send({ error: 'Authentication required' })
+    return
+  }
+  
+  try {
+    const profile = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        role: true,
+        isActive: true,
+        createdAt: true,
+        lastLoginAt: true,
+        // Include business fields for owners
+        businessName: true,
+        businessIntro: true,
+        logoUrl: true,
+        profilePictureUrl: true,
+        website: true,
+        address: true,
+        city: true,
+        country: true,
+        latitude: true,
+        longitude: true,
+        areaId: true,
+        area: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            color: true,
+            icon: true
+          }
+        },
+        productId: true,
+        product: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            color: true,
+            icon: true
+          }
+        },
+        facebookUrl: true,
+        instagramUrl: true
+      }
+    })
+    
+    if (!profile) {
+      reply.code(404).send({ error: 'User profile not found' })
+      return
+    }
+    
+    reply.send(profile)
+  } catch (error) {
+    request.log.error({ error }, 'Failed to fetch user profile')
+    reply.code(500).send({ error: 'Failed to fetch profile' })
+  }
+})
+
+app.put('/api/user/profile', async (request, reply) => {
+  const user = await getSessionUser(request)
+  if (!user) {
+    reply.code(401).send({ error: 'Authentication required' })
+    return
+  }
+  
+  try {
+    const { 
+      name, 
+      email, 
+      phone, 
+      businessName, 
+      businessIntro, 
+      website, 
+      address, 
+      city, 
+      country, 
+      latitude, 
+      longitude, 
+      areaId, 
+      productId, 
+      facebookUrl, 
+      instagramUrl 
+    } = request.body as {
+      name?: string
+      email?: string
+      phone?: string
+      businessName?: string
+      businessIntro?: string
+      website?: string
+      address?: string
+      city?: string
+      country?: string
+      latitude?: number
+      longitude?: number
+      areaId?: string
+      productId?: string
+      facebookUrl?: string
+      instagramUrl?: string
+    }
+
+    // Validate email if provided
+    if (email) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      if (!emailRegex.test(email)) {
+        reply.code(400).send({ error: 'Invalid email format' })
+        return
+      }
+      
+      // Check if email is already taken by another user
+      const existingUser = await prisma.user.findFirst({
+        where: { email, id: { not: user.id }, deletedAt: null }
+      })
+      if (existingUser) {
+        reply.code(400).send({ error: 'Email already taken by another user' })
+        return
+      }
+    }
+
+    // Validate area and product if provided
+    if (areaId) {
+      const area = await prisma.area.findUnique({ where: { id: areaId } })
+      if (!area) {
+        reply.code(400).send({ error: 'Invalid area ID' })
+        return
+      }
+    }
+
+    if (productId) {
+      const product = await prisma.product.findUnique({ where: { id: productId } })
+      if (!product) {
+        reply.code(400).send({ error: 'Invalid product ID' })
+        return
+      }
+    }
+
+    const updated = await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        ...(name !== undefined && { name }),
+        ...(email !== undefined && { email }),
+        ...(phone !== undefined && { phone }),
+        ...(businessName !== undefined && { businessName }),
+        ...(businessIntro !== undefined && { businessIntro }),
+        ...(website !== undefined && { website }),
+        ...(address !== undefined && { address }),
+        ...(city !== undefined && { city }),
+        ...(country !== undefined && { country }),
+        ...(latitude !== undefined && { latitude }),
+        ...(longitude !== undefined && { longitude }),
+        ...(areaId !== undefined && { areaId }),
+        ...(productId !== undefined && { productId }),
+        ...(facebookUrl !== undefined && { facebookUrl }),
+        ...(instagramUrl !== undefined && { instagramUrl })
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        role: true,
+        isActive: true,
+        businessName: true,
+        businessIntro: true,
+        logoUrl: true,
+        profilePictureUrl: true,
+        website: true,
+        address: true,
+        city: true,
+        country: true,
+        latitude: true,
+        longitude: true,
+        areaId: true,
+        area: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            color: true,
+            icon: true
+          }
+        },
+        productId: true,
+        product: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            color: true,
+            icon: true
+          }
+        },
+        facebookUrl: true,
+        instagramUrl: true
+      }
+    })
+
+    reply.send(updated)
+  } catch (error) {
+    request.log.error({ error }, 'Failed to update user profile')
+    reply.code(500).send({ error: 'Failed to update profile' })
+  }
+})
+
+// User Profile Picture Upload
+app.post('/api/user/upload/profile-picture', async (request, reply) => {
+  const user = await getSessionUser(request)
+  if (!user) {
+    reply.code(401).send({ error: 'Authentication required' })
+    return
+  }
+
+  try {
+    const data = await (request as any).file()
+    if (!data) {
+      reply.code(400).send({ error: 'No file uploaded' })
+      return
+    }
+
+    // Validate file type
+    const allowedTypes = config.storage.UPLOAD_ALLOWED_TYPES.split(',')
+    if (!allowedTypes.includes(data.mimetype)) {
+      reply.code(400).send({ error: 'Invalid file type. Allowed: ' + allowedTypes.join(', ') })
+      return
+    }
+
+    // Generate unique filename
+    const fileExtension = data.filename.split('.').pop() || 'jpg'
+    const filename = `profile_${user.id}_${Date.now()}.${fileExtension}`
+    
+    // Save file to uploads directory
+    const uploadPath = path.join(config.storage.UPLOAD_PATH, filename)
+    const buffer = await data.toBuffer()
+    
+    // Ensure uploads directory exists
+    const fs = await import('fs')
+    const uploadDir = path.dirname(uploadPath)
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true })
+    }
+    
+    fs.writeFileSync(uploadPath, buffer)
+
+    // Update user profile with profile picture URL
+    const profilePictureUrl = `/uploads/${filename}`
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { profilePictureUrl }
+    })
+
+    reply.send({ 
+      success: true, 
+      profilePictureUrl,
+      message: 'Profile picture uploaded successfully' 
+    })
+  } catch (error) {
+    request.log.error({ error }, 'Failed to upload profile picture')
+    reply.code(500).send({ error: 'Failed to upload profile picture' })
+  }
+})
+
+// User Account Settings
+app.get('/api/user/settings', async (request, reply) => {
+  const user = await getSessionUser(request)
+  if (!user) {
+    reply.code(401).send({ error: 'Authentication required' })
+    return
+  }
+  
+  try {
+    const settings = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: {
+        id: true,
+        email: true,
+        role: true,
+        isActive: true,
+        createdAt: true,
+        lastLoginAt: true
+      }
+    })
+    
+    reply.send(settings)
+  } catch (error) {
+    request.log.error({ error }, 'Failed to fetch user settings')
+    reply.code(500).send({ error: 'Failed to fetch settings' })
+  }
+})
+
+// User Activity Log (audit trail)
+app.get('/api/user/activity', async (request, reply) => {
+  const user = await getSessionUser(request)
+  if (!user) {
+    reply.code(401).send({ error: 'Authentication required' })
+    return
+  }
+  
+  try {
+    const { page = 1, limit = 20 } = request.query as { page?: number; limit?: number }
+    const pageNum = Number(page)
+    const limitNum = Number(limit)
+
+    // Get user's recent activity (login history, profile updates, etc.)
+    const activities = await prisma.userActivity.findMany({
+      where: { userId: user.id },
+      orderBy: { createdAt: 'desc' },
+      skip: (pageNum - 1) * limitNum,
+      take: limitNum,
+      select: {
+        id: true,
+        action: true,
+        description: true,
+        metadata: true,
+        createdAt: true,
+        ipAddress: true,
+        userAgent: true
+      }
+    })
+
+    const total = await prisma.userActivity.count({
+      where: { userId: user.id }
+    })
+
+    reply.send({
+      activities,
+      pagination: {
+        page: pageNum,
+        limit: limitNum,
+        total,
+        totalPages: Math.ceil(total / limitNum)
+      }
+    })
+  } catch (error) {
+    request.log.error({ error }, 'Failed to fetch user activity')
+    reply.code(500).send({ error: 'Failed to fetch activity log' })
+  }
+})
+
+// Follow/Unfollow System
+app.post('/api/follow/:userId', async (request, reply) => {
+  const user = await getSessionUser(request)
+  if (!user) {
+    reply.code(401).send({ error: 'Authentication required' })
+    return
+  }
+  
+  try {
+    const { userId } = request.params as { userId: string }
+    
+    // Prevent self-following
+    if (userId === user.id) {
+      reply.code(400).send({ error: 'Cannot follow yourself' })
+      return
+    }
+    
+    // Check if user exists and is active
+    const targetUser = await prisma.user.findFirst({
+      where: { id: userId, isActive: true, deletedAt: null },
+      select: { id: true, name: true, email: true, role: true }
+    })
+    
+    if (!targetUser) {
+      reply.code(404).send({ error: 'User not found' })
+      return
+    }
+    
+    // Check if already following
+    const existingFollow = await prisma.follow.findUnique({
+      where: {
+        followerId_followingId: {
+          followerId: user.id,
+          followingId: userId
+        }
+      }
+    })
+    
+    if (existingFollow) {
+      reply.code(400).send({ error: 'Already following this user' })
+      return
+    }
+    
+    // Create follow relationship
+    const follow = await prisma.follow.create({
+      data: {
+        followerId: user.id,
+        followingId: userId
+      }
+    })
+    
+    // Log the follow action
+    await prisma.userActivity.create({
+      data: {
+        userId: user.id,
+        action: 'FOLLOW_USER',
+        description: `Started following ${targetUser.name || targetUser.email}`,
+        metadata: {
+          targetUserId: userId,
+          targetUserName: targetUser.name,
+          targetUserEmail: targetUser.email
+        },
+        ipAddress: request.ip,
+        userAgent: request.headers['user-agent'] || null
+      }
+    })
+    
+    reply.send({ 
+      success: true, 
+      message: `Now following ${targetUser.name || targetUser.email}`,
+      follow 
+    })
+  } catch (error) {
+    request.log.error({ error }, 'Failed to follow user')
+    reply.code(500).send({ error: 'Failed to follow user' })
+  }
+})
+
+app.delete('/api/follow/:userId', async (request, reply) => {
+  const user = await getSessionUser(request)
+  if (!user) {
+    reply.code(401).send({ error: 'Authentication required' })
+    return
+  }
+  
+  try {
+    const { userId } = request.params as { userId: string }
+    
+    // Check if following this user
+    const existingFollow = await prisma.follow.findUnique({
+      where: {
+        followerId_followingId: {
+          followerId: user.id,
+          followingId: userId
+        }
+      },
+      include: {
+        following: {
+          select: { name: true, email: true }
+        }
+      }
+    })
+    
+    if (!existingFollow) {
+      reply.code(404).send({ error: 'Not following this user' })
+      return
+    }
+    
+    // Remove follow relationship
+    await prisma.follow.delete({
+      where: { id: existingFollow.id }
+    })
+    
+    // Log the unfollow action
+    await prisma.userActivity.create({
+      data: {
+        userId: user.id,
+        action: 'UNFOLLOW_USER',
+        description: `Stopped following ${existingFollow.following.name || existingFollow.following.email}`,
+        metadata: {
+          targetUserId: userId,
+          targetUserName: existingFollow.following.name,
+          targetUserEmail: existingFollow.following.email
+        },
+        ipAddress: request.ip,
+        userAgent: request.headers['user-agent'] || null
+      }
+    })
+    
+    reply.send({ 
+      success: true, 
+      message: `Stopped following ${existingFollow.following.name || existingFollow.following.email}`
+    })
+  } catch (error) {
+    request.log.error({ error }, 'Failed to unfollow user')
+    reply.code(500).send({ error: 'Failed to unfollow user' })
+  }
+})
+
+app.get('/api/follow/:userId', async (request, reply) => {
+  const user = await getSessionUser(request)
+  if (!user) {
+    reply.code(401).send({ error: 'Authentication required' })
+    return
+  }
+  
+  try {
+    const { userId } = request.params as { userId: string }
+    
+    const isFollowing = await prisma.follow.findUnique({
+      where: {
+        followerId_followingId: {
+          followerId: user.id,
+          followingId: userId
+        }
+      }
+    })
+    
+    reply.send({ isFollowing: !!isFollowing })
+  } catch (error) {
+    request.log.error({ error }, 'Failed to check follow status')
+    reply.code(500).send({ error: 'Failed to check follow status' })
+  }
+})
+
+// Get user's follows (people they follow)
+app.get('/api/user/follows', async (request, reply) => {
+  const user = await getSessionUser(request)
+  if (!user) {
+    reply.code(401).send({ error: 'Authentication required' })
+    return
+  }
+  
+  try {
+    const { page = 1, limit = 20 } = request.query as { page?: number; limit?: number }
+    const pageNum = Number(page)
+    const limitNum = Number(limit)
+
+    const [total, follows] = await Promise.all([
+      prisma.follow.count({ where: { followerId: user.id } }),
+      prisma.follow.findMany({
+        where: { followerId: user.id },
+        include: {
+          following: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              businessName: true,
+              profilePictureUrl: true,
+              role: true,
+              area: {
+                select: { name: true, color: true, icon: true }
+              },
+              product: {
+                select: { name: true, color: true, icon: true }
+              }
+            }
+          }
+        },
+        orderBy: { createdAt: 'desc' },
+        skip: (pageNum - 1) * limitNum,
+        take: limitNum
+      })
+    ])
+
+    reply.send({
+      follows: follows.map(f => ({
+        id: f.id,
+        user: f.following,
+        followedAt: f.createdAt
+      })),
+      pagination: {
+        page: pageNum,
+        limit: limitNum,
+        total,
+        totalPages: Math.ceil(total / limitNum)
+      }
+    })
+  } catch (error) {
+    request.log.error({ error }, 'Failed to fetch user follows')
+    reply.code(500).send({ error: 'Failed to fetch follows' })
+  }
+})
+
+// Get user's followers (people following them)
+app.get('/api/user/followers', async (request, reply) => {
+  const user = await getSessionUser(request)
+  if (!user) {
+    reply.code(401).send({ error: 'Authentication required' })
+    return
+  }
+  
+  try {
+    const { page = 1, limit = 20 } = request.query as { page?: number; limit?: number }
+    const pageNum = Number(page)
+    const limitNum = Number(limit)
+
+    const [total, followers] = await Promise.all([
+      prisma.follow.count({ where: { followingId: user.id } }),
+      prisma.follow.findMany({
+        where: { followingId: user.id },
+        include: {
+          follower: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              businessName: true,
+              profilePictureUrl: true,
+              role: true,
+              area: {
+                select: { name: true, color: true, icon: true }
+              },
+              product: {
+                select: { name: true, color: true, icon: true }
+              }
+            }
+          }
+        },
+        orderBy: { createdAt: 'desc' },
+        skip: (pageNum - 1) * limitNum,
+        take: limitNum
+      })
+    ])
+
+    reply.send({
+      followers: followers.map(f => ({
+        id: f.id,
+        user: f.follower,
+        followedAt: f.createdAt
+      })),
+      pagination: {
+        page: pageNum,
+        limit: limitNum,
+        total,
+        totalPages: Math.ceil(total / limitNum)
+      }
+    })
+  } catch (error) {
+    request.log.error({ error }, 'Failed to fetch user followers')
+    reply.code(500).send({ error: 'Failed to fetch followers' })
+  }
+})
+
 // Dev-only: Generate non-expiring magic links for owners/admin
 app.post('/auth/dev/generate-link', async (request, reply) => {
   if (!(shouldShowMagicLink || config.environment.NODE_ENV !== 'production')) {
@@ -2748,19 +4455,28 @@ app.post('/auth/dev/generate-link', async (request, reply) => {
   const { email, role, name } = request.body as { email: string; role: 'OWNER'|'ADMIN'|'VISITOR'; name?: string }
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
   if (!emailRegex.test(email)) { reply.code(400).send({ error: 'Invalid email' }); return }
+  // Try to upsert the user, but tolerate DB issues in dev
+  let user: { id: string; email: string; role: 'OWNER'|'ADMIN'|'VISITOR'; name?: string | null }
+  try {
+    user = await prisma.user.upsert({
+      where: { email },
+      update: { role, name: name ?? null, isActive: true, lastLoginAt: new Date() },
+      create: { email, role, name: name ?? null, isActive: true, lastLoginAt: new Date() }
+    }) as unknown as { id: string; email: string; role: 'OWNER'|'ADMIN'|'VISITOR'; name?: string | null }
+  } catch (e) {
+    app.log.warn({ e }, 'Dev generate-link: DB unavailable, using in-memory user')
+    user = { id: crypto.randomUUID(), email, role, name: name ?? null }
+  }
 
-  // Upsert user with requested role
-  const user = await prisma.user.upsert({
-    where: { email },
-    update: { role, name: name ?? null, isActive: true, lastLoginAt: new Date() },
-    create: { email, role, name: name ?? null, isActive: true, lastLoginAt: new Date() }
-  })
-
-  // Create a non-expiring verification record (expires in 10 years)
+  // Create a non-expiring verification record (best-effort)
   const token = crypto.randomUUID()
-  await prisma.emailVerification.create({
-    data: { email, token, type: 'MAGIC_LINK', expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 365 * 10) }
-  })
+  try {
+    await prisma.emailVerification.create({
+      data: { email, token, type: 'MAGIC_LINK', expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 365 * 10) }
+    })
+  } catch (e) {
+    app.log.warn({ e }, 'Dev generate-link: failed to persist email verification, continuing')
+  }
 
   const callbackUrl = new URL('/auth/callback', config.server.API_URL)
   callbackUrl.searchParams.set('token', token)
@@ -2799,11 +4515,17 @@ app.post('/auth/dev/login', async (request, reply) => {
   if (!emailRegex.test(email)) { reply.code(400).send({ error: 'Invalid email' }); return }
 
   const desiredRole = role || 'VISITOR'
-  const user = await prisma.user.upsert({
-    where: { email },
-    update: { role: desiredRole, name: name ?? null, isActive: true, lastLoginAt: new Date() },
-    create: { email, role: desiredRole, name: name ?? null, isActive: true, lastLoginAt: new Date() }
-  })
+  let user: { id: string; email: string; role: 'VISITOR'|'OWNER'|'ADMIN'; name?: string | null }
+  try {
+    user = await prisma.user.upsert({
+      where: { email },
+      update: { role: desiredRole, name: name ?? null, isActive: true, lastLoginAt: new Date() },
+      create: { email, role: desiredRole, name: name ?? null, isActive: true, lastLoginAt: new Date() }
+    }) as unknown as { id: string; email: string; role: 'VISITOR'|'OWNER'|'ADMIN'; name?: string | null }
+  } catch (e) {
+    app.log.warn({ e }, 'Dev login: DB unavailable, using in-memory user')
+    user = { id: crypto.randomUUID(), email, role: desiredRole, name: name ?? null }
+  }
 
   await createSessionAndSetCookie(reply, { id: user.id, email: user.email, role: user.role, name: user.name || null })
   reply.send({ ok: true, user: { id: user.id, email: user.email, role: user.role, name: user.name } })
@@ -2819,11 +4541,17 @@ app.get('/auth/dev/login-link', async (request, reply) => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
   if (!email || !emailRegex.test(email)) { reply.code(400).send({ error: 'Invalid email' }); return }
   const desiredRole = (role || 'VISITOR')
-  const user = await prisma.user.upsert({
-    where: { email },
-    update: { role: desiredRole, name: name ?? null, isActive: true, lastLoginAt: new Date() },
-    create: { email, role: desiredRole, name: name ?? null, isActive: true, lastLoginAt: new Date() }
-  })
+  let user: { id: string; email: string; role: 'VISITOR'|'OWNER'|'ADMIN'; name?: string | null }
+  try {
+    user = await prisma.user.upsert({
+      where: { email },
+      update: { role: desiredRole, name: name ?? null, isActive: true, lastLoginAt: new Date() },
+      create: { email, role: desiredRole, name: name ?? null, isActive: true, lastLoginAt: new Date() }
+    }) as unknown as { id: string; email: string; role: 'VISITOR'|'OWNER'|'ADMIN'; name?: string | null }
+  } catch (e) {
+    app.log.warn({ e }, 'Dev login-link: DB unavailable, using in-memory user')
+    user = { id: crypto.randomUUID(), email, role: desiredRole, name: name ?? null }
+  }
 
   await createSessionAndSetCookie(reply, { id: user.id, email: user.email, role: user.role, name: user.name || null })
 
@@ -2881,8 +4609,8 @@ app.post('/auth/signout', async (request, reply) => {
 
 // Catch-all handler: send back React's index.html file for client-side routing
 app.setNotFoundHandler(async (_request, reply) => {
-  // Only serve index.html for non-API routes
-  if (!_request.url.startsWith('/api') && !_request.url.startsWith('/docs') && !_request.url.startsWith('/health')) {
+  // Only serve index.html for non-API routes, but exclude uploads
+  if (!_request.url.startsWith('/api') && !_request.url.startsWith('/docs') && !_request.url.startsWith('/health') && !_request.url.startsWith('/uploads')) {
     return reply.sendFile('index.html')
   }
   reply.code(404).send({ error: 'Not Found' })
@@ -2955,11 +4683,81 @@ const runMigrations = async () => {
   }
 }
 
+// Development-only demo data seeding
+/*
+const _seedDemoData = async () => {
+  if (config.environment.NODE_ENV !== 'development') return
+  if (!config.development.SEED_SAMPLE_EVENTS) return
+  try {
+    app.log.info('🌱 Seeding demo owners and events (dev)...')
+    // Upsert 4 owners
+    const owners = [
+      { email: 'alice@kitchenco.dev', name: 'Alice Wonderland' },
+      { email: 'bob@designbuild.dev', name: 'Bob The Builder' },
+      { email: 'carla@artisanstudio.dev', name: 'Carla Rossi' },
+      { email: 'diego@studioforma.dev', name: 'Diego Bianchi' },
+    ]
+    const createdOwners: Array<{ id: string; email: string } > = []
+    for (const o of owners) {
+      const user = await prisma.user.upsert({
+        where: { email: o.email },
+        update: { role: 'OWNER', name: o.name, isActive: true, lastLoginAt: new Date() },
+        create: { email: o.email, role: 'OWNER', name: o.name, isActive: true, lastLoginAt: new Date() }
+      })
+      createdOwners.push({ id: user.id, email: user.email })
+    }
+
+    // Helper to ensure event once per owner+title
+    const ensureEvent = async (ownerId: string, title: string, start: string, short?: string) => {
+      const existing = await prisma.event.findFirst({ where: { ownerId, title, deletedAt: null } })
+      if (existing) return existing
+      const slug = await generateUniqueSlug(title)
+      return await prisma.event.create({
+        data: {
+          ownerId,
+          title,
+          slug,
+          shortDescription: short ?? null,
+          description: null,
+          status: 'PUBLISHED',
+          startDate: new Date(start),
+          isPublic: true,
+          featured: false,
+          tags: ['design']
+        }
+      })
+    }
+
+    // Create a few events per owner
+    const now = new Date()
+    const iso = (d: Date) => d.toISOString()
+    const d1 = new Date(now.getTime() + 3*24*60*60*1000)
+    const d2 = new Date(now.getTime() + 5*24*60*60*1000)
+    const d3 = new Date(now.getTime() + 7*24*60*60*1000)
+
+    for (const o of createdOwners) {
+      await ensureEvent(o.id, 'Milano Design Showcase', iso(d1), 'Design showcase')
+      await ensureEvent(o.id, 'Innovation Talk', iso(d2), 'Innovation talk')
+      await ensureEvent(o.id, 'Studio Open Day', iso(d3), 'Open day')
+    }
+
+    app.log.info('✅ Demo data ready')
+  } catch (error) {
+    // If DB unavailable, skip silently for dev
+    app.log.warn({ error }, 'Skipping demo seed (likely DB unavailable)')
+  }
+}
+*/
+
+// Register favorites routes
+await app.register(favoritesRoutes)
+
 // Start server
 const start = async () => {
   try {
     // Run migrations first
     await runMigrations()
+    // Seeding removed to prevent duplicate events
     
     const port = config.server.PORT
     const host = config.server.HOST

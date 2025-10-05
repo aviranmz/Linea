@@ -3,6 +3,7 @@ import { PrismaClient } from '@prisma/client'
 
 const prisma = new PrismaClient()
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars, no-unused-vars
 async function main() {
   console.log('🌱 Starting database seed...')
 
@@ -45,8 +46,8 @@ async function main() {
         name: 'Design',
         slug: 'design',
         description: 'Design events, workshops, and exhibitions',
-        color: '#a855f7',
-        icon: '🎨',
+        color: '#c4b69e',
+        icon: 'Design',
         isActive: true,
       },
     }),
@@ -57,8 +58,8 @@ async function main() {
         name: 'Technology',
         slug: 'technology',
         description: 'Tech meetups, conferences, and hackathons',
-        color: '#3b82f6',
-        icon: '💻',
+        color: '#b8a78b',
+        icon: 'Tech',
         isActive: true,
       },
     }),
@@ -69,8 +70,8 @@ async function main() {
         name: 'Art & Culture',
         slug: 'art',
         description: 'Art exhibitions, cultural events, and performances',
-        color: '#ef4444',
-        icon: '🎭',
+        color: '#a08965',
+        icon: 'Art',
         isActive: true,
       },
     }),
@@ -81,8 +82,8 @@ async function main() {
         name: 'Business',
         slug: 'business',
         description: 'Networking events, conferences, and workshops',
-        color: '#10b981',
-        icon: '💼',
+        color: '#947a52',
+        icon: 'Business',
         isActive: true,
       },
     }),
@@ -94,8 +95,8 @@ async function main() {
         name: 'Kitchens',
         slug: 'kitchens',
         description: 'Kitchen design, appliances, and cabinetry',
-        color: '#f59e0b',
-        icon: '🍳',
+        color: '#886b3f',
+        icon: 'Kitchen',
         isActive: true,
       },
     }),
@@ -106,8 +107,8 @@ async function main() {
         name: 'Kitchen Appliances',
         slug: 'kitchen-appliances',
         description: 'Kitchen appliances, cooking equipment, and smart home solutions',
-        color: '#dc2626',
-        icon: '🔥',
+        color: '#d0c5b1',
+        icon: 'Appliances',
         isActive: true,
       },
     }),
@@ -118,8 +119,8 @@ async function main() {
         name: 'Kitchen Cabinetry',
         slug: 'kitchen-cabinetry',
         description: 'Kitchen cabinets, storage solutions, and organization systems',
-        color: '#7c3aed',
-        icon: '🗄️',
+        color: '#ddd4c4',
+        icon: 'Storage',
         isActive: true,
       },
     }),
@@ -130,8 +131,8 @@ async function main() {
         name: 'Kitchen Countertops',
         slug: 'kitchen-countertops',
         description: 'Countertop materials, surfaces, and finishes',
-        color: '#059669',
-        icon: '🏗️',
+        color: '#eae3d7',
+        icon: 'Build',
         isActive: true,
       },
     }),
@@ -246,7 +247,7 @@ async function main() {
         slug: 'brera',
         description: 'Historic artistic district with galleries, boutiques, and design studios',
         color: '#8b5cf6',
-        icon: '🎨',
+        icon: 'Design',
         isActive: true,
       },
     }),
@@ -306,7 +307,7 @@ async function main() {
         slug: 'garibaldi',
         description: 'Modern district with contemporary design and architecture',
         color: '#3b82f6',
-        icon: '🏗️',
+        icon: 'Build',
         isActive: true,
       },
     }),
@@ -318,7 +319,7 @@ async function main() {
         slug: 'tortona',
         description: 'Design district with showrooms, studios, and creative spaces',
         color: '#ef4444',
-        icon: '🎭',
+        icon: 'Art',
         isActive: true,
       },
     }),
@@ -533,12 +534,21 @@ async function main() {
 
   console.log('✅ Created venues:', venues.map(v => v.name).join(', '))
 
-  // Create sample events
-  const events = await Promise.all([
-    prisma.event.upsert({
-      where: { slug: 'milano-design-week-2024' },
-      update: {},
-      create: {
+  // Check if events already exist - if so, skip event creation entirely
+  const existingEvents = await prisma.event.findMany({
+    select: { slug: true }
+  })
+  
+  if (existingEvents.length > 0) {
+    console.log('✅ Events already exist, skipping event creation to prevent duplicates')
+  } else {
+    console.log('🌱 No events found, creating sample events...')
+    const existingSlugs = new Set(existingEvents.map(e => e.slug))
+    const events = []
+    
+    if (!existingSlugs.has('milano-design-week-2024')) {
+    const event = await prisma.event.create({
+      data: {
         title: 'Milano Design Week 2024',
         slug: 'milano-design-week-2024',
         description: 'The most important design event in the world, showcasing the latest trends in furniture, lighting, and home accessories.',
@@ -567,12 +577,14 @@ async function main() {
             twitter: '@milanodesign',
           },
         },
-      },
-    }),
-    prisma.event.upsert({
-      where: { slug: 'tech-innovation-summit' },
-      update: {},
-      create: {
+      }
+    })
+    events.push(event)
+  }
+  
+  if (!existingSlugs.has('tech-innovation-summit')) {
+    const event = await prisma.event.create({
+      data: {
         title: 'Tech Innovation Summit 2024',
         slug: 'tech-innovation-summit',
         description: 'A gathering of tech leaders, entrepreneurs, and innovators to discuss the future of technology and its impact on society.',
@@ -601,12 +613,14 @@ async function main() {
             twitter: '@techmilano',
           },
         },
-      },
-    }),
-    prisma.event.upsert({
-      where: { slug: 'contemporary-art-exhibition' },
-      update: {},
-      create: {
+      }
+    })
+    events.push(event)
+  }
+  
+  if (!existingSlugs.has('contemporary-art-exhibition')) {
+    const event = await prisma.event.create({
+      data: {
         title: 'Contemporary Art Exhibition',
         slug: 'contemporary-art-exhibition',
         description: 'An immersive exhibition featuring works by emerging and established contemporary artists from around the world.',
@@ -634,65 +648,74 @@ async function main() {
             facebook: 'Fondazione Prada',
           },
         },
-      },
-    }),
-  ])
-
+      }
+    })
+    events.push(event)
+  }
+  
   console.log('✅ Created events:', events.map(e => e.title).join(', '))
-
-  // Create sample shows for the first event
-  const shows = await Promise.all([
-    prisma.show.create({
-      data: {
-        title: 'Opening Ceremony',
-        description: 'Official opening of Milano Design Week 2024',
-        startDate: new Date('2024-04-15T10:00:00Z'),
-        endDate: new Date('2024-04-15T12:00:00Z'),
-        capacity: 200,
-        currentWaitlist: 0,
-        youtubeUrl: 'https://www.youtube.com/watch?v=opening',
-        eventId: events[0].id,
-      },
-    }),
-    prisma.show.create({
-      data: {
-        title: 'Design Innovation Panel',
-        description: 'Panel discussion on the future of design innovation',
-        startDate: new Date('2024-04-16T14:00:00Z'),
-        endDate: new Date('2024-04-16T16:00:00Z'),
-        capacity: 150,
-        currentWaitlist: 0,
-        eventId: events[0].id,
-      },
-    }),
-  ])
+  
+  // Create sample shows for the first event (only if events were created)
+  const shows = []
+  if (events.length > 0) {
+    const newShows = await Promise.all([
+      prisma.show.create({
+        data: {
+          title: 'Opening Ceremony',
+          description: 'Official opening of Milano Design Week 2024',
+          startDate: new Date('2024-04-15T10:00:00Z'),
+          endDate: new Date('2024-04-15T12:00:00Z'),
+          capacity: 200,
+          currentWaitlist: 0,
+          youtubeUrl: 'https://www.youtube.com/watch?v=opening',
+          eventId: events[0]?.id || '',
+        },
+      }),
+      prisma.show.create({
+        data: {
+          title: 'Design Innovation Panel',
+          description: 'Panel discussion on the future of design innovation',
+          startDate: new Date('2024-04-16T14:00:00Z'),
+          endDate: new Date('2024-04-16T16:00:00Z'),
+          capacity: 150,
+          currentWaitlist: 0,
+          eventId: events[0]?.id || '',
+        },
+      }),
+    ])
+    shows.push(...newShows)
+  }
 
   console.log('✅ Created shows:', shows.map(s => s.title).join(', '))
 
-  // Create sample waitlist entries
-  const waitlistEntries = await Promise.all([
-    prisma.waitlistEntry.create({
-      data: {
-        email: 'visitor1@example.com',
-        eventId: events[0].id,
-        status: 'PENDING',
-      },
-    }),
-    prisma.waitlistEntry.create({
-      data: {
-        email: 'visitor2@example.com',
-        eventId: events[0].id,
-        status: 'CONFIRMED',
-      },
-    }),
-    prisma.waitlistEntry.create({
-      data: {
-        email: 'visitor3@example.com',
-        eventId: events[1].id,
-        status: 'PENDING',
-      },
-    }),
-  ])
+  // Create sample waitlist entries (only if events were created)
+  const waitlistEntries = []
+  if (events.length > 0) {
+    const newWaitlistEntries = await Promise.all([
+      prisma.waitlistEntry.create({
+        data: {
+          email: 'visitor1@example.com',
+          eventId: events[0]?.id || '',
+          status: 'PENDING',
+        },
+      }),
+      prisma.waitlistEntry.create({
+        data: {
+          email: 'visitor2@example.com',
+          eventId: events[0]?.id || '',
+          status: 'CONFIRMED',
+        },
+      }),
+      events[1] ? prisma.waitlistEntry.create({
+        data: {
+          email: 'visitor3@example.com',
+          eventId: events[1].id,
+          status: 'PENDING',
+        },
+      }) : null,
+    ])
+    waitlistEntries.push(...newWaitlistEntries.filter(Boolean))
+  }
 
   console.log('✅ Created waitlist entries:', waitlistEntries.length)
 
@@ -713,37 +736,41 @@ async function main() {
     console.log(`✅ Added ${count} waitlist entries for event:`, event.title)
   }
 
-  // Create sample nearby places
-  const nearbyPlaces = await Promise.all([
-    prisma.nearbyPlace.create({
-      data: {
-        name: 'Ristorante Da Giacomo',
-        address: 'Via Pasquale Sottocorno, 6, 20129 Milano MI, Italy',
-        latitude: 45.4510,
-        longitude: 9.1730,
-        category: 'restaurant',
-        rating: 4.5,
-        website: 'https://ristorantedagiacomo.it',
-        phone: '+39 02 5810 2812',
-        distance: 150,
-        eventId: events[0].id,
-      },
-    }),
-    prisma.nearbyPlace.create({
-      data: {
-        name: 'Museo della Scienza e della Tecnologia',
-        address: 'Via San Vittore, 21, 20123 Milano MI, Italy',
-        latitude: 45.4720,
-        longitude: 9.1700,
-        category: 'museum',
-        rating: 4.3,
-        website: 'https://museoscienza.org',
-        phone: '+39 02 485 551',
-        distance: 300,
-        eventId: events[0].id,
-      },
-    }),
-  ])
+  // Create sample nearby places (only if events were created)
+  const nearbyPlaces = []
+  if (events.length > 0) {
+    const newNearbyPlaces = await Promise.all([
+      prisma.nearbyPlace.create({
+        data: {
+          name: 'Ristorante Da Giacomo',
+          address: 'Via Pasquale Sottocorno, 6, 20129 Milano MI, Italy',
+          latitude: 45.4510,
+          longitude: 9.1730,
+          category: 'restaurant',
+          rating: 4.5,
+          website: 'https://ristorantedagiacomo.it',
+          phone: '+39 02 5810 2812',
+          distance: 150,
+          eventId: events[0]?.id || '',
+        },
+      }),
+      prisma.nearbyPlace.create({
+        data: {
+          name: 'Museo della Scienza e della Tecnologia',
+          address: 'Via San Vittore, 21, 20123 Milano MI, Italy',
+          latitude: 45.4720,
+          longitude: 9.1700,
+          category: 'museum',
+          rating: 4.3,
+          website: 'https://museoscienza.org',
+          phone: '+39 02 485 551',
+          distance: 300,
+          eventId: events[0]?.id || '',
+        },
+      }),
+    ])
+    nearbyPlaces.push(...newNearbyPlaces)
+  }
 
   console.log('✅ Created nearby places:', nearbyPlaces.map(p => p.name).join(', '))
 
@@ -784,3 +811,4 @@ main()
   .finally(async () => {
     await prisma.$disconnect()
   })
+}

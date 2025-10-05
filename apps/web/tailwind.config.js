@@ -23,17 +23,17 @@ export default {
           950: '#020617',
         },
         accent: {
-          50: '#faf5ff',
-          100: '#f3e8ff',
-          200: '#e9d5ff',
-          300: '#d8b4fe',
-          400: '#c084fc',
-          500: '#a855f7',
-          600: '#9333ea',
-          700: '#7c3aed',
-          800: '#6b21a8',
-          900: '#581c87',
-          950: '#3b0764',
+          50: '#faf8f3',
+          100: '#f5f0e6',
+          200: '#eae3d7',
+          300: '#ddd4c4',
+          400: '#d0c5b1',
+          500: '#c4b69e',
+          600: '#b8a78b',
+          700: '#ac9878',
+          800: '#a08965',
+          900: '#947a52',
+          950: '#886b3f',
         },
         neutral: {
           50: '#fafafa',
@@ -50,7 +50,7 @@ export default {
         },
         // Milano-specific colors inspired by Italian design
         milano: {
-          cream: '#faf8f3',
+          cream: '#eae3d7',
           charcoal: '#2c2c2c',
           gold: '#d4af37',
           terracotta: '#e07a5f',
@@ -117,9 +117,9 @@ export default {
             maxWidth: 'none',
             color: 'rgb(15 23 42)',
             a: {
-              color: '#a855f7',
+              color: '#c4b69e',
               '&:hover': {
-                color: '#9333ea',
+                color: '#b8a78b',
               },
             },
             h1: {

@@ -15,14 +15,17 @@ export interface SessionData {
 export class SessionService {
   private client: RedisClientType | null
   private isConnected = false
+  // In-memory fallback for development when Redis is unavailable
+  private memoryStore: Map<string, SessionData> | null = null
 
   constructor() {
     const config = getConfig()
     
     // Check if Redis URL is available
     if (!config.redis.REDIS_URL || config.redis.REDIS_URL.includes('production-redis')) {
-      console.warn('Redis not configured, falling back to database sessions')
+      console.warn('Redis not configured, using in-memory sessions (dev only)')
       this.client = null
+      this.memoryStore = new Map<string, SessionData>()
       return
     }
     
@@ -78,7 +81,12 @@ export class SessionService {
     expiresInMs: number
   ): Promise<void> {
     if (!this.client) {
-      console.warn('Redis not available, session not stored')
+      // In-memory fallback
+      if (!this.memoryStore) this.memoryStore = new Map<string, SessionData>()
+      const now = Date.now()
+      const expiresAt = now + expiresInMs
+      const session: SessionData = { ...sessionData, createdAt: now, expiresAt }
+      this.memoryStore.set(this.getKey(token), session)
       return
     }
     
@@ -99,7 +107,14 @@ export class SessionService {
 
   async getSession(token: string): Promise<SessionData | null> {
     if (!this.client) {
-      return null
+      // In-memory fallback
+      const key = this.getKey(token)
+      const session = this.memoryStore?.get(key) || null
+      if (session && Date.now() > session.expiresAt) {
+        this.memoryStore?.delete(key)
+        return null
+      }
+      return session
     }
     
     await this.connect()
@@ -130,7 +145,16 @@ export class SessionService {
 
   async updateSession(token: string, updates: Partial<SessionData>): Promise<boolean> {
     if (!this.client) {
-      return false
+      const key = this.getKey(token)
+      const existing = this.memoryStore?.get(key)
+      if (!existing) return false
+      const updated = { ...existing, ...updates }
+      if (Date.now() > updated.expiresAt) {
+        this.memoryStore?.delete(key)
+        return false
+      }
+      this.memoryStore?.set(key, updated)
+      return true
     }
     
     await this.connect()
@@ -155,6 +179,7 @@ export class SessionService {
 
   async deleteSession(token: string): Promise<void> {
     if (!this.client) {
+      this.memoryStore?.delete(this.getKey(token))
       return
     }
     
@@ -165,33 +190,33 @@ export class SessionService {
   }
 
   async deleteUserSessions(userId: string): Promise<void> {
+    if (!this.client) {
+      if (!this.memoryStore) return
+      const keys = Array.from(this.memoryStore.keys())
+      for (const key of keys) {
+        const s = this.memoryStore.get(key)
+        if (s && s.userId === userId) this.memoryStore.delete(key)
+      }
+      return
+    }
     await this.connect()
-    
     const config = getConfig()
     const prefix = config.redis.REDIS_KEY_PREFIX || 'linea:'
     const pattern = `${prefix}session:*`
-    
-    const keys = this.client ? await this.client.keys(pattern) : []
+    const keys = await this.client.keys(pattern)
     const sessionsToDelete: string[] = []
-    
     for (const key of keys) {
-      const data = this.client ? await this.client.get(key) : null
+      const data = await this.client.get(key)
       if (data) {
         try {
           const session = JSON.parse(data) as SessionData
-          if (session.userId === userId) {
-            sessionsToDelete.push(key)
-          }
-        } catch (error) {
-          // Invalid session data, delete it
+          if (session.userId === userId) sessionsToDelete.push(key)
+        } catch {
           sessionsToDelete.push(key)
         }
       }
     }
-    
-    if (sessionsToDelete.length > 0) {
-      if (this.client) await this.client.del(sessionsToDelete)
-    }
+    if (sessionsToDelete.length > 0) await this.client.del(sessionsToDelete)
   }
 
   async extendSession(token: string, additionalMs: number): Promise<boolean> {

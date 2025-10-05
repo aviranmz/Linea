@@ -42,11 +42,11 @@ graph TB
 ```mermaid
 graph TB
     subgraph "User Interface"
-        WEB[Web Application<br/>React 18 + Vite<br/>Port 3000]
+        WEB[Web Application<br/>React 18 + Vite<br/>Port 3050]
     end
     
     subgraph "API Layer"
-        GATEWAY[API Gateway<br/>Fastify + Helmet<br/>Port 3001]
+        GATEWAY[API Gateway<br/>Fastify + Helmet<br/>Port 9050]
         AUTH[Auth Service<br/>Magic Links + JWT]
         EVENTS[Event Service<br/>CRUD + Search]
         WAITLIST[Waitlist Service<br/>Management + Export]

@@ -19,7 +19,7 @@
   "server": {
     "API_URL": "https://api.linea.app",
     "FRONTEND_URL": "https://linea.app",
-    "PORT": 9030,
+    "PORT": 9050,
     "HOST": "0.0.0.0",
     "CORS_ORIGIN": "https://linea.app",
     "CORS_CREDENTIALS": true

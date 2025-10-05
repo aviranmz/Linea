@@ -67,14 +67,14 @@ RUN pnpm prune --prod
 
 # Set environment variables
 ENV NODE_ENV=production
-ENV PORT=9030
+ENV PORT=9050
 
 # Expose port
-EXPOSE 9030
+EXPOSE 9050
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost:9030/health || exit 1
+  CMD curl -f http://localhost:9050/health || exit 1
 
 # Start the API server
 CMD ["pnpm", "--filter", "@linea/api", "start"]

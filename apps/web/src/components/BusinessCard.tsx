@@ -69,17 +69,17 @@ export function BusinessCard({
 
   if (loading) {
     return (
-      <div className={`bg-white dark:bg-neutral-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 ${className}`}>
+      <div className={`bg-white rounded-lg shadow-sm border border-gray-200 p-6 ${className}`}>
         <div className="animate-pulse">
           <div className="flex items-center mb-4">
-            <div className="w-16 h-16 bg-gray-200 dark:bg-gray-700 rounded-full mr-4"></div>
+            <div className="w-16 h-16 bg-gray-200 rounded-full mr-4"></div>
             <div className="flex-1">
-              <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-2"></div>
-              <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+              <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+              <div className="h-3 bg-gray-200 rounded w-1/2"></div>
             </div>
           </div>
-          <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-full mb-2"></div>
-          <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-2/3"></div>
+          <div className="h-3 bg-gray-200 rounded w-full mb-2"></div>
+          <div className="h-3 bg-gray-200 rounded w-2/3"></div>
         </div>
       </div>
     )
@@ -87,16 +87,16 @@ export function BusinessCard({
 
   if (error || !owner) {
     return (
-      <div className={`bg-white dark:bg-neutral-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 ${className}`}>
+      <div className={`bg-white rounded-lg shadow-sm border border-gray-200 p-6 ${className}`}>
         <div className="text-center py-8">
-          <p className="text-red-600 dark:text-red-400">{error || 'Business card not found'}</p>
+          <p className="text-red-600">{error || 'Business card not found'}</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className={`bg-white dark:bg-neutral-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 ${className}`}>
+    <div className={`bg-white rounded-lg shadow-sm border border-gray-200 p-6 ${className}`}>
       {/* Header with logo and basic info */}
       <div className="flex items-start mb-6">
         <div className="flex-shrink-0 mr-4">
@@ -104,11 +104,11 @@ export function BusinessCard({
             <img
               src={owner.logoUrl}
               alt={`${owner.businessName} logo`}
-              className="w-16 h-16 rounded-full object-cover border-2 border-gray-200 dark:border-gray-600"
+              className="w-16 h-16 rounded-full object-cover border-2 border-gray-200"
             />
           ) : (
-            <div className="w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
-              <span className="text-2xl font-bold text-gray-400 dark:text-gray-500">
+            <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center">
+              <span className="text-2xl font-bold text-gray-400">
                 {owner.businessName.charAt(0).toUpperCase()}
               </span>
             </div>
@@ -116,11 +116,11 @@ export function BusinessCard({
         </div>
         
         <div className="flex-1">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-1">
+          <h2 className="text-xl font-bold text-gray-900 mb-1">
             {owner.businessName}
           </h2>
           {owner.name && (
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+            <p className="text-sm text-gray-600 mb-2">
               by {owner.name}
             </p>
           )}
@@ -128,8 +128,8 @@ export function BusinessCard({
           {/* Location and specializations */}
           <div className="flex flex-wrap gap-2 mb-3">
             {owner.city && (
-              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200">
-                📍 {owner.city}
+              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                {owner.city}
               </span>
             )}
             {owner.area && (
@@ -161,7 +161,7 @@ export function BusinessCard({
       {/* Business description */}
       {owner.businessIntro && (
         <div className="mb-6">
-          <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
+          <p className="text-gray-700 leading-relaxed">
             {owner.businessIntro}
           </p>
         </div>
@@ -169,24 +169,24 @@ export function BusinessCard({
 
       {/* Contact information */}
       <div className="mb-6">
-        <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">
+        <h3 className="text-sm font-semibold text-gray-900 mb-3">
           Contact Information
         </h3>
         <div className="space-y-2">
           {owner.address && (
             <div className="flex items-start">
-              <span className="text-gray-400 dark:text-gray-500 mr-2">📍</span>
-              <span className="text-sm text-gray-600 dark:text-gray-400">{owner.address}</span>
+              <span className="text-gray-400 mr-2">Location:</span>
+              <span className="text-sm text-gray-600">{owner.address}</span>
             </div>
           )}
           {owner.website && (
             <div className="flex items-center">
-              <span className="text-gray-400 dark:text-gray-500 mr-2">🌐</span>
+              <span className="text-gray-400 mr-2">🌐</span>
               <a
                 href={owner.website}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-sm text-accent-600 dark:text-accent-400 hover:text-accent-700 dark:hover:text-accent-300 transition-colors"
+                className="text-sm text-accent-600 hover:text-accent-700 transition-colors"
               >
                 {owner.website}
               </a>
@@ -198,7 +198,7 @@ export function BusinessCard({
       {/* Social Links */}
       {showSocialLinks && (owner.facebookUrl || owner.instagramUrl || owner.website) && (
         <div className="mb-6">
-          <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">
+          <h3 className="text-sm font-semibold text-gray-900 mb-3">
             Follow Us
           </h3>
           <SocialLinks
