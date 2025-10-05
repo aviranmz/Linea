@@ -291,7 +291,7 @@ export class WebhookService {
       take: limit
     })
 
-    return logs.map(log => {
+    return logs.map((log: any) => {
       const metadata = log.metadata as any
       return {
         id: log.resourceId,

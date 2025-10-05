@@ -1594,7 +1594,7 @@ app.get('/api/admin/users', async (request, reply) => {
 
     // Get event registrations count for each user
     const usersWithStats = await Promise.all(
-      users.map(async (user) => {
+      users.map(async (user: any) => {
         // Count event registrations (this would need to be implemented based on your event registration model)
         const eventRegistrations = 0 // Placeholder - you'll need to implement this based on your data model
         
@@ -1922,7 +1922,7 @@ app.get('/api/owner/events/:eventId/waitlist', async (request, reply) => {
   })
   
   // Add position numbers
-  const entriesWithPosition = entries.map((entry, index) => ({
+  const entriesWithPosition = entries.map((entry: any, index: number) => ({
     ...entry,
     position: index + 1
   }))
@@ -1978,7 +1978,7 @@ app.get('/api/owner/events/:eventId/waitlist/export', async (request, reply) => 
   
   // Generate CSV
   const csvHeader = 'Position,Email,Name,Business Name,Status,Joined Date\n'
-  const csvRows = entries.map((entry, index) => {
+  const csvRows = entries.map((entry: any, index: number) => {
     const name = entry.user?.name || ''
     const businessName = entry.user?.businessName || ''
     const joinedDate = new Date(entry.createdAt).toLocaleDateString()
@@ -2045,7 +2045,7 @@ app.get('/api/owner/registered-users', async (request, reply) => {
       return
     }
 
-    const eventIds = ownerEvents.map(event => event.id)
+    const eventIds = ownerEvents.map((event: any) => event.id)
     
     // Build where clause for waitlist entries
     const where: any = {
@@ -2089,7 +2089,7 @@ app.get('/api/owner/registered-users', async (request, reply) => {
     // Group by user to get unique users with their events
     const userMap = new Map()
     
-    allEntries.forEach(entry => {
+    allEntries.forEach((entry: any) => {
       const userId = entry.user?.id || entry.email
       if (!userMap.has(userId)) {
         userMap.set(userId, {
@@ -2196,7 +2196,7 @@ app.post('/api/owner/bulk-email', async (request, reply) => {
     reply.send({
       success: true,
       message: `Email sent to ${users.length} users`,
-      recipients: users.map(u => ({ id: u.id, email: u.email, name: u.name }))
+      recipients: users.map((u: any) => ({ id: u.id, email: u.email, name: u.name }))
     })
   } catch (error) {
     request.log.error({ error }, 'Failed to send bulk email')
@@ -2389,9 +2389,9 @@ app.get('/api/analytics/event/:eventId', async (request, reply) => {
       metrics.totalViews = totalViews
       metrics.uniqueUsers = uniqueUsersResult.length
       metrics.totalInteractions = totalInteractions
-      metrics.topCountries = topCountriesResult.map(c => ({ country: c.country, count: c._count.id }))
-      metrics.topDevices = topDevicesResult.map(d => ({ device: d.deviceType, count: d._count.id }))
-      metrics.recentViews = recentViewsResult.map(v => ({
+      metrics.topCountries = topCountriesResult.map((c: any) => ({ country: c.country, count: c._count.id }))
+      metrics.topDevices = topDevicesResult.map((d: any) => ({ device: d.deviceType, count: d._count.id }))
+      metrics.recentViews = recentViewsResult.map((v: any) => ({
         id: v.id,
         userId: v.userId,
         userName: v.user?.name,
@@ -2454,7 +2454,7 @@ app.get('/api/analytics/owner', async (request, reply) => {
       return
     }
 
-    const eventIds = ownerEvents.map(e => e.id)
+    const eventIds = ownerEvents.map((e: any) => e.id)
 
     // Get analytics data
     const [totalViews, uniqueUsers, totalInteractions, topEvents, topCountries, topDevices] = await Promise.all([
@@ -2482,8 +2482,8 @@ app.get('/api/analytics/owner', async (request, reply) => {
         _count: { id: true },
         orderBy: { _count: { id: 'desc' } },
         take: 5
-      }).then(results => 
-        results.map(r => {
+      }).then((results: any) => 
+        results.map((r: any) => {
           const event = ownerEvents.find(e => e.id === r.eventId)
           return {
             eventId: r.eventId,
@@ -2528,8 +2528,8 @@ app.get('/api/analytics/owner', async (request, reply) => {
         totalWaitlist,
         totalInteractions,
         topEvents,
-        topCountries: topCountries.map(c => ({ country: c.country, count: c._count.id })),
-        topDevices: topDevices.map(d => ({ device: d.deviceType, count: d._count.id }))
+        topCountries: topCountries.map((c: any) => ({ country: c.country, count: c._count.id })),
+        topDevices: topDevices.map((d: any) => ({ device: d.deviceType, count: d._count.id }))
       }
     })
   } catch (error) {
@@ -4368,7 +4368,7 @@ app.get('/api/user/follows', async (request, reply) => {
     ])
 
     reply.send({
-      follows: follows.map(f => ({
+      follows: follows.map((f: any) => ({
         id: f.id,
         user: f.following,
         followedAt: f.createdAt
@@ -4428,7 +4428,7 @@ app.get('/api/user/followers', async (request, reply) => {
     ])
 
     reply.send({
-      followers: followers.map(f => ({
+      followers: followers.map((f: any) => ({
         id: f.id,
         user: f.follower,
         followedAt: f.createdAt

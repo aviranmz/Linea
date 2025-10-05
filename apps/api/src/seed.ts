@@ -543,7 +543,7 @@ async function main() {
     console.log('✅ Events already exist, skipping event creation to prevent duplicates')
   } else {
     console.log('🌱 No events found, creating sample events...')
-    const existingSlugs = new Set(existingEvents.map(e => e.slug))
+    const existingSlugs = new Set(existingEvents.map((e: any) => e.slug))
     const events = []
     
     if (!existingSlugs.has('milano-design-week-2024')) {
