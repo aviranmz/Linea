@@ -7,5 +7,15 @@ cmds = ["pnpm install --frozen-lockfile"]
 [phases.build]
 cmds = ["pnpm build"]
 
+# Ensure uploads and scripts are available in production
+[phases.postBuild]
+cmds = [
+  "echo 'Ensuring uploads and scripts directories exist...'",
+  "mkdir -p apps/api/uploads",
+  "mkdir -p apps/api/scripts", 
+  "mkdir -p scripts",
+  "echo 'Directories created successfully'"
+]
+
 [start]
 cmd = "pnpm start"
