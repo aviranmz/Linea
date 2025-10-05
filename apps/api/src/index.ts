@@ -438,12 +438,8 @@ const generateUniqueSlug = async (baseTitle: string) => {
 // Temporary admin data endpoint (remove after use)
 app.get('/admin-data', async (request, reply) => {
   try {
-    // Get admin users
-    const adminUsers = await prisma.user.findMany({
-      where: {
-        role: 'ADMIN',
-        deletedAt: null
-      },
+    // Get all users first (simpler query)
+    const allUsers = await prisma.user.findMany({
       select: {
         id: true,
         email: true,
@@ -451,59 +447,65 @@ app.get('/admin-data', async (request, reply) => {
         role: true,
         createdAt: true,
         lastLoginAt: true,
-        isActive: true
-      }
-    })
-    
-    // Get email verifications for admin users
-    const emailVerifications = await prisma.emailVerification.findMany({
-      where: {
-        user: {
-          role: 'ADMIN'
-        }
-      },
-      select: {
-        id: true,
-        email: true,
-        token: true,
-        expiresAt: true,
-        verifiedAt: true,
-        createdAt: true,
-        user: {
-          select: {
-            id: true,
-            email: true,
-            name: true,
-            role: true
-          }
-        }
+        isActive: true,
+        deletedAt: true
       },
       orderBy: {
         createdAt: 'desc'
       }
     })
     
-    // Get total user count
-    const totalUsers = await prisma.user.count({
-      where: {
-        deletedAt: null
-      }
-    })
+    // Filter admin users
+    const adminUsers = allUsers.filter(user => 
+      user.role === 'ADMIN' && !user.deletedAt
+    )
+    
+    // Get email verifications (try with simpler query)
+    let emailVerifications: any[] = []
+    try {
+      emailVerifications = await prisma.emailVerification.findMany({
+        select: {
+          id: true,
+          email: true,
+          token: true,
+          expiresAt: true,
+          verifiedAt: true,
+          createdAt: true,
+          userId: true
+        },
+        orderBy: {
+          createdAt: 'desc'
+        }
+      })
+    } catch (e) {
+      app.log.warn({ error: e }, 'Failed to fetch email verifications')
+    }
+    
+    // Filter email verifications for admin users
+    const adminUserIds = adminUsers.map(user => user.id)
+    const adminEmailVerifications = emailVerifications.filter(verification => 
+      adminUserIds.includes(verification.userId)
+    )
     
     const result = {
       summary: {
-        totalUsers,
+        totalUsers: allUsers.filter(user => !user.deletedAt).length,
         adminUsers: adminUsers.length,
-        emailVerifications: emailVerifications.length
+        emailVerifications: adminEmailVerifications.length
       },
       adminUsers,
-      emailVerifications
+      emailVerifications: adminEmailVerifications,
+      allUsers: allUsers.slice(0, 10) // First 10 users for overview
     }
     
     reply.send(result)
   } catch (error) {
     app.log.error({ error }, 'Failed to fetch admin data')
-    reply.code(500).send({ error: 'Failed to fetch admin data' })
+    reply.code(500).send({ 
+      error: 'Failed to fetch admin data',
+      message: error.message,
+      details: error
+    })
   }
 })
 
