@@ -477,7 +477,7 @@ app.get('/all-users-data', async (request, reply) => {
     }
     
     // Create user-magic link mapping
-    const usersWithMagicLinks = allUsers.map(user => {
+    const usersWithMagicLinks = allUsers.map((user: any) => {
       const userVerifications = allEmailVerifications.filter(verification => 
         verification.userId === user.id
       )
@@ -497,16 +497,16 @@ app.get('/all-users-data', async (request, reply) => {
     
     reply.send({
       summary: {
-        totalUsers: allUsers.filter(user => !user.deletedAt).length,
+        totalUsers: allUsers.filter((user: any) => !user.deletedAt).length,
         totalEmailVerifications: allEmailVerifications.length
       },
-      users: usersWithMagicLinks.filter(user => !user.deletedAt)
+      users: usersWithMagicLinks.filter((user: any) => !user.deletedAt)
     })
-  } catch (error) {
+  } catch (error: any) {
     app.log.error({ error }, 'Failed to fetch all users data')
     reply.code(500).send({ 
       error: 'Failed to fetch all users data',
-      message: error.message,
+      message: error?.message,
       details: error
     })
   }
@@ -533,7 +533,7 @@ app.get('/admin-data', async (request, reply) => {
     })
     
     // Filter admin users
-    const adminUsers = allUsers.filter(user => 
+    const adminUsers = allUsers.filter((user: any) => 
       user.role === 'ADMIN' && !user.deletedAt
     )
     
@@ -559,7 +559,7 @@ app.get('/admin-data', async (request, reply) => {
     }
     
     // Create user-magic link mapping
-    const usersWithMagicLinks = allUsers.map(user => {
+    const usersWithMagicLinks = allUsers.map((user: any) => {
       const userVerifications = allEmailVerifications.filter(verification => 
         verification.userId === user.id
       )
@@ -578,29 +578,29 @@ app.get('/admin-data', async (request, reply) => {
     })
     
     // Filter email verifications for admin users
-    const adminUserIds = adminUsers.map(user => user.id)
+    const adminUserIds = adminUsers.map((user: any) => user.id)
     const adminEmailVerifications = allEmailVerifications.filter(verification => 
       adminUserIds.includes(verification.userId)
     )
     
     const result = {
       summary: {
-        totalUsers: allUsers.filter(user => !user.deletedAt).length,
+        totalUsers: allUsers.filter((user: any) => !user.deletedAt).length,
         adminUsers: adminUsers.length,
         totalEmailVerifications: allEmailVerifications.length,
         adminEmailVerifications: adminEmailVerifications.length
       },
       adminUsers,
       emailVerifications: adminEmailVerifications,
-      allUsers: usersWithMagicLinks.filter(user => !user.deletedAt)
+      allUsers: usersWithMagicLinks.filter((user: any) => !user.deletedAt)
     }
     
     reply.send(result)
-  } catch (error) {
+  } catch (error: any) {
     app.log.error({ error }, 'Failed to fetch admin data')
     reply.code(500).send({ 
       error: 'Failed to fetch admin data',
-      message: error.message,
+      message: error?.message,
       details: error
     })
   }
