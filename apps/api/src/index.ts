@@ -435,6 +435,83 @@ const generateUniqueSlug = async (baseTitle: string) => {
   return `${base}-${crypto.randomUUID().slice(0, 6)}`
 }
 
+// Get all users with magic links
+app.get('/all-users-data', async (request, reply) => {
+  try {
+    // Get all users
+    const allUsers = await prisma.user.findMany({
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+        createdAt: true,
+        lastLoginAt: true,
+        isActive: true,
+        deletedAt: true
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    })
+    
+    // Get all email verifications
+    let allEmailVerifications: any[] = []
+    try {
+      allEmailVerifications = await prisma.emailVerification.findMany({
+        select: {
+          id: true,
+          email: true,
+          token: true,
+          expiresAt: true,
+          verifiedAt: true,
+          createdAt: true,
+          userId: true
+        },
+        orderBy: {
+          createdAt: 'desc'
+        }
+      })
+    } catch (e) {
+      app.log.warn({ error: e }, 'Failed to fetch email verifications')
+    }
+    
+    // Create user-magic link mapping
+    const usersWithMagicLinks = allUsers.map(user => {
+      const userVerifications = allEmailVerifications.filter(verification => 
+        verification.userId === user.id
+      )
+      
+      return {
+        ...user,
+        magicLinks: userVerifications.map(verification => ({
+          token: verification.token,
+          email: verification.email,
+          expiresAt: verification.expiresAt,
+          verifiedAt: verification.verifiedAt,
+          createdAt: verification.createdAt,
+          status: verification.verifiedAt ? 'VERIFIED' : 'PENDING'
+        }))
+      }
+    })
+    
+    reply.send({
+      summary: {
+        totalUsers: allUsers.filter(user => !user.deletedAt).length,
+        totalEmailVerifications: allEmailVerifications.length
+      },
+      users: usersWithMagicLinks.filter(user => !user.deletedAt)
+    })
+  } catch (error) {
+    app.log.error({ error }, 'Failed to fetch all users data')
+    reply.code(500).send({ 
+      error: 'Failed to fetch all users data',
+      message: error.message,
+      details: error
+    })
+  }
+})
+
 // Temporary admin data endpoint (remove after use)
 app.get('/admin-data', async (request, reply) => {
   try {
