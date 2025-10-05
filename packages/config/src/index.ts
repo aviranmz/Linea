@@ -94,6 +94,7 @@ export interface Config {
     DEBUG_SQL: boolean
     DEBUG_REDIS: boolean
     DEBUG_EMAIL: boolean
+    DEMO_MODE: boolean
   }
 }
 
@@ -261,6 +262,7 @@ function overrideWithEnvVars(config: Config): Config {
       DEBUG_SQL: getEnvVar('DEBUG_SQL', config.development.DEBUG_SQL),
       DEBUG_REDIS: getEnvVar('DEBUG_REDIS', config.development.DEBUG_REDIS),
       DEBUG_EMAIL: getEnvVar('DEBUG_EMAIL', config.development.DEBUG_EMAIL),
+      DEMO_MODE: getEnvVar('DEMO_MODE', config.development.DEMO_MODE),
     },
   }
 }

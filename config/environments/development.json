@@ -90,7 +90,8 @@
     "SEED_SAMPLE_EVENTS": true,
     "DEBUG_SQL": true,
     "DEBUG_REDIS": true,
-    "DEBUG_EMAIL": true
+    "DEBUG_EMAIL": true,
+    "DEMO_MODE": true
   }
 }
 

@@ -4704,15 +4704,46 @@ app.post('/auth/dev/login', async (request, reply) => {
 
 // Dev-only: reusable login link that creates a session and redirects
 app.get('/auth/dev/login-link', async (request, reply) => {
-  if (!(shouldShowMagicLink || config.environment.NODE_ENV !== 'production')) {
+  const { email, role, name, redirect } = request.query as { email?: string; role?: 'VISITOR'|'OWNER'|'ADMIN'; name?: string; redirect?: string }
+  
+  // Check if dev login is allowed
+  const isDevMode = config.environment.NODE_ENV !== 'production'
+  const isDemoMode = config.development.DEMO_MODE === true
+  
+  // Define allowed demo users when DEMO_MODE is enabled
+  const allowedDemoUsers = [
+    'admin@example.com',
+    'owner1@example.com', 
+    'owner2@example.com'
+  ]
+  
+  // Check if access is allowed
+  if (!isDevMode && !isDemoMode) {
     reply.code(403).send({ error: 'Forbidden' })
     return
   }
-  const { email, role, name, redirect } = request.query as { email?: string; role?: 'VISITOR'|'OWNER'|'ADMIN'; name?: string; redirect?: string }
+  
+  // In demo mode, only allow specific users
+  if (isDemoMode && email && !allowedDemoUsers.includes(email)) {
+    reply.code(403).send({ error: 'Demo mode: Only specific users allowed' })
+    return
+  }
+  
+  // In non-demo dev mode, require magic link flag
+  if (isDevMode && !isDemoMode && !shouldShowMagicLink) {
+    reply.code(403).send({ error: 'Forbidden' })
+    return
+  }
+  
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-  if (!email || !emailRegex.test(email)) { reply.code(400).send({ error: 'Invalid email' }); return }
+  if (!email || !emailRegex.test(email)) { 
+    reply.code(400).send({ error: 'Invalid email' })
+    return 
+  }
+  
   const desiredRole = (role || 'VISITOR')
   let user: { id: string; email: string; role: 'VISITOR'|'OWNER'|'ADMIN'; name?: string | null }
+  
   try {
     user = await prisma.user.upsert({
       where: { email },
