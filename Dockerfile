@@ -53,6 +53,7 @@ RUN pnpm --filter @linea/config build
 
 # Copy built applications
 COPY --from=base /app/apps/web/dist ./apps/web/dist
+COPY --from=base /app/apps/web/public ./apps/web/public
 COPY --from=base /app/apps/api/dist ./apps/api/dist
 COPY --from=base /app/apps/api/prisma ./apps/api/prisma
 

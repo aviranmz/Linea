@@ -274,6 +274,13 @@ await app.register(fastifyStatic, {
   decorateReply: false
 })
 
+// Serve images from frontend public directory
+await app.register(fastifyStatic, {
+  root: path.join(__dirname, '../../web/public'),
+  prefix: '/',
+  decorateReply: false
+})
+
 // Serve static files from the frontend build
 await app.register(fastifyStatic, {
   root: path.join(__dirname, '../../web/dist'),
