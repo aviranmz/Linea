@@ -346,17 +346,20 @@ const createSessionAndSetCookie = async (reply: FastifyReply, user: { id: string
     role: user.role,
     name: user.name || null
   }, sessionDuration)
-  // Always persist DB session as fallback
-  try {
-    await prisma.session.create({
-      data: {
-        userId: user.id,
-        token: sessionToken,
-        expiresAt: new Date(Date.now() + sessionDuration)
-      }
-    })
-  } catch (e) {
-    // ignore if table missing in mock mode
+  
+  // Only try to persist DB session if not using in-memory sessions
+  if (process.env.SESSION_MOCK !== 'true') {
+    try {
+      await prisma.session.create({
+        data: {
+          userId: user.id,
+          token: sessionToken,
+          expiresAt: new Date(Date.now() + sessionDuration)
+        }
+      })
+    } catch (e) {
+      // ignore if table missing in mock mode
+    }
   }
 
   reply.setCookie(
