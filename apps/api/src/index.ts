@@ -460,10 +460,10 @@ app.get('/admin-data', async (request, reply) => {
       user.role === 'ADMIN' && !user.deletedAt
     )
     
-    // Get email verifications (try with simpler query)
-    let emailVerifications: any[] = []
+    // Get all email verifications
+    let allEmailVerifications: any[] = []
     try {
-      emailVerifications = await prisma.emailVerification.findMany({
+      allEmailVerifications = await prisma.emailVerification.findMany({
         select: {
           id: true,
           email: true,
@@ -481,9 +481,28 @@ app.get('/admin-data', async (request, reply) => {
       app.log.warn({ error: e }, 'Failed to fetch email verifications')
     }
     
+    // Create user-magic link mapping
+    const usersWithMagicLinks = allUsers.map(user => {
+      const userVerifications = allEmailVerifications.filter(verification => 
+        verification.userId === user.id
+      )
+      
+      return {
+        ...user,
+        magicLinks: userVerifications.map(verification => ({
+          token: verification.token,
+          email: verification.email,
+          expiresAt: verification.expiresAt,
+          verifiedAt: verification.verifiedAt,
+          createdAt: verification.createdAt,
+          status: verification.verifiedAt ? 'VERIFIED' : 'PENDING'
+        }))
+      }
+    })
+    
     // Filter email verifications for admin users
     const adminUserIds = adminUsers.map(user => user.id)
-    const adminEmailVerifications = emailVerifications.filter(verification => 
+    const adminEmailVerifications = allEmailVerifications.filter(verification => 
       adminUserIds.includes(verification.userId)
     )
     
@@ -491,11 +510,12 @@ app.get('/admin-data', async (request, reply) => {
       summary: {
         totalUsers: allUsers.filter(user => !user.deletedAt).length,
         adminUsers: adminUsers.length,
-        emailVerifications: adminEmailVerifications.length
+        totalEmailVerifications: allEmailVerifications.length,
+        adminEmailVerifications: adminEmailVerifications.length
       },
       adminUsers,
       emailVerifications: adminEmailVerifications,
-      allUsers: allUsers.slice(0, 10) // First 10 users for overview
+      allUsers: usersWithMagicLinks.filter(user => !user.deletedAt)
     }
     
     reply.send(result)
