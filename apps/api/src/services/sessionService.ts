@@ -20,7 +20,16 @@ export class SessionService {
 
   constructor() {
     const config = getConfig()
-    
+    // Force in-memory sessions when SESSION_MOCK=true (explicit override)
+    const forceMockSessions = String(process.env.SESSION_MOCK).toLowerCase() === 'true'
+
+    if (forceMockSessions) {
+      console.warn('SESSION_MOCK=true → Using in-memory sessions (Redis disabled)')
+      this.client = null
+      this.memoryStore = new Map<string, SessionData>()
+      return
+    }
+
     // Check if Redis URL is available
     if (!config.redis.REDIS_URL || config.redis.REDIS_URL.includes('production-redis')) {
       console.warn('Redis not configured, using in-memory sessions (dev only)')
