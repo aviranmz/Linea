@@ -290,7 +290,7 @@ async function main() {
               instagram: '@linea_events',
               twitter: '@linea_events',
             },
-            heroImageUrl: `/images/events/${eventData.slug}-hero.jpg`,
+            heroImageUrl: `/images/design-events.jpg`,
             galleryImages: [
               `/images/events/${eventData.slug}-1.jpg`,
               `/images/events/${eventData.slug}-2.jpg`,
@@ -334,7 +334,7 @@ async function main() {
               instagram: '@linea_events',
               twitter: '@linea_events',
             },
-            heroImageUrl: `/images/events/${eventData.slug}-hero.jpg`,
+            heroImageUrl: `/images/design-events.jpg`,
             galleryImages: [
               `/images/events/${eventData.slug}-1.jpg`,
               `/images/events/${eventData.slug}-2.jpg`,
