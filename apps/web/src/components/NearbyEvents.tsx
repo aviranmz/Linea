@@ -108,15 +108,15 @@ export function NearbyEvents({ eventSlug, limit = 5, showTitle = true }: NearbyE
       
       <div className="space-y-4">
         {nearbyEvents.map((event) => (
-          <div key={event.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+          <Link
+            key={event.id}
+            to={`/events/${event.id}`}
+            className="block border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow focus:outline-none focus:ring-2 focus:ring-accent-500"
+            aria-label={`View event ${event.title}`}
+          >
             <div className="flex items-start justify-between mb-2">
-              <h4 className="font-semibold text-gray-900 text-sm">
-                <Link 
-                  to={`/events/${event.id}`}
-                  className="hover:text-accent-600 transition-colors"
-                >
-                  {event.title}
-                </Link>
+              <h4 className="font-semibold text-gray-900 text-sm hover:text-accent-600 transition-colors">
+                {event.title}
               </h4>
               {event.featured && (
                 <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">
@@ -165,7 +165,7 @@ export function NearbyEvents({ eventSlug, limit = 5, showTitle = true }: NearbyE
                 {event._count.waitlist} people interested
               </div>
             )}
-          </div>
+          </Link>
         ))}
       </div>
 

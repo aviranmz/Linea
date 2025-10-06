@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { getJson } from '../lib/api'
 import { NearbyEvents } from '../components/NearbyEvents'
+import { InteractiveMapView } from '../components/InteractiveMapView'
 import { Event } from '../types/Event'
 import { EventList } from '../components/EventList'
 import { HomeSEO } from '../components/SEO'
@@ -478,57 +479,7 @@ export function HomePage() {
           ) : showMap ? (
             <div className="mt-12">
               <div className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
-                <div className="h-96 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
-                  <div className="text-center">
-                    <div className="text-6xl mb-4 text-gray-400">Map</div>
-                    <h3 className="text-xl font-semibold text-gray-700 mb-2">
-                      Interactive Map View
-                    </h3>
-                    <p className="text-gray-600 mb-4">
-                      {filteredEvents.length} events found
-                    </p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-4xl">
-                      {filteredEvents.slice(0, 6).map((event) => (
-                        <div key={event.id} className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
-                          <div className="flex items-start justify-between mb-2">
-                            <h4 className="font-semibold text-sm text-gray-900">
-                              {event.title}
-                            </h4>
-                            {event.featured && (
-                              <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">
-                                Featured
-                              </span>
-                            )}
-                          </div>
-                          {event.venue && (
-                            <p className="text-xs text-gray-600 mb-2">
-                              {event.venue.city}, {event.venue.country}
-                            </p>
-                          )}
-                          <p className="text-xs text-gray-500">
-                            {formatDate(event.startDate)}
-                          </p>
-                          {event.category && (
-                            <span 
-                              className="inline-block text-xs px-2 py-1 rounded-full mt-2"
-                              style={{ 
-                                backgroundColor: `${event.category.color}20`,
-                                color: event.category.color
-                              }}
-                            >
-                              {event.category.icon} {event.category.name}
-                            </span>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                    {filteredEvents.length > 6 && (
-                      <p className="text-sm text-gray-500 mt-4">
-                        And {filteredEvents.length - 6} more events...
-                      </p>
-                    )}
-                  </div>
-                </div>
+                <InteractiveMapView events={filteredEvents} />
               </div>
             </div>
           ) : (

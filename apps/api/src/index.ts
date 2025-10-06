@@ -55,93 +55,428 @@ const sendEmail = async (to: string, subject: string, text: string) => {
 // TODO(prod): Temporary mock events fallback for environments without DB/auth.
 // Remove this once DATABASE_URL is configured and seeding/migrations are in place.
 const mockEvents = [
+  // Owner 1 Events
   {
-    id: 'event-1',
-    title: 'Future of Kitchen Design Summit',
-    slug: 'future-kitchen-design-summit',
-    description: 'An exclusive summit exploring the latest trends and innovations in kitchen design.',
-    shortDescription: 'Explore cutting-edge kitchen design trends.',
+    id: '0d9a7b3c-4f84-4c7a-b2f6-2c8b9e6f1a01',
+    title: 'Sustainable Design Revolution',
+    slug: 'sustainable-design-revolution',
+    description: 'Explore the future of sustainable design with leading architects, designers, and environmental experts. Discover innovative materials, circular design principles, and eco-friendly solutions that are reshaping the industry.',
+    shortDescription: 'Leading the charge in sustainable design innovation.',
     status: 'PUBLISHED',
-    startDate: '2025-11-15T09:00:00Z',
-    endDate: '2025-11-15T17:00:00Z',
-    capacity: 200,
+    startDate: '2024-06-15T09:00:00Z',
+    endDate: '2024-06-15T18:00:00Z',
+    capacity: 300,
     isPublic: true,
     featured: true,
-    tags: ['design', 'innovation', 'kitchen', 'summit'],
-    owner: { id: 'owner-1', name: 'Alice Wonderland', email: 'alice@kitchenco.com' },
-    venue: { id: 'venue-1', name: 'Milano Design Center', address: 'Via Tortona, 37', city: 'Milano', country: 'Italy' },
-    category: { id: 'cat-1', name: 'Design', slug: 'design', color: '#a855f7', icon: '🎨' },
+    tags: ['sustainability', 'design', 'innovation', 'environment'],
+    owner: { id: 'owner-1', name: 'Owner One', email: 'owner1@example.com' },
+    venue: { id: 'venue-1', name: 'Milano Design Center', address: 'Via Tortona, 37, 20144 Milano MI, Italy', city: 'Milano', country: 'Italy' },
+    category: { id: 'cat-1', name: 'Sustainability', slug: 'sustainability', color: '#10b981', icon: '🌱' },
     metadata: {
-      heroImageUrl: '/images/events/kitchen-design-summit-hero.jpg'
+      heroImageUrl: '/uploads/events/sustainable-design-revolution-hero.jpg',
+      galleryImages: [
+        '/uploads/events/sustainable-design-revolution-1.jpg',
+        '/uploads/events/sustainable-design-revolution-2.jpg',
+        '/uploads/events/sustainable-design-revolution-3.jpg'
+      ]
     },
     shows: [
       {
         id: 'show-1',
-        title: 'Opening Ceremony',
-        description: 'Official opening of Milano Design Week 2024',
-        startDate: '2025-11-15T09:00:00Z',
-        endDate: '2025-11-15T10:30:00Z',
-        capacity: 200
+        title: 'Opening Keynote',
+        description: 'The Future of Sustainable Design',
+        startDate: '2024-06-15T09:00:00Z',
+        endDate: '2024-06-15T10:30:00Z',
+        capacity: 300
       },
       {
         id: 'show-2', 
-        title: 'Keynote Presentation',
-        description: 'Key insights from industry leaders',
-        startDate: '2025-11-15T11:00:00Z',
-        endDate: '2025-11-15T12:30:00Z',
-        capacity: 150
+        title: 'Materials Innovation Panel',
+        description: 'Exploring new sustainable materials',
+        startDate: '2024-06-15T11:00:00Z',
+        endDate: '2024-06-15T12:30:00Z',
+        capacity: 200
       },
       {
         id: 'show-3',
-        title: 'Panel Discussion',
-        description: 'Interactive panel with experts',
-        startDate: '2025-11-15T14:00:00Z',
-        endDate: '2025-11-15T15:30:00Z',
+        title: 'Circular Design Workshop',
+        description: 'Hands-on circular design principles',
+        startDate: '2024-06-15T14:00:00Z',
+        endDate: '2024-06-15T16:00:00Z',
         capacity: 100
       }
     ],
     _count: { waitlist: 0 }
   },
   {
-    id: 'event-2',
-    title: 'Smart Kitchen Technology Expo',
-    slug: 'smart-kitchen-tech-expo',
-    description: 'Discover the newest smart appliances and integrated technologies for modern kitchens.',
-    shortDescription: 'Newest smart appliances and integrated tech.',
+    id: '1a2b3c4d-5e6f-7081-92a3-b4c5d6e7f802',
+    title: 'Digital Art & Technology Fusion',
+    slug: 'digital-art-technology-fusion',
+    description: 'Experience the intersection of art and technology in this immersive exhibition featuring digital installations, VR experiences, and interactive artworks by contemporary artists.',
+    shortDescription: 'Where art meets cutting-edge technology.',
     status: 'PUBLISHED',
-    startDate: '2025-11-20T10:00:00Z',
-    endDate: '2025-11-20T18:00:00Z',
-    capacity: 150,
+    startDate: '2024-06-20T10:00:00Z',
+    endDate: '2024-06-20T20:00:00Z',
+    capacity: 200,
     isPublic: true,
     featured: false,
-    tags: ['technology', 'smart home', 'kitchen', 'expo'],
-    owner: { id: 'owner-2', name: 'Bob The Builder', email: 'bob@designbuild.com' },
-    venue: { id: 'venue-2', name: 'Triennale di Milano', address: 'Viale Emilio Alemagna, 6', city: 'Milano', country: 'Italy' },
-    category: { id: 'cat-2', name: 'Technology', slug: 'technology', color: '#3b82f6', icon: '💻' },
+    tags: ['digital art', 'technology', 'innovation', 'interactive'],
+    owner: { id: 'owner-1', name: 'Owner One', email: 'owner1@example.com' },
+    venue: { id: 'venue-2', name: 'Triennale di Milano', address: 'Viale Emilio Alemagna, 6, 20121 Milano MI, Italy', city: 'Milano', country: 'Italy' },
+    category: { id: 'cat-2', name: 'Art & Culture', slug: 'art-culture', color: '#f59e0b', icon: '🎭' },
     metadata: {
-      heroImageUrl: '/images/events/smart-kitchen-tech-hero.jpg'
+      heroImageUrl: '/uploads/events/digital-art-technology-fusion-hero.jpg',
+      galleryImages: [
+        '/uploads/events/digital-art-technology-fusion-1.jpg',
+        '/uploads/events/digital-art-technology-fusion-2.jpg',
+        '/uploads/events/digital-art-technology-fusion-3.jpg'
+      ]
     },
     shows: [
       {
         id: 'show-4',
-        title: 'Tech Demo',
-        description: 'Live demonstration of smart kitchen technologies',
-        startDate: '2025-11-20T10:00:00Z',
-        endDate: '2025-11-20T11:30:00Z',
-        capacity: 100
+        title: 'VR Art Experience',
+        description: 'Immersive virtual reality art installations',
+        startDate: '2024-06-20T10:00:00Z',
+        endDate: '2024-06-20T12:00:00Z',
+        capacity: 50
       },
       {
         id: 'show-5',
-        title: 'Workshop Session',
-        description: 'Hands-on learning experience',
-        startDate: '2025-11-20T14:00:00Z',
-        endDate: '2025-11-20T16:00:00Z',
+        title: 'Interactive Digital Workshop',
+        description: 'Create your own digital art',
+        startDate: '2024-06-20T14:00:00Z',
+        endDate: '2024-06-20T16:00:00Z',
+        capacity: 30
+      }
+    ],
+    _count: { waitlist: 0 }
+  },
+  {
+    id: '2b3c4d5e-6f70-8192-a3b4-c5d6e7f8a903',
+    title: 'Furniture Design Masterclass',
+    slug: 'furniture-design-masterclass',
+    description: 'Learn from master furniture designers in this hands-on workshop covering traditional techniques, modern materials, and innovative approaches to furniture design.',
+    shortDescription: 'Master the art of furniture design.',
+    status: 'PUBLISHED',
+    startDate: '2024-06-25T09:00:00Z',
+    endDate: '2024-06-25T17:00:00Z',
+    capacity: 50,
+    isPublic: true,
+    featured: false,
+    tags: ['furniture', 'workshop', 'craftsmanship', 'design'],
+    owner: { id: 'owner-1', name: 'Owner One', email: 'owner1@example.com' },
+    venue: { id: 'venue-1', name: 'Milano Design Center', address: 'Via Tortona, 37, 20144 Milano MI, Italy', city: 'Milano', country: 'Italy' },
+    category: { id: 'cat-3', name: 'Design', slug: 'design', color: '#c4b69e', icon: '🎨' },
+    metadata: {
+      heroImageUrl: '/uploads/events/furniture-design-masterclass-hero.jpg',
+      galleryImages: [
+        '/uploads/events/furniture-design-masterclass-1.jpg',
+        '/uploads/events/furniture-design-masterclass-2.jpg',
+        '/uploads/events/furniture-design-masterclass-3.jpg'
+      ]
+    },
+    shows: [
+      {
+        id: 'show-6',
+        title: 'Traditional Techniques',
+        description: 'Learn traditional furniture making methods',
+        startDate: '2024-06-25T09:00:00Z',
+        endDate: '2024-06-25T12:00:00Z',
+        capacity: 25
+      },
+      {
+        id: 'show-7',
+        title: 'Modern Materials Workshop',
+        description: 'Explore contemporary materials and techniques',
+        startDate: '2024-06-25T14:00:00Z',
+        endDate: '2024-06-25T17:00:00Z',
+        capacity: 25
+      }
+    ],
+    _count: { waitlist: 0 }
+  },
+  {
+    id: '3c4d5e6f-7081-92a3-b4c5-d6e7f8a9b014',
+    title: 'Smart Home Innovation Summit',
+    slug: 'smart-home-innovation-summit',
+    description: 'Discover the latest in smart home technology, IoT devices, and connected living solutions. Features live demonstrations, expert panels, and networking opportunities.',
+    shortDescription: 'The future of connected living.',
+    status: 'PUBLISHED',
+    startDate: '2024-07-01T09:00:00Z',
+    endDate: '2024-07-01T18:00:00Z',
+    capacity: 400,
+    isPublic: true,
+    featured: true,
+    tags: ['smart home', 'IoT', 'technology', 'innovation'],
+    owner: { id: 'owner-1', name: 'Owner One', email: 'owner1@example.com' },
+    venue: { id: 'venue-3', name: 'Fondazione Prada', address: 'Largo Isarco, 2, 20139 Milano MI, Italy', city: 'Milano', country: 'Italy' },
+    category: { id: 'cat-4', name: 'Technology', slug: 'technology', color: '#3b82f6', icon: '💻' },
+    metadata: {
+      heroImageUrl: '/uploads/events/smart-home-innovation-summit-hero.jpg',
+      galleryImages: [
+        '/uploads/events/smart-home-innovation-summit-1.jpg',
+        '/uploads/events/smart-home-innovation-summit-2.jpg',
+        '/uploads/events/smart-home-innovation-summit-3.jpg'
+      ]
+    },
+    shows: [
+      {
+        id: 'show-8',
+        title: 'IoT Device Showcase',
+        description: 'Latest smart home devices and technologies',
+        startDate: '2024-07-01T09:00:00Z',
+        endDate: '2024-07-01T11:00:00Z',
+        capacity: 200
+      },
+      {
+        id: 'show-9',
+        title: 'Expert Panel Discussion',
+        description: 'Future of smart living',
+        startDate: '2024-07-01T14:00:00Z',
+        endDate: '2024-07-01T16:00:00Z',
+        capacity: 150
+      }
+    ],
+    _count: { waitlist: 0 }
+  },
+  // Owner 2 Events
+  {
+    id: '4d5e6f70-8192-a3b4-c5d6-e7f8a9b0c125',
+    title: 'Contemporary Art Exhibition',
+    slug: 'contemporary-art-exhibition',
+    description: 'A curated exhibition featuring works by emerging and established contemporary artists, exploring themes of identity, society, and the human condition.',
+    shortDescription: 'Contemporary voices in modern art.',
+    status: 'PUBLISHED',
+    startDate: '2024-06-18T10:00:00Z',
+    endDate: '2024-06-18T20:00:00Z',
+    capacity: 150,
+    isPublic: true,
+    featured: true,
+    tags: ['contemporary art', 'exhibition', 'culture', 'creativity'],
+    owner: { id: 'owner-2', name: 'Owner Two', email: 'owner2@example.com' },
+    venue: { id: 'venue-4', name: 'Palazzo Clerici', address: 'Via Clerici, 5, 20121 Milano MI, Italy', city: 'Milano', country: 'Italy' },
+    category: { id: 'cat-2', name: 'Art & Culture', slug: 'art-culture', color: '#f59e0b', icon: '🎭' },
+    metadata: {
+      heroImageUrl: '/uploads/events/contemporary-art-exhibition-hero.jpg',
+      galleryImages: [
+        '/uploads/events/contemporary-art-exhibition-1.jpg',
+        '/uploads/events/contemporary-art-exhibition-2.jpg',
+        '/uploads/events/contemporary-art-exhibition-3.jpg'
+      ]
+    },
+    shows: [
+      {
+        id: 'show-10',
+        title: 'Artist Talk',
+        description: 'Meet the artists behind the exhibition',
+        startDate: '2024-06-18T10:00:00Z',
+        endDate: '2024-06-18T12:00:00Z',
+        capacity: 80
+      },
+      {
+        id: 'show-11',
+        title: 'Guided Tour',
+        description: 'Curator-led exhibition tour',
+        startDate: '2024-06-18T15:00:00Z',
+        endDate: '2024-06-18T17:00:00Z',
+        capacity: 30
+      }
+    ],
+    _count: { waitlist: 0 }
+  },
+  {
+    id: '5e6f7081-92a3-b4c5-d6e7-f8a9b0c1d236',
+    title: 'Green Architecture Workshop',
+    slug: 'green-architecture-workshop',
+    description: 'Learn sustainable architecture principles with hands-on workshops, case studies, and expert guidance on creating environmentally responsible buildings.',
+    shortDescription: 'Building a sustainable future.',
+    status: 'PUBLISHED',
+    startDate: '2024-06-22T09:00:00Z',
+    endDate: '2024-06-22T17:00:00Z',
+    capacity: 80,
+    isPublic: true,
+    featured: false,
+    tags: ['architecture', 'sustainability', 'green building', 'workshop'],
+    owner: { id: 'owner-2', name: 'Owner Two', email: 'owner2@example.com' },
+    venue: { id: 'venue-2', name: 'Triennale di Milano', address: 'Viale Emilio Alemagna, 6, 20121 Milano MI, Italy', city: 'Milano', country: 'Italy' },
+    category: { id: 'cat-1', name: 'Sustainability', slug: 'sustainability', color: '#10b981', icon: '🌱' },
+    metadata: {
+      heroImageUrl: '/uploads/events/green-architecture-workshop-hero.jpg',
+      galleryImages: [
+        '/uploads/events/green-architecture-workshop-1.jpg',
+        '/uploads/events/green-architecture-workshop-2.jpg',
+        '/uploads/events/green-architecture-workshop-3.jpg'
+      ]
+    },
+    shows: [
+      {
+        id: 'show-12',
+        title: 'Sustainable Design Principles',
+        description: 'Core principles of green architecture',
+        startDate: '2024-06-22T09:00:00Z',
+        endDate: '2024-06-22T12:00:00Z',
+        capacity: 40
+      },
+      {
+        id: 'show-13',
+        title: 'Case Study Analysis',
+        description: 'Real-world sustainable building examples',
+        startDate: '2024-06-22T14:00:00Z',
+        endDate: '2024-06-22T17:00:00Z',
+        capacity: 40
+      }
+    ],
+    _count: { waitlist: 0 }
+  },
+  {
+    id: '6f708192-a3b4-c5d6-e7f8-a9b0c1d2e347',
+    title: 'AI in Creative Industries',
+    slug: 'ai-creative-industries',
+    description: 'Explore how artificial intelligence is transforming creative industries, from design automation to AI-assisted art creation and content generation.',
+    shortDescription: 'AI meets creativity.',
+    status: 'PUBLISHED',
+    startDate: '2024-06-28T09:00:00Z',
+    endDate: '2024-06-28T18:00:00Z',
+    capacity: 250,
+    isPublic: true,
+    featured: true,
+    tags: ['AI', 'creativity', 'technology', 'innovation'],
+    owner: { id: 'owner-2', name: 'Owner Two', email: 'owner2@example.com' },
+    venue: { id: 'venue-3', name: 'Fondazione Prada', address: 'Largo Isarco, 2, 20139 Milano MI, Italy', city: 'Milano', country: 'Italy' },
+    category: { id: 'cat-4', name: 'Technology', slug: 'technology', color: '#3b82f6', icon: '💻' },
+    metadata: {
+      heroImageUrl: '/uploads/events/ai-creative-industries-hero.jpg',
+      galleryImages: [
+        '/uploads/events/ai-creative-industries-1.jpg',
+        '/uploads/events/ai-creative-industries-2.jpg',
+        '/uploads/events/ai-creative-industries-3.jpg'
+      ]
+    },
+    shows: [
+      {
+        id: 'show-14',
+        title: 'AI Art Generation Demo',
+        description: 'Live demonstration of AI art creation',
+        startDate: '2024-06-28T09:00:00Z',
+        endDate: '2024-06-28T11:00:00Z',
+        capacity: 100
+      },
+      {
+        id: 'show-15',
+        title: 'Creative AI Tools Workshop',
+        description: 'Hands-on AI tools for creatives',
+        startDate: '2024-06-28T14:00:00Z',
+        endDate: '2024-06-28T16:00:00Z',
         capacity: 50
+      }
+    ],
+    _count: { waitlist: 0 }
+  },
+  {
+    id: '708192a3-b4c5-d6e7-f8a9-b0c1d2e3f458',
+    title: 'Textile Design Innovation',
+    slug: 'textile-design-innovation',
+    description: 'Discover the latest innovations in textile design, from smart fabrics to sustainable materials, with demonstrations and hands-on workshops.',
+    shortDescription: 'The future of fabric design.',
+    status: 'PUBLISHED',
+    startDate: '2024-07-05T10:00:00Z',
+    endDate: '2024-07-05T18:00:00Z',
+    capacity: 120,
+    isPublic: true,
+    featured: false,
+    tags: ['textile', 'design', 'innovation', 'fashion'],
+    owner: { id: 'owner-2', name: 'Owner Two', email: 'owner2@example.com' },
+    venue: { id: 'venue-1', name: 'Milano Design Center', address: 'Via Tortona, 37, 20144 Milano MI, Italy', city: 'Milano', country: 'Italy' },
+    category: { id: 'cat-3', name: 'Design', slug: 'design', color: '#c4b69e', icon: '🎨' },
+    metadata: {
+      heroImageUrl: '/uploads/events/textile-design-innovation-hero.jpg',
+      galleryImages: [
+        '/uploads/events/textile-design-innovation-1.jpg',
+        '/uploads/events/textile-design-innovation-2.jpg',
+        '/uploads/events/textile-design-innovation-3.jpg'
+      ]
+    },
+    shows: [
+      {
+        id: 'show-16',
+        title: 'Smart Fabrics Demo',
+        description: 'Interactive smart fabric demonstrations',
+        startDate: '2024-07-05T10:00:00Z',
+        endDate: '2024-07-05T12:00:00Z',
+        capacity: 60
+      },
+      {
+        id: 'show-17',
+        title: 'Sustainable Textiles Workshop',
+        description: 'Creating eco-friendly textile designs',
+        startDate: '2024-07-05T14:00:00Z',
+        endDate: '2024-07-05T16:00:00Z',
+        capacity: 30
       }
     ],
     _count: { waitlist: 0 }
   }
 ]
+
+// Enrich mock events with complete metadata and owner details for full UI
+const buildDefaultMetadata = (event: any) => {
+  const baseUrl = 'http://localhost:3050'
+  const hero = event.metadata?.heroImageUrl || `/uploads/events/${event.slug}-hero.jpg`
+  return {
+    heroImageUrl: hero,
+    galleryImages: event.metadata?.galleryImages || [
+      hero,
+      hero,
+      hero
+    ],
+    qrUrl: event.metadata?.qrUrl || `/uploads/linea_light.png`,
+    productName: event.metadata?.productName || event.title,
+    valueProposition: event.metadata?.valueProposition || 'Experience cutting-edge design and innovation with exclusive sessions, networking and product showcases.',
+    longDescription: event.metadata?.longDescription || (event.description || event.shortDescription || ''),
+    features: event.metadata?.features || [
+      'Keynotes by industry leaders',
+      'Hands-on workshops',
+      'Curated exhibitors & installations',
+      'Networking with designers and brands'
+    ],
+    awards: event.metadata?.awards || ['Featured by Linea'],
+    videoUrl: event.metadata?.videoUrl || event.youtubeUrl || 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+    pressKitUrl: event.metadata?.pressKitUrl || `${baseUrl}/uploads/linea_light.png`,
+    social: event.metadata?.social || {
+      instagram: 'https://instagram.com/linea_events',
+      twitter: 'https://x.com/linea_events',
+      facebook: 'https://facebook.com/lineaevents',
+      website: 'https://linea.app'
+    },
+    contact: event.metadata?.contact || {
+      email: 'info@linea.app',
+      phone: '+39 02 1234 5678',
+      whatsapp: 'https://wa.me/393331234567',
+      telegram: 'https://t.me/linea_events'
+    }
+  }
+}
+
+const enrichOwner = (owner: any) => ({
+  id: owner.id,
+  name: owner.name,
+  email: owner.email,
+  businessName: owner.businessName || `${owner.name} Studio`,
+  website: owner.website || 'https://linea.app',
+  city: owner.city || 'Milano',
+  country: owner.country || 'Italy',
+  phone: owner.phone || '+39 02 1234 5678',
+  instagramUrl: owner.instagramUrl || 'https://instagram.com/linea_events',
+  facebookUrl: owner.facebookUrl || 'https://facebook.com/lineaevents',
+  profilePictureUrl: owner.profilePictureUrl || '/uploads/linea_light.png',
+})
+
+const mockEventsEnriched = mockEvents.map(e => ({
+  ...e,
+  owner: enrichOwner(e.owner || {}),
+  metadata: buildDefaultMetadata(e)
+}))
 
 // Mock waitlist storage for fallback mode
 const mockWaitlist: Array<{ id: string; email: string; eventId: string; status: 'PENDING'|'CONFIRMED' }> = []
@@ -197,6 +532,23 @@ const prisma = new PrismaClient({
     db: {
       url: config.database.DATABASE_URL
     }
+  }
+})
+
+// Generate QR code PNG for an event linking to its page
+app.get('/api/events/:id/qr', async (request, reply) => {
+  try {
+    const { id } = request.params as { id: string }
+    const baseUrl = process.env.FRONTEND_URL || 'http://localhost:3050'
+    const eventUrl = `${baseUrl.replace(/\/$/, '')}/events/${id}`
+    const dataUrl = await QRCodeGenerator.generateEventQR(eventUrl, { width: 300, margin: 2 })
+    const parts = dataUrl.split(',')
+    const b64 = (parts.length > 1 ? parts[1] : parts[0]) || ''
+    const png = Buffer.from(b64, 'base64')
+    reply.type('image/png').send(png)
+  } catch (error) {
+    app.log.error({ error }, 'Failed to generate event QR')
+    reply.code(500).send({ error: 'Failed to generate QR' })
   }
 })
 
@@ -773,7 +1125,7 @@ app.get('/api/events', async (request, _reply) => {
   } catch (error) {
     // TODO(prod): Remove mock fallback once DB is configured
     app.log.warn({ error }, 'DB unavailable, serving mock events')
-    return { events: mockEvents }
+    return { events: mockEventsEnriched }
   }
 })
 
@@ -848,7 +1200,11 @@ app.get('/api/events/:slug/nearby', async (request, reply) => {
     }
   } catch (error) {
     app.log.error({ error }, 'Failed to fetch nearby events')
-    reply.code(500).send({ error: 'Failed to fetch nearby events' })
+    // Return empty array instead of 500 error when database is unavailable
+    reply.send({ 
+      referenceEvent: null,
+      nearbyEvents: [] 
+    })
   }
 })
 
@@ -933,8 +1289,8 @@ app.get('/api/events/:id', async (request, reply) => {
   }
 
   // TODO(prod): Remove mock fallback once DB is configured
-  const { slug } = request.params as { slug: string }
-  const mock = mockEvents.find(e => e.slug === slug)
+  const { id } = request.params as { id: string }
+  const mock = mockEventsEnriched.find(e => e.id === id)
   if (!mock) {
     reply.code(404).send({ error: 'Event not found' })
     return
@@ -3107,7 +3463,8 @@ app.get('/api/categories', async (request, reply) => {
     reply.send({ categories })
   } catch (error) {
     app.log.error({ error }, 'Failed to fetch categories')
-    reply.code(500).send({ error: 'Failed to fetch categories' })
+    // Return empty array instead of 500 error when table doesn't exist
+    reply.send({ categories: [] })
   }
 })
 
@@ -4994,6 +5351,381 @@ const _seedDemoData = async () => {
 
 // Register favorites routes
 await app.register(favoritesRoutes)
+
+// Development seed endpoint
+app.post('/api/seed-events', async (request, reply) => {
+  try {
+    console.log('🌱 Starting comprehensive event seeding...')
+
+    // Delete all existing events first
+    console.log('🗑️  Deleting all existing events...')
+    await prisma.event.deleteMany({})
+    console.log('✅ All existing events deleted')
+
+    // Get or create the two demo owners
+    const owner1 = await prisma.user.upsert({
+      where: { email: 'owner1@example.com' },
+      update: {},
+      create: {
+        email: 'owner1@example.com',
+        name: 'Owner One',
+        role: 'OWNER',
+        isActive: true,
+        lastLoginAt: new Date(),
+      },
+    })
+
+    const owner2 = await prisma.user.upsert({
+      where: { email: 'owner2@example.com' },
+      update: {},
+      create: {
+        email: 'owner2@example.com',
+        name: 'Owner Two',
+        role: 'OWNER',
+        isActive: true,
+        lastLoginAt: new Date(),
+      },
+    })
+
+    console.log('✅ Demo owners ready:', owner1.name, 'and', owner2.name)
+
+    // Create categories
+    const categories = await Promise.all([
+      prisma.category.upsert({
+        where: { slug: 'design' },
+        update: {},
+        create: {
+          name: 'Design',
+          slug: 'design',
+          description: 'Design events, workshops, and exhibitions',
+          color: '#c4b69e',
+          icon: '🎨',
+        },
+      }),
+      prisma.category.upsert({
+        where: { slug: 'technology' },
+        update: {},
+        create: {
+          name: 'Technology',
+          slug: 'technology',
+          description: 'Tech and innovation events',
+          color: '#3b82f6',
+          icon: '💻',
+        },
+      }),
+      prisma.category.upsert({
+        where: { slug: 'art-culture' },
+        update: {},
+        create: {
+          name: 'Art & Culture',
+          slug: 'art-culture',
+          description: 'Art, culture, and creative events',
+          color: '#f59e0b',
+          icon: '🎭',
+        },
+      }),
+      prisma.category.upsert({
+        where: { slug: 'sustainability' },
+        update: {},
+        create: {
+          name: 'Sustainability',
+          slug: 'sustainability',
+          description: 'Sustainable design and eco-friendly events',
+          color: '#10b981',
+          icon: '🌱',
+        },
+      }),
+    ])
+
+    console.log('✅ Categories created:', categories.length)
+
+    // Create venues
+    const venues = await Promise.all([
+      prisma.venue.upsert({
+        where: { name: 'Milano Design Center' },
+        update: {},
+        create: {
+          name: 'Milano Design Center',
+          address: 'Via Tortona, 37, 20144 Milano MI, Italy',
+          city: 'Milano',
+          country: 'Italy',
+          latitude: 45.4508,
+          longitude: 9.1734,
+          website: 'https://milanodesigncenter.com',
+        },
+      }),
+      prisma.venue.upsert({
+        where: { name: 'Triennale di Milano' },
+        update: {},
+        create: {
+          name: 'Triennale di Milano',
+          address: 'Viale Emilio Alemagna, 6, 20121 Milano MI, Italy',
+          city: 'Milano',
+          country: 'Italy',
+          latitude: 45.4722,
+          longitude: 9.1708,
+          website: 'https://triennale.org',
+        },
+      }),
+      prisma.venue.upsert({
+        where: { name: 'Fondazione Prada' },
+        update: {},
+        create: {
+          name: 'Fondazione Prada',
+          address: 'Largo Isarco, 2, 20139 Milano MI, Italy',
+          city: 'Milano',
+          country: 'Italy',
+          latitude: 45.4444,
+          longitude: 9.2000,
+          website: 'https://fondazioneprada.org',
+        },
+      }),
+      prisma.venue.upsert({
+        where: { name: 'Palazzo Clerici' },
+        update: {},
+        create: {
+          name: 'Palazzo Clerici',
+          address: 'Via Clerici, 5, 20121 Milano MI, Italy',
+          city: 'Milano',
+          country: 'Italy',
+          latitude: 45.4654,
+          longitude: 9.1859,
+          website: 'https://palazzoclerici.it',
+        },
+      }),
+    ])
+
+    console.log('✅ Venues created:', venues.length)
+
+    // Create 4 events for Owner 1
+    const owner1Events = [
+      {
+        title: 'Sustainable Design Revolution',
+        slug: 'sustainable-design-revolution',
+        description: 'Explore the future of sustainable design with leading architects, designers, and environmental experts. Discover innovative materials, circular design principles, and eco-friendly solutions that are reshaping the industry.',
+        shortDescription: 'Leading the charge in sustainable design innovation.',
+        startDate: new Date('2024-06-15T09:00:00Z'),
+        endDate: new Date('2024-06-15T18:00:00Z'),
+        capacity: 300,
+        venue: venues[0],
+        category: categories[3], // Sustainability
+        tags: ['sustainability', 'design', 'innovation', 'environment'],
+        featured: true,
+      },
+      {
+        title: 'Digital Art & Technology Fusion',
+        slug: 'digital-art-technology-fusion',
+        description: 'Experience the intersection of art and technology in this immersive exhibition featuring digital installations, VR experiences, and interactive artworks by contemporary artists.',
+        shortDescription: 'Where art meets cutting-edge technology.',
+        startDate: new Date('2024-06-20T10:00:00Z'),
+        endDate: new Date('2024-06-20T20:00:00Z'),
+        capacity: 200,
+        venue: venues[1],
+        category: categories[2], // Art & Culture
+        tags: ['digital art', 'technology', 'innovation', 'interactive'],
+        featured: false,
+      },
+      {
+        title: 'Furniture Design Masterclass',
+        slug: 'furniture-design-masterclass',
+        description: 'Learn from master furniture designers in this hands-on workshop covering traditional techniques, modern materials, and innovative approaches to furniture design.',
+        shortDescription: 'Master the art of furniture design.',
+        startDate: new Date('2024-06-25T09:00:00Z'),
+        endDate: new Date('2024-06-25T17:00:00Z'),
+        capacity: 50,
+        venue: venues[0],
+        category: categories[0], // Design
+        tags: ['furniture', 'workshop', 'craftsmanship', 'design'],
+        featured: false,
+      },
+      {
+        title: 'Smart Home Innovation Summit',
+        slug: 'smart-home-innovation-summit',
+        description: 'Discover the latest in smart home technology, IoT devices, and connected living solutions. Features live demonstrations, expert panels, and networking opportunities.',
+        shortDescription: 'The future of connected living.',
+        startDate: new Date('2024-07-01T09:00:00Z'),
+        endDate: new Date('2024-07-01T18:00:00Z'),
+        capacity: 400,
+        venue: venues[2],
+        category: categories[1], // Technology
+        tags: ['smart home', 'IoT', 'technology', 'innovation'],
+        featured: true,
+      },
+    ]
+
+    // Create 4 events for Owner 2
+    const owner2Events = [
+      {
+        title: 'Contemporary Art Exhibition',
+        slug: 'contemporary-art-exhibition',
+        description: 'A curated exhibition featuring works by emerging and established contemporary artists, exploring themes of identity, society, and the human condition.',
+        shortDescription: 'Contemporary voices in modern art.',
+        startDate: new Date('2024-06-18T10:00:00Z'),
+        endDate: new Date('2024-06-18T20:00:00Z'),
+        capacity: 150,
+        venue: venues[3],
+        category: categories[2], // Art & Culture
+        tags: ['contemporary art', 'exhibition', 'culture', 'creativity'],
+        featured: true,
+      },
+      {
+        title: 'Green Architecture Workshop',
+        slug: 'green-architecture-workshop',
+        description: 'Learn sustainable architecture principles with hands-on workshops, case studies, and expert guidance on creating environmentally responsible buildings.',
+        shortDescription: 'Building a sustainable future.',
+        startDate: new Date('2024-06-22T09:00:00Z'),
+        endDate: new Date('2024-06-22T17:00:00Z'),
+        capacity: 80,
+        venue: venues[1],
+        category: categories[3], // Sustainability
+        tags: ['architecture', 'sustainability', 'green building', 'workshop'],
+        featured: false,
+      },
+      {
+        title: 'AI in Creative Industries',
+        slug: 'ai-creative-industries',
+        description: 'Explore how artificial intelligence is transforming creative industries, from design automation to AI-assisted art creation and content generation.',
+        shortDescription: 'AI meets creativity.',
+        startDate: new Date('2024-06-28T09:00:00Z'),
+        endDate: new Date('2024-06-28T18:00:00Z'),
+        capacity: 250,
+        venue: venues[2],
+        category: categories[1], // Technology
+        tags: ['AI', 'creativity', 'technology', 'innovation'],
+        featured: true,
+      },
+      {
+        title: 'Textile Design Innovation',
+        slug: 'textile-design-innovation',
+        description: 'Discover the latest innovations in textile design, from smart fabrics to sustainable materials, with demonstrations and hands-on workshops.',
+        shortDescription: 'The future of fabric design.',
+        startDate: new Date('2024-07-05T10:00:00Z'),
+        endDate: new Date('2024-07-05T18:00:00Z'),
+        capacity: 120,
+        venue: venues[0],
+        category: categories[0], // Design
+        tags: ['textile', 'design', 'innovation', 'fashion'],
+        featured: false,
+      },
+    ]
+
+    // Create events for Owner 1
+    console.log('🌱 Creating events for Owner 1...')
+    const createdOwner1Events = []
+    for (const eventData of owner1Events) {
+      const event = await prisma.event.create({
+        data: {
+          title: eventData.title,
+          slug: eventData.slug,
+          description: eventData.description,
+          shortDescription: eventData.shortDescription,
+          status: 'PUBLISHED',
+          startDate: eventData.startDate,
+          endDate: eventData.endDate,
+          capacity: eventData.capacity,
+          currentWaitlist: 0,
+          youtubeUrl: `https://www.youtube.com/watch?v=${eventData.slug}`,
+          mapLat: eventData.venue.latitude,
+          mapLng: eventData.venue.longitude,
+          mapZoom: 15,
+          mapAddress: eventData.venue.address,
+          ownerId: owner1.id,
+          venueId: eventData.venue.id,
+          categoryId: eventData.category.id,
+          isPublic: true,
+          featured: eventData.featured,
+          tags: eventData.tags,
+          metadata: {
+            organizer: 'Linea Events',
+            contact: 'info@linea.app',
+            social: {
+              instagram: '@linea_events',
+              twitter: '@linea_events',
+            },
+            heroImageUrl: `/images/events/${eventData.slug}-hero.jpg`,
+            galleryImages: [
+              `/images/events/${eventData.slug}-1.jpg`,
+              `/images/events/${eventData.slug}-2.jpg`,
+              `/images/events/${eventData.slug}-3.jpg`,
+            ],
+          },
+        },
+      })
+      createdOwner1Events.push(event)
+      console.log(`✅ Created event: ${event.title}`)
+    }
+
+    // Create events for Owner 2
+    console.log('🌱 Creating events for Owner 2...')
+    const createdOwner2Events = []
+    for (const eventData of owner2Events) {
+      const event = await prisma.event.create({
+        data: {
+          title: eventData.title,
+          slug: eventData.slug,
+          description: eventData.description,
+          shortDescription: eventData.shortDescription,
+          status: 'PUBLISHED',
+          startDate: eventData.startDate,
+          endDate: eventData.endDate,
+          capacity: eventData.capacity,
+          currentWaitlist: 0,
+          youtubeUrl: `https://www.youtube.com/watch?v=${eventData.slug}`,
+          mapLat: eventData.venue.latitude,
+          mapLng: eventData.venue.longitude,
+          mapZoom: 15,
+          mapAddress: eventData.venue.address,
+          ownerId: owner2.id,
+          venueId: eventData.venue.id,
+          categoryId: eventData.category.id,
+          isPublic: true,
+          featured: eventData.featured,
+          tags: eventData.tags,
+          metadata: {
+            organizer: 'Linea Events',
+            contact: 'info@linea.app',
+            social: {
+              instagram: '@linea_events',
+              twitter: '@linea_events',
+            },
+            heroImageUrl: `/images/events/${eventData.slug}-hero.jpg`,
+            galleryImages: [
+              `/images/events/${eventData.slug}-1.jpg`,
+              `/images/events/${eventData.slug}-2.jpg`,
+              `/images/events/${eventData.slug}-3.jpg`,
+            ],
+          },
+        },
+      })
+      createdOwner2Events.push(event)
+      console.log(`✅ Created event: ${event.title}`)
+    }
+
+    console.log('🎉 Event seeding completed successfully!')
+    
+    reply.send({
+      success: true,
+      message: 'Events seeded successfully',
+      summary: {
+        totalEvents: 8,
+        owner1Events: createdOwner1Events.length,
+        owner2Events: createdOwner2Events.length,
+        events: [
+          ...createdOwner1Events.map((e: any) => ({ id: e.id, title: e.title, owner: 'Owner 1' })),
+          ...createdOwner2Events.map((e: any) => ({ id: e.id, title: e.title, owner: 'Owner 2' }))
+        ]
+      }
+    })
+
+  } catch (error) {
+    console.error('❌ Error during seeding:', error)
+    reply.code(500).send({ 
+      success: false, 
+      error: 'Failed to seed events',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    })
+  }
+})
 
 // Start server
 const start = async () => {

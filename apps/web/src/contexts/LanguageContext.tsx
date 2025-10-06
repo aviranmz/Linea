@@ -1190,6 +1190,25 @@ const translations = {
 export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [language, setLanguage] = useState<'en' | 'it'>('en')
 
+  // Dev-only: validate translations parity between EN and IT
+  useEffect(() => {
+    if (import.meta.env.MODE !== 'development') return
+    try {
+      const enKeys = new Set(Object.keys(translations.en))
+      const itKeys = new Set(Object.keys(translations.it))
+      const missingInIt: string[] = []
+      const missingInEn: string[] = []
+      enKeys.forEach(k => { if (!itKeys.has(k)) missingInIt.push(k) })
+      itKeys.forEach(k => { if (!enKeys.has(k)) missingInEn.push(k) })
+      if (missingInIt.length > 0 || missingInEn.length > 0) {
+        // eslint-disable-next-line no-console
+        console.warn('[i18n] Translation key mismatches detected', { missingInIt, missingInEn })
+      }
+    } catch {
+      // ignore
+    }
+  }, [])
+
   // Load language preference from localStorage
   useEffect(() => {
     const savedLanguage = localStorage.getItem('linea-language') as 'en' | 'it' | null
@@ -1217,9 +1236,20 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
     }
   }
 
-  // Translation function
+  // Translation function with safe EN fallback and dev warnings
   const t = (key: string, params?: Record<string, string | number>): string => {
-    let translation = translations[language][key as keyof typeof translations[typeof language]] || key
+    let translation =
+      (translations[language][key as keyof typeof translations[typeof language]] as string | undefined)
+      ?? (translations.en[key as keyof typeof translations['en']] as string | undefined)
+      ?? key
+
+    if (import.meta.env.MODE === 'development') {
+      const hasInLang = Object.prototype.hasOwnProperty.call(translations[language], key)
+      if (!hasInLang) {
+        // eslint-disable-next-line no-console
+        console.warn(`[i18n] Missing key in ${language}: ${key}`)
+      }
+    }
     
     // Replace parameters in translation
     if (params) {

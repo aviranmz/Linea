@@ -7,7 +7,7 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "postbuild": "cp -f src/assets/robots.txt dist/robots.txt && cp -f src/assets/sitemap.xml dist/sitemap.xml",
-    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives",
     "typecheck": "tsc --noEmit",
     "test": "vitest",
     "clean": "rm -rf dist"

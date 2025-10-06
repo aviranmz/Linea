@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient, UserRole } from '@prisma/client'
 // import { hash } from 'bcryptjs'
 
 const prisma = new PrismaClient()
@@ -14,7 +14,7 @@ async function main() {
     create: {
       email: 'admin@linea.app',
       name: 'Admin User',
-      role: 'ADMIN',
+      role: UserRole.ADMIN,
       isActive: true,
       lastLoginAt: new Date(),
     },
@@ -29,7 +29,7 @@ async function main() {
     create: {
       email: 'owner@linea.app',
       name: 'Event Owner',
-      role: 'OWNER',
+      role: UserRole.OWNER,
       isActive: true,
       lastLoginAt: new Date(),
     },
@@ -773,6 +773,80 @@ async function main() {
   }
 
   console.log('✅ Created nearby places:', nearbyPlaces.map(p => p.name).join(', '))
+
+  // ------------------------------------------------------------------
+  // Bulk: Create 200 real-looking users and register each to 2 events
+  // ------------------------------------------------------------------
+  try {
+    // Fetch a few events to register users to (fallback-safe)
+    const eventsForRegistration = await prisma.event.findMany({
+      where: { deletedAt: null },
+      select: { id: true, title: true },
+      orderBy: { createdAt: 'asc' },
+      take: 5,
+    }) as Array<{ id: string; title: string }>
+
+    if (eventsForRegistration.length >= 2) {
+      const firstNames = [
+        'Liam','Noah','Oliver','Elijah','James','William','Benjamin','Lucas','Henry','Theodore',
+        'Olivia','Emma','Charlotte','Amelia','Ava','Sophia','Isabella','Mia','Evelyn','Harper',
+        'Ethan','Michael','Daniel','Jacob','Logan','Jackson','Levi','Sebastian','Mateo','Jack',
+        'Aiden','Owen','Samuel','Matthew','Joseph','John','David','Wyatt','Carter','Julian',
+        'Emily','Abigail','Ella','Elizabeth','Sofia','Avery','Scarlett','Eleanor','Madison','Luna'
+      ]
+      const lastNames = [
+        'Smith','Johnson','Williams','Brown','Jones','Garcia','Miller','Davis','Rodriguez','Martinez',
+        'Hernandez','Lopez','Gonzalez','Wilson','Anderson','Thomas','Taylor','Moore','Jackson','Martin',
+        'Lee','Perez','Thompson','White','Harris','Sanchez','Clark','Ramirez','Lewis','Robinson',
+        'Walker','Young','Allen','King','Wright','Scott','Torres','Nguyen','Hill','Flores',
+        'Green','Adams','Nelson','Baker','Hall','Rivera','Campbell','Mitchell','Carter','Roberts'
+      ]
+
+      const userCount = 200
+      const usersToCreate: Array<{ email: string; name: string; role: UserRole; isActive: boolean; lastLoginAt: Date }>
+        = []
+
+      for (let i = 0; i < userCount; i++) {
+        const fn: string = firstNames[i % firstNames.length] ?? 'User'
+        const ln: string = lastNames[(Math.floor(i / firstNames.length) + i) % lastNames.length] ?? 'Demo'
+        const name = `${fn} ${ln}`
+        // Use a stable but unique email scheme
+        const email = `${fn.toLowerCase()}.${ln.toLowerCase()}${i + 1}@example.com`
+        usersToCreate.push({ email, name, role: UserRole.VISITOR, isActive: true, lastLoginAt: new Date() })
+      }
+
+      // Create users in bulk; skipDuplicates avoids collisions on re-seed
+      await prisma.user.createMany({ data: usersToCreate, skipDuplicates: true })
+      console.log(`✅ Ensured ${userCount} users exist`)
+
+      // Register each user to 2 events (round-robin across available events)
+      const userEmails = usersToCreate.map(u => u.email)
+      const regs: { email: string; eventId: string; status: 'PENDING'|'CONFIRMED' }[] = []
+      const eventIds: string[] = eventsForRegistration
+        .map(e => e.id as string)
+        .filter((id): id is string => typeof id === 'string' && id.length > 0)
+
+      if (eventIds.length >= 2) {
+        for (let i = 0; i < userEmails.length; i++) {
+          const email = userEmails[i]!
+          const id1 = eventIds[i % eventIds.length]!
+          const id2 = eventIds[(i + 1) % eventIds.length]!
+          if (id1) regs.push({ email, eventId: id1, status: 'CONFIRMED' })
+          if (id2) regs.push({ email, eventId: id2, status: 'PENDING' })
+        }
+      } else {
+        console.log('ℹ️  Skipping user registrations: insufficient valid event IDs')
+      }
+
+      // Use createMany with skipDuplicates to be idempotent
+      await prisma.waitlistEntry.createMany({ data: regs, skipDuplicates: true })
+      console.log(`✅ Registered ${userEmails.length} users to 2 events each (total entries: ${regs.length})`)
+    } else {
+      console.log('ℹ️  Skipping user registrations: fewer than 2 events available')
+    }
+  } catch (err) {
+    console.log('⚠️  Skipped bulk user+registration seeding due to an error:', err)
+  }
 
   // Create sample consents
   const consents = await Promise.all([

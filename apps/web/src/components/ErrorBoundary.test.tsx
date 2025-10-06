@@ -2,6 +2,15 @@ import { render, screen } from '@testing-library/react'
 import { describe, it, expect, vi } from 'vitest'
 import { ErrorBoundary } from './ErrorBoundary'
 
+vi.mock('../hooks/useLanguage', async () => ({
+  useLanguage: () => ({
+    language: 'en', setLanguage: () => {},
+    t: (key: string) => ({
+      'api.errorDetails': 'Error Details'
+    } as Record<string, string>)[key] ?? key
+  })
+}))
+
 // Mock component that throws an error
 const ThrowError = ({ shouldThrow }: { shouldThrow: boolean }) => {
   if (shouldThrow) {

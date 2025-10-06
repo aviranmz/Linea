@@ -1,7 +1,11 @@
 import { render, screen } from '@testing-library/react'
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { BrowserRouter } from 'react-router-dom'
 import { Layout } from './Layout'
+
+vi.mock('../hooks/useLanguage', async () => ({
+  useLanguage: () => ({ t: (k: string) => k, language: 'en', setLanguage: () => {} })
+}))
 
 describe('Layout', () => {
   it('renders children content', () => {

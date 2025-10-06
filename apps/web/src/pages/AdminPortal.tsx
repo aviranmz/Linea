@@ -4,7 +4,7 @@ import { useLanguage } from '../hooks/useLanguage'
 import { useNavigate } from 'react-router-dom'
 
 interface PlatformStats {
-  totalUsers: number
+  totalOwners: number
   totalEvents: number
   totalWaitlist: number
   activeEvents: number
@@ -42,7 +42,7 @@ export function AdminPortal() {
     alert(t('api.magicLinkSent'))
   }
   const [stats, setStats] = useState<PlatformStats>({
-    totalUsers: 0,
+    totalOwners: 0,
     totalEvents: 0,
     totalWaitlist: 0,
     activeEvents: 0
@@ -57,28 +57,49 @@ export function AdminPortal() {
 
     const loadOverview = async () => {
       try {
-        const data = await getJson<{ users: number; events: number; shows: number; waitlist: number }>('/api/admin/overview')
+        // Prefer new backend endpoint first
+        const dash = await getJson<{ stats: { totalOwners: number; totalEvents: number; totalWaitlist: number; activeRate?: number } }>('/api/admin/dashboard')
         setStats({
-          totalUsers: data.users,
-          totalEvents: data.events,
-          totalWaitlist: data.waitlist,
-          // No separate active metric yet; use events as a proxy in mock mode
-          activeEvents: data.events
+          totalOwners: dash.stats.totalOwners ?? 0,
+          totalEvents: dash.stats.totalEvents ?? 0,
+          totalWaitlist: dash.stats.totalWaitlist ?? 0,
+          activeEvents: dash.stats.totalEvents ?? 0
         })
-      } catch (_err) {
-        // Fallback to mock-ish defaults if unauthorized or API unavailable
-        setStats({
-          totalUsers: 1234,
-          totalEvents: 56,
-          totalWaitlist: 5678,
-          activeEvents: 23
-        })
+      } catch {
+        try {
+          // Backward-compat with older API
+          const legacy = await getJson<{ users?: number; owners?: number; events: number; shows?: number; waitlist: number }>('/api/admin/overview')
+          // Derive owners total from owners endpoint pagination if missing
+          let ownersTotal = legacy.owners ?? 0
+          if (!ownersTotal) {
+            try {
+              const ownersResp = await getJson<{ owners: unknown[]; pagination: { total: number } }>(`/api/admin/owners?page=1&limit=1`)
+              ownersTotal = ownersResp.pagination?.total ?? 0
+            } catch {
+              ownersTotal = 0
+            }
+          }
+          setStats({
+            totalOwners: ownersTotal,
+            totalEvents: legacy.events,
+            totalWaitlist: legacy.waitlist,
+            activeEvents: legacy.events
+          })
+        } catch {
+          // Fallback defaults
+          setStats({
+            totalOwners: 0,
+            totalEvents: 0,
+            totalWaitlist: 0,
+            activeEvents: 0
+          })
+        }
       } finally {
         setLoading(false)
       }
     }
     loadOverview()
-  }, [])
+  }, [auth])
 
   // Show loading while checking authentication
   if (auth === null) {
@@ -170,11 +191,11 @@ export function AdminPortal() {
                 </div>
               </div>
               <div>
-                <p className="text-sm font-medium text-neutral-600 mb-2">{t('admin.totalUsers')}</p>
+                <p className="text-sm font-medium text-neutral-600 mb-2">{'Total Owners'}</p>
                 <p className="text-3xl font-display font-semibold text-neutral-900 mb-1">
-                  {loading ? '...' : stats.totalUsers.toLocaleString()}
+                  {loading ? '...' : stats.totalOwners.toLocaleString()}
                 </p>
-                <p className="text-xs text-neutral-500">Registered users</p>
+                <p className="text-xs text-neutral-500">Registered owners</p>
               </div>
             </div>
           </div>

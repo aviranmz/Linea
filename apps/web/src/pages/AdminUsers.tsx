@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
-import { getJson, putJson } from '../lib/api'
+import { getJson, putJson, postJson } from '../lib/api'
 import { useNavigate } from 'react-router-dom'
 import { useLanguage } from '../hooks/useLanguage'
 
@@ -120,6 +120,34 @@ export default function AdminUsers() {
     } catch (error) {
       console.error('Failed to update user status:', error)
       alert('Failed to update user status. Please try again.')
+    }
+  }
+
+  const sendMagicLink = async (user: UserRow) => {
+    try {
+      const res = await postJson<{ ok?: boolean; message?: string; magicLink?: string }>(
+        '/auth/request-magic-link',
+        { email: user.email }
+      )
+      const magic = (res && typeof res === 'object' ? (res as { magicLink?: string }) : undefined)?.magicLink
+      if (magic) {
+        try { await navigator.clipboard.writeText(magic) } catch (e) { /* ignore */ }
+        alert(`Magic link generated and copied to clipboard.\n\n${magic}`)
+      } else {
+        alert(res.message || 'Magic link sent to the user via email.')
+      }
+    } catch (error) {
+      try {
+        const dev = await postJson<{ magicLink: string }>(
+          '/auth/dev/generate-link',
+          { email: user.email, role: user.role, name: user.name ?? undefined }
+        )
+        try { await navigator.clipboard.writeText(dev.magicLink) } catch (e) { /* ignore */ }
+        alert(`Magic link (dev) generated and copied:\n\n${dev.magicLink}`)
+      } catch (e) {
+        console.error('Failed to generate/send magic link', e)
+        alert('Failed to generate or send magic link. Please try again.')
+      }
     }
   }
 
@@ -329,6 +357,14 @@ export default function AdminUsers() {
                           >
                             {user.isActive ? t('admin.users.deactivate') : t('admin.users.activate')}
                           </button>
+                          {user.role === 'OWNER' && (
+                            <button
+                              onClick={() => sendMagicLink(user)}
+                              className="text-blue-600 hover:text-blue-900"
+                            >
+                              Send Magic Link
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>

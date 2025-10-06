@@ -7,6 +7,21 @@ import { OwnerPortal } from './OwnerPortal'
 const mockFetch = vi.fn()
 global.fetch = mockFetch
 
+vi.mock('../hooks/useLanguage', async () => ({
+  useLanguage: () => ({
+    language: 'en', setLanguage: () => {},
+    t: (key: string) => ({
+      'nav.owner': 'Owner Portal',
+      'common.welcomeBack': 'Welcome back',
+      'owner.manageEvents': 'Manage your events and track waitlist performance',
+      'owner.createNewEvent': 'Create New Event',
+      'owner.yourEvents': 'Your Events',
+      'owner.manageEventPerformance': 'Manage and track your event performance',
+      'owner.totalEvents': 'Total Events'
+    } as Record<string, string>)[key] ?? key
+  })
+}))
+
 describe('OwnerPortal', () => {
   beforeEach(() => {
     vi.clearAllMocks()
