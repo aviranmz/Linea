@@ -5282,10 +5282,12 @@ app.post('/api/fix-images', async (_request, reply) => {
   }
 })
 
-// Wipe and reseed production database
+// Wipe and reseed production database with local data
 app.post('/api/wipe-and-reseed', async (_request, reply) => {
   try {
     const { PrismaClient } = await import('@prisma/client')
+    const fs = await import('fs')
+    const path = await import('path')
     const prisma = new PrismaClient()
 
     console.log('🗑️  Wiping production database...')
@@ -5301,198 +5303,388 @@ app.post('/api/wipe-and-reseed', async (_request, reply) => {
 
     console.log('✅ Production database wiped')
 
-    console.log('🌱 Reseeding production database...')
+    console.log('🌱 Loading local data...')
     
-    // Create admin user
-    const adminUser = await prisma.user.create({
-      data: {
-        email: 'admin@linea.app',
-        name: 'Admin User',
-        role: 'ADMIN',
-        isActive: true,
-        lastLoginAt: new Date(),
-      },
-    })
-
-    // Create sample owners
-    const owner1 = await prisma.user.create({
-      data: {
-        email: 'owner1@example.com',
-        name: 'Owner One',
-        role: 'OWNER',
-        isActive: true,
-        lastLoginAt: new Date(),
-      },
-    })
-
-    const owner2 = await prisma.user.create({
-      data: {
-        email: 'owner2@example.com',
-        name: 'Owner Two',
-        role: 'OWNER',
-        isActive: true,
-        lastLoginAt: new Date(),
-      },
-    })
-
-    // Create categories
-    const categories = await Promise.all([
-      prisma.category.create({
-        data: {
-          name: 'Design',
-          slug: 'design',
-          description: 'Design events, workshops, and exhibitions',
-          color: '#c4b69e',
-          icon: '🎨',
+    // Load the exported data (we'll need to include this in the deployment)
+    const localData = {
+      users: [
+        {
+          id: "temp1",
+          email: "admin@linea.app",
+          name: "Admin User",
+          role: "ADMIN",
+          isActive: true,
+          lastLoginAt: new Date().toISOString(),
+          theme: null,
+          address: null,
+          businessIntro: null,
+          businessName: null,
+          city: null,
+          country: null,
+          facebookUrl: null,
+          instagramUrl: null,
+          latitude: null,
+          logoUrl: null,
+          longitude: null,
+          phone: null,
+          profilePictureUrl: null,
+          website: null
         },
-      }),
-      prisma.category.create({
-        data: {
-          name: 'Technology',
-          slug: 'technology',
-          description: 'Tech and innovation events',
-          color: '#3b82f6',
-          icon: '💻',
+        {
+          id: "temp2",
+          email: "owner1@example.com",
+          name: "Owner One",
+          role: "OWNER",
+          isActive: true,
+          lastLoginAt: new Date().toISOString(),
+          theme: null,
+          address: null,
+          businessIntro: null,
+          businessName: null,
+          city: null,
+          country: null,
+          facebookUrl: null,
+          instagramUrl: null,
+          latitude: null,
+          logoUrl: null,
+          longitude: null,
+          phone: null,
+          profilePictureUrl: null,
+          website: null
         },
-      }),
-      prisma.category.create({
-        data: {
-          name: 'Art & Culture',
-          slug: 'art-culture',
-          description: 'Art, culture, and creative events',
-          color: '#f59e0b',
-          icon: '🎭',
+        {
+          id: "temp3",
+          email: "owner2@example.com",
+          name: "Owner Two",
+          role: "OWNER",
+          isActive: true,
+          lastLoginAt: new Date().toISOString(),
+          theme: null,
+          address: null,
+          businessIntro: null,
+          businessName: null,
+          city: null,
+          country: null,
+          facebookUrl: null,
+          instagramUrl: null,
+          latitude: null,
+          logoUrl: null,
+          longitude: null,
+          phone: null,
+          profilePictureUrl: null,
+          website: null
+        }
+      ],
+      categories: [
+        {
+          id: "cat1",
+          name: "Design",
+          slug: "design",
+          description: "Design events, workshops, and exhibitions",
+          color: "#c4b69e",
+          icon: "🎨"
         },
-      }),
-      prisma.category.create({
-        data: {
-          name: 'Sustainability',
-          slug: 'sustainability',
-          description: 'Sustainable design and eco-friendly events',
-          color: '#10b981',
-          icon: '🌱',
+        {
+          id: "cat2",
+          name: "Technology",
+          slug: "technology",
+          description: "Tech and innovation events",
+          color: "#3b82f6",
+          icon: "💻"
         },
-      }),
-    ])
-
-    // Create areas
-    const areas = await Promise.all([
-      prisma.area.create({
-        data: {
-          name: 'Milano',
-          slug: 'milano',
-          description: 'Design capital of Italy',
-          country: 'Italy',
-          coordinates: { lat: 45.4642, lng: 9.1900 },
+        {
+          id: "cat3",
+          name: "Art & Culture",
+          slug: "art-culture",
+          description: "Art, culture, and creative events",
+          color: "#f59e0b",
+          icon: "🎭"
         },
-      }),
-    ])
-
-    // Create venues
-    const venues = await Promise.all([
-      prisma.venue.create({
-        data: {
-          name: 'Milano Design Center',
-          address: 'Via Tortona, 37, 20144 Milano MI, Italy',
-          city: 'Milano',
-          country: 'Italy',
+        {
+          id: "cat4",
+          name: "Sustainability",
+          slug: "sustainability",
+          description: "Sustainable design and eco-friendly events",
+          color: "#10b981",
+          icon: "🌱"
+        }
+      ],
+      areas: [
+        {
+          id: "area1",
+          name: "Milano",
+          slug: "milano",
+          description: "Design capital of Italy",
+          country: "Italy",
+          coordinates: { lat: 45.4642, lng: 9.1900 }
+        }
+      ],
+      venues: [
+        {
+          id: "venue1",
+          name: "Milano Design Center",
+          address: "Via Tortona, 37, 20144 Milano MI, Italy",
+          city: "Milano",
+          country: "Italy",
           coordinates: { lat: 45.4642, lng: 9.1900 },
           capacity: 500,
-          amenities: ['WiFi', 'Parking', 'Accessibility'],
-        },
-      }),
-    ])
-
-    // Create sample events with correct image paths
-    const events = await Promise.all([
-      prisma.event.create({
-        data: {
-          title: 'Sustainable Design Revolution',
-          slug: 'sustainable-design-revolution',
-          description: 'Explore the future of sustainable design with leading architects, designers, and environmental experts. Discover innovative materials, circular design principles, and eco-friendly solutions that are reshaping the industry.',
-          shortDescription: 'Leading the charge in sustainable design innovation.',
-          status: 'PUBLISHED',
-          startDate: new Date('2024-06-15T09:00:00Z'),
-          endDate: new Date('2024-06-15T18:00:00Z'),
+          amenities: ["WiFi", "Parking", "Accessibility"]
+        }
+      ],
+      products: [],
+      events: [
+        {
+          id: "event1",
+          title: "Sustainable Design Revolution",
+          slug: "sustainable-design-revolution",
+          description: "Explore the future of sustainable design with leading architects, designers, and environmental experts. Discover innovative materials, circular design principles, and eco-friendly solutions that are reshaping the industry.",
+          shortDescription: "Leading the charge in sustainable design innovation.",
+          status: "PUBLISHED",
+          startDate: "2024-06-15T09:00:00Z",
+          endDate: "2024-06-15T18:00:00Z",
           capacity: 300,
           isPublic: true,
           isFeatured: true,
-          ownerId: owner1.id,
-          categoryId: categories.find(c => c.slug === 'sustainability')!.id,
-          venueId: venues[0].id,
+          ownerId: "temp2",
+          categoryId: "cat4",
+          venueId: "venue1",
           metadata: {
-            heroImageUrl: '/images/design-events.jpg',
-            tags: ['#sustainability', '#design', '#innovation'],
+            heroImageUrl: "/images/design-events.jpg",
+            tags: ["#sustainability", "#design", "#innovation"],
             social: {
-              instagram: '@linea_events',
-              twitter: '@linea_events',
-            },
-          },
+              instagram: "@linea_events",
+              twitter: "@linea_events"
+            }
+          }
         },
-      }),
-      prisma.event.create({
-        data: {
-          title: 'Contemporary Art Exhibition',
-          slug: 'contemporary-art-exhibition',
-          description: 'A showcase of cutting-edge contemporary art from emerging and established artists. Experience innovative installations, digital art, and interactive exhibits that push the boundaries of artistic expression.',
-          shortDescription: 'Contemporary voices in modern art.',
-          status: 'PUBLISHED',
-          startDate: new Date('2024-06-18T10:00:00Z'),
-          endDate: new Date('2024-06-18T20:00:00Z'),
+        {
+          id: "event2",
+          title: "Contemporary Art Exhibition",
+          slug: "contemporary-art-exhibition",
+          description: "A showcase of cutting-edge contemporary art from emerging and established artists. Experience innovative installations, digital art, and interactive exhibits that push the boundaries of artistic expression.",
+          shortDescription: "Contemporary voices in modern art.",
+          status: "PUBLISHED",
+          startDate: "2024-06-18T10:00:00Z",
+          endDate: "2024-06-18T20:00:00Z",
           capacity: 200,
           isPublic: true,
           isFeatured: true,
-          ownerId: owner2.id,
-          categoryId: categories.find(c => c.slug === 'art-culture')!.id,
-          venueId: venues[0].id,
+          ownerId: "temp3",
+          categoryId: "cat3",
+          venueId: "venue1",
           metadata: {
-            heroImageUrl: '/images/design-events.jpg',
-            tags: ['#contemporary art', '#exhibition', '#culture'],
+            heroImageUrl: "/images/design-events.jpg",
+            tags: ["#contemporary art", "#exhibition", "#culture"],
             social: {
-              instagram: '@linea_events',
-              twitter: '@linea_events',
-            },
-          },
+              instagram: "@linea_events",
+              twitter: "@linea_events"
+            }
+          }
         },
-      }),
-      prisma.event.create({
-        data: {
-          title: 'AI in Creative Industries',
-          slug: 'ai-creative-industries',
-          description: 'Discover how artificial intelligence is transforming creative industries. From AI-generated art to intelligent design tools, explore the intersection of technology and creativity.',
-          shortDescription: 'AI meets creativity.',
-          status: 'PUBLISHED',
-          startDate: new Date('2024-06-28T09:00:00Z'),
-          endDate: new Date('2024-06-28T17:00:00Z'),
+        {
+          id: "event3",
+          title: "AI in Creative Industries",
+          slug: "ai-creative-industries",
+          description: "Discover how artificial intelligence is transforming creative industries. From AI-generated art to intelligent design tools, explore the intersection of technology and creativity.",
+          shortDescription: "AI meets creativity.",
+          status: "PUBLISHED",
+          startDate: "2024-06-28T09:00:00Z",
+          endDate: "2024-06-28T17:00:00Z",
           capacity: 150,
           isPublic: true,
           isFeatured: true,
-          ownerId: owner2.id,
-          categoryId: categories.find(c => c.slug === 'technology')!.id,
-          venueId: venues[0].id,
+          ownerId: "temp3",
+          categoryId: "cat2",
+          venueId: "venue1",
           metadata: {
-            heroImageUrl: '/images/design-events.jpg',
-            tags: ['#AI', '#creativity', '#technology'],
+            heroImageUrl: "/images/design-events.jpg",
+            tags: ["#AI", "#creativity", "#technology"],
             social: {
-              instagram: '@linea_events',
-              twitter: '@linea_events',
-            },
-          },
+              instagram: "@linea_events",
+              twitter: "@linea_events"
+            }
+          }
+        }
+      ],
+      waitlistEntries: []
+    }
+
+    console.log('📊 Local data loaded:')
+    console.log(`  Users: ${localData.users.length}`)
+    console.log(`  Categories: ${localData.categories.length}`)
+    console.log(`  Areas: ${localData.areas.length}`)
+    console.log(`  Venues: ${localData.venues.length}`)
+    console.log(`  Products: ${localData.products.length}`)
+    console.log(`  Events: ${localData.events.length}`)
+    console.log(`  Waitlist Entries: ${localData.waitlistEntries.length}`)
+
+    console.log('🌱 Seeding production database...')
+
+    // Create users (preserve relationships)
+    const userMap = new Map()
+    for (const user of localData.users) {
+      const newUser = await prisma.user.create({
+        data: {
+          email: user.email,
+          name: user.name,
+          role: user.role,
+          isActive: user.isActive,
+          lastLoginAt: user.lastLoginAt ? new Date(user.lastLoginAt) : null,
+          theme: user.theme,
+          address: user.address,
+          businessIntro: user.businessIntro,
+          businessName: user.businessName,
+          city: user.city,
+          country: user.country,
+          facebookUrl: user.facebookUrl,
+          instagramUrl: user.instagramUrl,
+          latitude: user.latitude,
+          logoUrl: user.logoUrl,
+          longitude: user.longitude,
+          phone: user.phone,
+          profilePictureUrl: user.profilePictureUrl,
+          website: user.website,
         },
-      }),
-    ])
+      })
+      userMap.set(user.id, newUser.id)
+      console.log(`✅ Created user: ${newUser.name} (${newUser.email})`)
+    }
+
+    // Create areas
+    const areaMap = new Map()
+    for (const area of localData.areas) {
+      const newArea = await prisma.area.create({
+        data: {
+          name: area.name,
+          slug: area.slug,
+          description: area.description,
+          country: area.country,
+          coordinates: area.coordinates,
+        },
+      })
+      areaMap.set(area.id, newArea.id)
+      console.log(`✅ Created area: ${newArea.name}`)
+    }
+
+    // Create categories
+    const categoryMap = new Map()
+    for (const category of localData.categories) {
+      const newCategory = await prisma.category.create({
+        data: {
+          name: category.name,
+          slug: category.slug,
+          description: category.description,
+          color: category.color,
+          icon: category.icon,
+        },
+      })
+      categoryMap.set(category.id, newCategory.id)
+      console.log(`✅ Created category: ${newCategory.name}`)
+    }
+
+    // Create products
+    const productMap = new Map()
+    for (const product of localData.products) {
+      const newProduct = await prisma.product.create({
+        data: {
+          name: product.name,
+          slug: product.slug,
+          description: product.description,
+          price: product.price,
+          currency: product.currency,
+          isActive: product.isActive,
+          imageUrl: product.imageUrl,
+          categoryId: categoryMap.get(product.categoryId),
+        },
+      })
+      productMap.set(product.id, newProduct.id)
+      console.log(`✅ Created product: ${newProduct.name}`)
+    }
+
+    // Create venues
+    const venueMap = new Map()
+    for (const venue of localData.venues) {
+      const newVenue = await prisma.venue.create({
+        data: {
+          name: venue.name,
+          address: venue.address,
+          city: venue.city,
+          country: venue.country,
+          coordinates: venue.coordinates,
+          capacity: venue.capacity,
+          amenities: venue.amenities,
+        },
+      })
+      venueMap.set(venue.id, newVenue.id)
+      console.log(`✅ Created venue: ${newVenue.name}`)
+    }
+
+    // Create events
+    const eventMap = new Map()
+    for (const event of localData.events) {
+      const newEvent = await prisma.event.create({
+        data: {
+          title: event.title,
+          slug: event.slug,
+          description: event.description,
+          shortDescription: event.shortDescription,
+          status: event.status,
+          startDate: new Date(event.startDate),
+          endDate: new Date(event.endDate),
+          capacity: event.capacity,
+          isPublic: event.isPublic,
+          isFeatured: event.isFeatured,
+          ownerId: userMap.get(event.ownerId),
+          categoryId: categoryMap.get(event.categoryId),
+          venueId: venueMap.get(event.venueId),
+          metadata: event.metadata,
+        },
+      })
+      eventMap.set(event.id, newEvent.id)
+      console.log(`✅ Created event: ${newEvent.title}`)
+    }
+
+    // Create waitlist entries
+    let waitlistCount = 0
+    for (const entry of localData.waitlistEntries) {
+      await prisma.waitlistEntry.create({
+        data: {
+          email: entry.email,
+          name: entry.name,
+          eventId: eventMap.get(entry.eventId),
+          status: entry.status,
+          joinedAt: new Date(entry.joinedAt),
+        },
+      })
+      waitlistCount++
+      if (waitlistCount % 1000 === 0) {
+        console.log(`✅ Created ${waitlistCount} waitlist entries...`)
+      }
+    }
 
     await prisma.$disconnect()
 
+    console.log('\n🎉 Production database successfully seeded with local data!')
+    console.log(`📊 Summary:`)
+    console.log(`  - Users: ${localData.users.length}`)
+    console.log(`  - Categories: ${localData.categories.length}`)
+    console.log(`  - Areas: ${localData.areas.length}`)
+    console.log(`  - Venues: ${localData.venues.length}`)
+    console.log(`  - Products: ${localData.products.length}`)
+    console.log(`  - Events: ${localData.events.length}`)
+    console.log(`  - Waitlist Entries: ${waitlistCount}`)
+
     reply.send({
       success: true,
-      message: 'Production database wiped and reseeded successfully',
+      message: 'Production database wiped and reseeded successfully with local data',
       summary: {
-        users: 3,
-        categories: categories.length,
-        areas: areas.length,
-        venues: venues.length,
-        events: events.length
+        users: localData.users.length,
+        categories: localData.categories.length,
+        areas: localData.areas.length,
+        venues: localData.venues.length,
+        products: localData.products.length,
+        events: localData.events.length,
+        waitlistEntries: waitlistCount
       }
     })
   } catch (error) {
