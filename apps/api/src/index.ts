@@ -378,7 +378,7 @@ const createSessionAndSetCookie = async (reply: FastifyReply, user: { id: string
       path: '/',
       httpOnly: true,
       sameSite: (config.security.SESSION_COOKIE_SAME_SITE as 'lax'|'strict'|'none' | undefined) || 'lax',
-      secure: !!config.security.SESSION_COOKIE_SECURE,
+      secure: false, // Temporarily disable secure flag for debugging
       maxAge: Math.floor(sessionDuration / 1000),
     }
   )
