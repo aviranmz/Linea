@@ -5016,7 +5016,23 @@ const start = async () => {
   }
 }
 
-// SPA catch-all route - serve index.html for all non-API routes
+// SPA routes - serve index.html for client-side routing
+app.get('/events/*', async (request, reply) => {
+  reply.type('text/html')
+  return reply.sendFile('index.html')
+})
+
+app.get('/admin-portal', async (request, reply) => {
+  reply.type('text/html')
+  return reply.sendFile('index.html')
+})
+
+app.get('/owner-portal', async (request, reply) => {
+  reply.type('text/html')
+  return reply.sendFile('index.html')
+})
+
+// SPA catch-all route - serve index.html for all other non-API routes
 app.get('/*', async (request, reply) => {
   // Only handle routes that don't start with /api
   if (!request.url.startsWith('/api')) {
