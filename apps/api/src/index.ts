@@ -268,7 +268,7 @@ await app.register(swaggerUi, {
 })
 
 // SPA routes - serve index.html for client-side routing (must be before static file serving)
-app.get('/events/*', async (request, reply) => {
+app.get('/events/:id', async (request, reply) => {
   reply.type('text/html')
   // Simple HTML response for SPA routing
   const html = `<!DOCTYPE html>
@@ -910,14 +910,14 @@ app.get('/api/events/:slug/nearby', async (request, reply) => {
   }
 })
 
-app.get('/api/events/:slug', async (request, reply) => {
+app.get('/api/events/:id', async (request, reply) => {
   try {
-  const { slug } = request.params as { slug: string }
+  const { id } = request.params as { id: string }
   
     // First try to get the event (public or owned by user)
     let event = await prisma.event.findFirst({
       where: {
-        slug,
+        id,
         isPublic: true,
         deletedAt: null
       },
@@ -952,7 +952,7 @@ app.get('/api/events/:slug', async (request, reply) => {
         if (user) {
           event = await prisma.event.findFirst({
             where: {
-              slug,
+              id,
               ownerId: user.id,
               deletedAt: null
             },

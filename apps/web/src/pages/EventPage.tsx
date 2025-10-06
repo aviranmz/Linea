@@ -8,7 +8,7 @@ import { useLanguage } from '../hooks/useLanguage'
 import { useAnalytics } from '../lib/analytics'
 
 export function EventPage() {
-  const { slug } = useParams<{ slug: string }>()
+  const { id } = useParams<{ id: string }>()
   const [event, setEvent] = useState<Event | null>(null)
   const [loading, setLoading] = useState(true)
   const [email, setEmail] = useState('')
@@ -20,8 +20,8 @@ export function EventPage() {
   useEffect(() => {
     let handleScroll: (() => void) | null = null
     
-    if (slug) {
-      fetch(`/api/events/${slug}`)
+    if (id) {
+      fetch(`/api/events/${id}`)
         .then(res => res.json())
         .then(data => {
           setEvent(data.event)
@@ -64,7 +64,7 @@ export function EventPage() {
       // Reset analytics tracking when component unmounts
       analytics.reset()
     }
-  }, [slug])
+  }, [id])
 
   const handleJoinWaitlist = async (e: React.FormEvent) => {
     e.preventDefault()

@@ -34,7 +34,7 @@ function App() {
         <Layout>
         <Routes>
           <Route path="/" element={<HomePage />} />
-          <Route path="/events/:slug" element={<EventPage />} />
+          <Route path="/events/:id" element={<EventPage />} />
           <Route path="/designers" element={<DesignersPage />} />
           <Route path="/favorites" element={<FavoritesPage />} />
           <Route path="/owner/*" element={<OwnerPortal />} />

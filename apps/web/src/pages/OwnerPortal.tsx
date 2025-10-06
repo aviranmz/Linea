@@ -795,7 +795,7 @@ export function OwnerPortal() {
                         {/* Action Links */}
                         <div className="flex items-center space-x-2 ml-4">
                           <Link
-                            to={`/events/${event.slug}`}
+                            to={`/events/${event.id}`}
                             className="btn btn-ghost btn-sm"
                           >
                             View
@@ -807,13 +807,13 @@ export function OwnerPortal() {
                             Waitlist
                           </Link>
                           <Link 
-                            to={`/owner/events/${event.slug}/edit-advanced`} 
+                            to={`/owner/events/${event.id}/edit-advanced`} 
                             className="btn btn-ghost btn-sm"
                           >
                             Edit
                           </Link>
                           <Link 
-                            to={`/owner/events/${event.slug}/edit-advanced`} 
+                            to={`/owner/events/${event.id}/edit-advanced`} 
                             className="btn btn-ghost btn-sm"
                           >
                             Advanced

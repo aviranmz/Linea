@@ -541,7 +541,7 @@ export function HomePage() {
                   showCategory={true}
                   showWaitlist={true}
                   onEventClick={(event) => {
-                    window.location.href = `/events/${event.slug}`
+                    window.location.href = `/events/${event.id}`
                   }}
                 />
               ) : (

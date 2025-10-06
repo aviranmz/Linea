@@ -112,7 +112,7 @@ export function NearbyEvents({ eventSlug, limit = 5, showTitle = true }: NearbyE
             <div className="flex items-start justify-between mb-2">
               <h4 className="font-semibold text-gray-900 text-sm">
                 <Link 
-                  to={`/events/${event.slug}`}
+                  to={`/events/${event.id}`}
                   className="hover:text-accent-600 transition-colors"
                 >
                   {event.title}
