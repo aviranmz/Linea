@@ -5292,15 +5292,21 @@ app.post('/api/wipe-and-reseed', async (_request, reply) => {
 
     console.log('🗑️  Wiping production database...')
 
-    // Delete all data in the correct order to avoid foreign key constraints
+    // Use raw SQL to disable foreign key checks temporarily
+    await prisma.$executeRaw`SET session_replication_role = replica;`
+    
+    // Delete all data without foreign key constraints
     await prisma.waitlistEntry.deleteMany({})
-    await prisma.session.deleteMany({}) // Delete sessions first
+    await prisma.session.deleteMany({})
     await prisma.event.deleteMany({})
     await prisma.venue.deleteMany({})
     await prisma.category.deleteMany({})
     await prisma.area.deleteMany({})
     await prisma.product.deleteMany({})
     await prisma.user.deleteMany({})
+    
+    // Re-enable foreign key checks
+    await prisma.$executeRaw`SET session_replication_role = DEFAULT;`
 
     console.log('✅ Production database wiped')
 
