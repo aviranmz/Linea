@@ -5444,85 +5444,172 @@ app.post('/api/fix-images', async (_request, reply) => {
         })
         console.log(`✅ Created venue: ${creativeHub.name}`)
 
-        // Create events
+        // Create events with real local data and proper image URLs
         const events = [
           {
-            title: 'Sustainable Design Revolution',
-            slug: 'sustainable-design-revolution',
-            description: 'Explore the future of sustainable design with leading architects, designers, and environmental experts. Discover innovative materials, circular design principles, and eco-friendly solutions that are reshaping the industry.',
-            shortDescription: 'Leading the charge in sustainable design innovation.',
+            title: 'Creative Networking Mixer',
+            slug: 'creative-networking-mixer',
+            description: 'Connect with fellow creatives, entrepreneurs, and industry professionals at our dynamic Creative Networking Mixer, where meaningful connections and collaborative opportunities come to life.',
+            shortDescription: 'Professional creative networking event',
             status: 'PUBLISHED',
-            startDate: new Date('2024-06-15T09:00:00Z'),
-            endDate: new Date('2024-06-15T18:00:00Z'),
-            capacity: 300,
+            startDate: new Date('2024-12-08T18:30:00.000Z'),
+            endDate: new Date('2024-12-08T21:30:00.000Z'),
+            capacity: 50,
             isPublic: true,
-            isFeatured: true,
+            isFeatured: false,
             ownerId: owner1.id,
-            categoryId: sustainabilityCategory.id,
+            categoryId: designCategory.id,
             venueId: milanoDesignCenter.id,
             metadata: {
-              heroImageUrl: '/images/design-events.jpg',
-              tags: ['#sustainability', '#design', '#innovation'],
+              heroImageUrl: 'https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=800&h=600&fit=crop',
+              tags: ['networking', 'creative', 'professional', 'collaboration', 'entrepreneurship'],
               social: {
-                instagram: '@linea_events',
-                twitter: '@linea_events'
-              }
+                twitter: 'https://twitter.com/creativenetwork',
+                website: 'https://creativenetworkingmilano.com',
+                facebook: 'https://facebook.com/creativenetworkingmilano',
+                linkedin: 'https://linkedin.com/company/creative-networking-milano',
+                instagram: 'https://instagram.com/creativenetworkingmilano'
+              },
+              contact: {
+                email: 'networking@creativenetworkingmilano.com',
+                phone: '+39 02 8888 9999',
+                website: 'https://creativenetworkingmilano.com'
+              },
+              features: [
+                'Structured Networking',
+                'Ice-breaker Activities',
+                'Complimentary Drinks',
+                'Collaboration Opportunities',
+                'Professional Development',
+                'Creative Showcase'
+              ]
             }
           },
           {
-            title: 'Contemporary Art Exhibition',
-            slug: 'contemporary-art-exhibition',
-            description: 'A showcase of cutting-edge contemporary art from emerging and established artists. Experience innovative installations, digital art, and interactive exhibits that push the boundaries of artistic expression.',
-            shortDescription: 'Contemporary voices in modern art.',
+            title: 'Tech Innovation Summit 2024',
+            slug: 'tech-innovation-summit',
+            description: 'Join us for the most anticipated technology and innovation event of the year! The Tech Innovation Summit 2024 brings together industry leaders, visionary entrepreneurs, and cutting-edge innovators.',
+            shortDescription: 'Premier technology and innovation conference',
             status: 'PUBLISHED',
-            startDate: new Date('2024-06-18T10:00:00Z'),
-            endDate: new Date('2024-06-18T20:00:00Z'),
-            capacity: 200,
-            isPublic: true,
-            isFeatured: true,
-            ownerId: owner2.id,
-            categoryId: artCategory.id,
-            venueId: creativeHub.id,
-            metadata: {
-              heroImageUrl: '/images/design-events.jpg',
-              tags: ['#contemporary art', '#exhibition', '#culture'],
-              social: {
-                instagram: '@linea_events',
-                twitter: '@linea_events'
-              }
-            }
-          },
-          {
-            title: 'AI in Creative Industries',
-            slug: 'ai-creative-industries',
-            description: 'Discover how artificial intelligence is transforming creative industries. From AI-generated art to intelligent design tools, explore the intersection of technology and creativity.',
-            shortDescription: 'AI meets creativity.',
-            status: 'PUBLISHED',
-            startDate: new Date('2024-06-28T09:00:00Z'),
-            endDate: new Date('2024-06-28T17:00:00Z'),
-            capacity: 150,
+            startDate: new Date('2024-12-15T09:00:00.000Z'),
+            endDate: new Date('2024-12-15T18:00:00.000Z'),
+            capacity: 500,
             isPublic: true,
             isFeatured: true,
             ownerId: owner2.id,
             categoryId: techCategory.id,
             venueId: milanoDesignCenter.id,
             metadata: {
-              heroImageUrl: '/images/design-events.jpg',
-              tags: ['#AI', '#creativity', '#technology'],
+              heroImageUrl: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&h=600&fit=crop',
+              tags: ['technology', 'innovation', 'summit', 'AI', 'blockchain', 'startup'],
               social: {
-                instagram: '@linea_events',
-                twitter: '@linea_events'
-              }
+                twitter: 'https://twitter.com/techinnovsummit',
+                website: 'https://techinnovationsummit.com',
+                youtube: 'https://youtube.com/c/techinnovationsummit',
+                linkedin: 'https://linkedin.com/company/tech-innovation-summit',
+                instagram: 'https://instagram.com/techinnovationsummit'
+              },
+              contact: {
+                email: 'info@techinnovationsummit.com',
+                phone: '+39 02 1234 5678',
+                website: 'https://techinnovationsummit.com'
+              },
+              features: [
+                'Keynote Presentations',
+                'Interactive Workshops',
+                'Networking Sessions',
+                'Product Demos',
+                'Panel Discussions',
+                'Startup Pitch Competition'
+              ],
+              organizer: 'Tech Milano'
             }
           },
           {
-            title: 'Furniture Design Masterclass',
-            slug: 'furniture-design-masterclass',
-            description: 'Learn from master furniture designers about the art and craft of creating beautiful, functional pieces. Hands-on workshop with expert guidance.',
-            shortDescription: 'Master the art of furniture design.',
+            title: 'Milano Design Week 2024',
+            slug: 'milano-design-week-2024',
+            description: 'Experience the pinnacle of global design excellence at Milano Design Week 2024, the world\'s most prestigious design event. This week-long celebration of creativity, innovation, and craftsmanship brings together the finest designers, architects, and creative minds from around the globe.',
+            shortDescription: 'World\'s premier design event',
             status: 'PUBLISHED',
-            startDate: new Date('2024-07-05T10:00:00Z'),
-            endDate: new Date('2024-07-05T16:00:00Z'),
+            startDate: new Date('2025-10-01T10:00:00.000Z'),
+            endDate: new Date('2025-10-01T14:00:00.000Z'),
+            capacity: 10000,
+            isPublic: true,
+            isFeatured: true,
+            ownerId: owner1.id,
+            categoryId: designCategory.id,
+            venueId: milanoDesignCenter.id,
+            metadata: {
+              heroImageUrl: '/uploads/event_milano-design-week-2024_1759578870514_e4pode.jpg',
+              tags: ['design', 'milano', 'furniture', 'architecture', 'creativity', 'exhibition'],
+              social: {
+                twitter: 'https://twitter.com/milanodesignweek',
+                website: 'https://milanodesignweek.com',
+                facebook: 'https://facebook.com/milanodesignweek',
+                linkedin: 'https://linkedin.com/company/milano-design-week',
+                instagram: 'https://instagram.com/milanodesignweek'
+              },
+              contact: {
+                email: 'info@milanodesignweek.com',
+                phone: '+39 02 9876 5432',
+                website: 'https://milanodesignweek.com'
+              },
+              features: [
+                'Design Exhibitions',
+                'Furniture Showcases',
+                'Architecture Tours',
+                'Designer Meet & Greets',
+                'Workshop Sessions',
+                'Networking Events'
+              ],
+              organizer: 'Milano Design Center'
+            }
+          },
+          {
+            title: 'Innovation Talk',
+            slug: 'innovation-talk-3',
+            description: 'Join us for an inspiring evening of innovation and forward-thinking design at our exclusive Innovation Talk series. This thought-provoking event brings together industry leaders, visionary designers, and innovative entrepreneurs.',
+            shortDescription: 'Inspiring talks on innovation and design',
+            status: 'PUBLISHED',
+            startDate: new Date('2025-10-01T10:00:00.000Z'),
+            endDate: new Date('2025-10-01T14:00:00.000Z'),
+            capacity: 80,
+            isPublic: true,
+            isFeatured: false,
+            ownerId: owner2.id,
+            categoryId: techCategory.id,
+            venueId: creativeHub.id,
+            metadata: {
+              heroImageUrl: '/uploads/event_innovation-talk-3_1759578178000_s14t4.jpg',
+              tags: ['innovation', 'design', 'technology', 'networking', 'talks'],
+              social: {
+                twitter: 'https://twitter.com/innovation_talks',
+                youtube: 'https://youtube.com/c/innovationtalks',
+                linkedin: 'https://linkedin.com/company/innovation-talks-milano',
+                instagram: 'https://instagram.com/innovation_talks_milano'
+              },
+              contact: {
+                email: 'hello@innovationtalks.com',
+                phone: '+39 02 8765 4321',
+                website: 'https://innovationtalks.com'
+              },
+              features: [
+                'Keynote Speakers',
+                'Panel Discussions',
+                'Networking',
+                'Q&A Sessions',
+                'Light Refreshments'
+              ]
+            }
+          },
+          {
+            title: 'Studio Open Day',
+            slug: 'studio-open-day-4',
+            description: 'Step inside our creative sanctuary and discover the magic behind exceptional design at our exclusive Studio Open Day. This intimate behind-the-scenes experience offers a rare glimpse into our design process.',
+            shortDescription: 'Behind-the-scenes studio experience',
+            status: 'PUBLISHED',
+            startDate: new Date('2025-10-01T10:00:00.000Z'),
+            endDate: new Date('2025-10-01T14:00:00.000Z'),
             capacity: 25,
             isPublic: true,
             isFeatured: false,
@@ -5530,35 +5617,26 @@ app.post('/api/fix-images', async (_request, reply) => {
             categoryId: designCategory.id,
             venueId: creativeHub.id,
             metadata: {
-              heroImageUrl: '/images/design-events.jpg',
-              tags: ['#furniture', '#workshop', '#design'],
+              heroImageUrl: '/uploads/event_studio-open-day-4_1759578183531_lz057.jpg',
+              tags: ['studio', 'open day', 'creative', 'behind-the-scenes', 'workshop'],
               social: {
-                instagram: '@linea_events',
-                twitter: '@linea_events'
-              }
-            }
-          },
-          {
-            title: 'Green Architecture Workshop',
-            slug: 'green-architecture-workshop',
-            description: 'Explore sustainable architecture principles and green building techniques. Learn from leading architects about eco-friendly design solutions.',
-            shortDescription: 'Building a sustainable future.',
-            status: 'PUBLISHED',
-            startDate: new Date('2024-07-12T09:00:00Z'),
-            endDate: new Date('2024-07-12T17:00:00Z'),
-            capacity: 50,
-            isPublic: true,
-            isFeatured: true,
-            ownerId: owner1.id,
-            categoryId: sustainabilityCategory.id,
-            venueId: milanoDesignCenter.id,
-            metadata: {
-              heroImageUrl: '/images/design-events.jpg',
-              tags: ['#architecture', '#sustainability', '#green building'],
-              social: {
-                instagram: '@linea_events',
-                twitter: '@linea_events'
-              }
+                website: 'https://studioopenday.com',
+                facebook: 'https://facebook.com/studioopenday',
+                linkedin: 'https://linkedin.com/company/studio-open-day',
+                instagram: 'https://instagram.com/studio_open_day'
+              },
+              contact: {
+                email: 'studio@openday.com',
+                phone: '+39 02 9876 5432',
+                website: 'https://studioopenday.com'
+              },
+              features: [
+                'Studio Tours',
+                'Live Demonstrations',
+                'Meet the Team',
+                'Interactive Workshops',
+                'Refreshments'
+              ]
             }
           }
         ]
@@ -5575,21 +5653,35 @@ app.post('/api/fix-images', async (_request, reply) => {
           {
             email: 'john.doe@example.com',
             name: 'John Doe',
-            eventId: (await prisma.event.findFirst({ where: { slug: 'sustainable-design-revolution' } }))?.id,
+            eventId: (await prisma.event.findFirst({ where: { slug: 'creative-networking-mixer' } }))?.id,
             status: 'PENDING',
             joinedAt: new Date(),
           },
           {
             email: 'jane.smith@example.com',
             name: 'Jane Smith',
-            eventId: (await prisma.event.findFirst({ where: { slug: 'contemporary-art-exhibition' } }))?.id,
+            eventId: (await prisma.event.findFirst({ where: { slug: 'tech-innovation-summit' } }))?.id,
             status: 'PENDING',
             joinedAt: new Date(),
           },
           {
             email: 'mario.rossi@example.com',
             name: 'Mario Rossi',
-            eventId: (await prisma.event.findFirst({ where: { slug: 'ai-creative-industries' } }))?.id,
+            eventId: (await prisma.event.findFirst({ where: { slug: 'milano-design-week-2024' } }))?.id,
+            status: 'PENDING',
+            joinedAt: new Date(),
+          },
+          {
+            email: 'sarah.johnson@example.com',
+            name: 'Sarah Johnson',
+            eventId: (await prisma.event.findFirst({ where: { slug: 'innovation-talk-3' } }))?.id,
+            status: 'PENDING',
+            joinedAt: new Date(),
+          },
+          {
+            email: 'alex.chen@example.com',
+            name: 'Alex Chen',
+            eventId: (await prisma.event.findFirst({ where: { slug: 'studio-open-day-4' } }))?.id,
             status: 'PENDING',
             joinedAt: new Date(),
           },
