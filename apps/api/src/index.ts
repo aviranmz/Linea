@@ -267,6 +267,22 @@ await app.register(swaggerUi, {
   }
 })
 
+// SPA routes - serve index.html for client-side routing (must be before static file serving)
+app.get('/events/*', async (request, reply) => {
+  reply.type('text/html')
+  return reply.sendFile('index.html')
+})
+
+app.get('/admin-portal', async (request, reply) => {
+  reply.type('text/html')
+  return reply.sendFile('index.html')
+})
+
+app.get('/owner-portal', async (request, reply) => {
+  reply.type('text/html')
+  return reply.sendFile('index.html')
+})
+
 // Serve uploaded files first (before frontend static files)
 await app.register(fastifyStatic, {
   root: path.join(__dirname, '../uploads'),
@@ -5016,30 +5032,5 @@ const start = async () => {
   }
 }
 
-// SPA routes - serve index.html for client-side routing
-app.get('/events/*', async (request, reply) => {
-  reply.type('text/html')
-  return reply.sendFile('index.html')
-})
-
-app.get('/admin-portal', async (request, reply) => {
-  reply.type('text/html')
-  return reply.sendFile('index.html')
-})
-
-app.get('/owner-portal', async (request, reply) => {
-  reply.type('text/html')
-  return reply.sendFile('index.html')
-})
-
-// SPA catch-all route - serve index.html for all other non-API routes
-app.get('/*', async (request, reply) => {
-  // Only handle routes that don't start with /api
-  if (!request.url.startsWith('/api')) {
-    reply.type('text/html')
-    return reply.sendFile('index.html')
-  }
-  reply.code(404).send({ error: 'Not Found' })
-})
 
 start()
