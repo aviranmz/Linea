@@ -5292,19 +5292,19 @@ app.post('/api/wipe-and-reseed', async (_request, reply) => {
 
     console.log('🗑️  Wiping production database...')
 
-    // Use raw SQL to disable foreign key checks temporarily
+    // Use raw SQL to disable foreign key checks and truncate all tables
     await prisma.$executeRaw`SET session_replication_role = replica;`
     
-    // Delete all data without foreign key constraints
-    await prisma.waitlistEntry.deleteMany({})
-    await prisma.session.deleteMany({})
-    await prisma.event.deleteMany({})
-    await prisma.venue.deleteMany({})
-    await prisma.category.deleteMany({})
-    await prisma.area.deleteMany({})
-    await prisma.product.deleteMany({})
-    await prisma.user.deleteMany({})
-    
+    // Truncate all tables in the correct order to avoid foreign key constraints
+    await prisma.$executeRaw`TRUNCATE TABLE "WaitlistEntry" CASCADE;`
+    await prisma.$executeRaw`TRUNCATE TABLE "Session" CASCADE;`
+    await prisma.$executeRaw`TRUNCATE TABLE "Event" CASCADE;`
+    await prisma.$executeRaw`TRUNCATE TABLE "Venue" CASCADE;`
+    await prisma.$executeRaw`TRUNCATE TABLE "Category" CASCADE;`
+    await prisma.$executeRaw`TRUNCATE TABLE "Area" CASCADE;`
+    await prisma.$executeRaw`TRUNCATE TABLE "Product" CASCADE;`
+    await prisma.$executeRaw`TRUNCATE TABLE "User" CASCADE;`
+
     // Re-enable foreign key checks
     await prisma.$executeRaw`SET session_replication_role = DEFAULT;`
 
