@@ -183,13 +183,7 @@ export function HomePage() {
     setFilters({ search: '', category: '', featured: '', dateFrom: '', dateTo: '', city: '', owner: '', area: '', product: '', hours: '' })
   }
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    })
-  }
+  // formatDate is unused currently; keep implementation out to avoid TS6133
 
   const getActiveFiltersCount = () => {
     return Object.values(filters).filter(value => value !== '').length

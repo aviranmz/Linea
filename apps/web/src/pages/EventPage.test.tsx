@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { BrowserRouter } from 'react-router-dom'
 import { HelmetProvider } from 'react-helmet-async'
 import React from 'react'
-import { LanguageProvider } from '../contexts/LanguageContext'
+// removed unused LanguageProvider import; tests mock useLanguage
 
 // Simplify Helmet during tests to avoid provider/context issues
 vi.mock('react-helmet-async', async () => {
