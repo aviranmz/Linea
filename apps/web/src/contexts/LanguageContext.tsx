@@ -1201,6 +1201,7 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
       enKeys.forEach(k => { if (!itKeys.has(k)) missingInIt.push(k) })
       itKeys.forEach(k => { if (!enKeys.has(k)) missingInEn.push(k) })
       if (missingInIt.length > 0 || missingInEn.length > 0) {
+        // Use console.warn in dev only; eslint rule disabled at top of file
         // eslint-disable-next-line no-console
         console.warn('[i18n] Translation key mismatches detected', { missingInIt, missingInEn })
       }

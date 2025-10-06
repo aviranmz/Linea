@@ -630,7 +630,8 @@ await app.register(fastifyStatic, {
 await app.register(fastifyStatic, {
   root: path.join(__dirname, '../../web/dist'),
   prefix: '/',
-  decorateReply: false
+  // Enable reply.sendFile for SPA fallbacks and asset serving
+  decorateReply: true
 })
 
 // ------------ Auth utilities ------------
@@ -5216,6 +5217,25 @@ app.setNotFoundHandler(async (_request, reply) => {
   reply.code(404).send({ error: 'Not Found' })
 })
 
+// Expose selected runtime env vars to the frontend at runtime
+app.get('/env.js', async (_request, reply) => {
+  const env = {
+    VITE_GOOGLE_MAPS_API_KEY: process.env.VITE_GOOGLE_MAPS_API_KEY || '',
+    VITE_GA_MEASUREMENT_ID: process.env.VITE_GA_MEASUREMENT_ID || ''
+  }
+  reply.type('application/javascript').send(`window.__ENV__ = ${JSON.stringify(env)};`)
+})
+
+// Favicon fallback
+app.get('/favicon.ico', async (_request, reply) => {
+  try {
+    reply.type('image/png')
+    return reply.sendFile('assets/linea_light.png')
+  } catch {
+    reply.code(404).send()
+  }
+})
+
 // Error handler
 app.setErrorHandler((error, _request, reply) => {
   app.log.error({ error }, 'API Error')
@@ -5749,61 +5769,16 @@ const start = async () => {
 }
 
 // SPA routes - serve index.html for client-side routing (must be after all API routes)
-app.get('/events/:id', async (request, reply) => {
-  reply.type('text/html')
-  // Simple HTML response for SPA routing
-  const html = `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Linea - Design Events</title>
-  <link rel="stylesheet" href="/main-DQwXswOK.css">
-</head>
-<body>
-  <div id="root"></div>
-  <script type="module" src="/main-BCO7StoB.js"></script>
-</body>
-</html>`
-  return reply.send(html)
+app.get('/events/*', async (_request, reply) => {
+  return reply.sendFile('index.html')
 })
 
-app.get('/admin-portal', async (request, reply) => {
-  reply.type('text/html')
-  // Simple HTML response for SPA routing
-  const html = `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Linea - Admin Portal</title>
-  <link rel="stylesheet" href="/main-DQwXswOK.css">
-</head>
-<body>
-  <div id="root"></div>
-  <script type="module" src="/main-BCO7StoB.js"></script>
-</body>
-</html>`
-  return reply.send(html)
+app.get('/admin', async (_request, reply) => {
+  return reply.sendFile('index.html')
 })
 
-app.get('/owner-portal', async (request, reply) => {
-  reply.type('text/html')
-  // Simple HTML response for SPA routing
-  const html = `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Linea - Owner Portal</title>
-  <link rel="stylesheet" href="/main-DQwXswOK.css">
-</head>
-<body>
-  <div id="root"></div>
-  <script type="module" src="/main-BCO7StoB.js"></script>
-</body>
-</html>`
-  return reply.send(html)
+app.get('/owner', async (_request, reply) => {
+  return reply.sendFile('index.html')
 })
 
 start()

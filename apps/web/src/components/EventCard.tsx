@@ -47,10 +47,8 @@ export function EventCard({
   }
   
   const getEventImage = () => {
-    if (event.metadata?.heroImageUrl) {
-      return event.metadata.heroImageUrl
-    }
-    return '/images/event-placeholder.jpg'
+    if (event.metadata?.heroImageUrl) return event.metadata.heroImageUrl
+    return '/assets/linea_light.png'
   }
   
   const getEventDescription = () => {
@@ -193,6 +191,10 @@ export function EventCard({
           src={getEventImage()}
           alt={displayData.title}
           className="w-full h-48 object-cover"
+          onError={(e) => {
+            const target = e.target as HTMLImageElement
+            target.src = '/assets/linea_light.png'
+          }}
         />
         {displayData.featured && (
           <div className="absolute top-2 right-2">

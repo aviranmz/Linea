@@ -207,9 +207,13 @@ export function EventList({
               <div className="flex items-start space-x-4">
                 <div className="flex-shrink-0">
                   <img
-                    src={event.metadata?.heroImageUrl || '/images/event-placeholder.jpg'}
+                    src={event.metadata?.heroImageUrl || '/assets/linea_light.png'}
                     alt={event.title}
                     className="w-16 h-16 rounded-lg object-cover"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement
+                      target.src = '/assets/linea_light.png'
+                    }}
                   />
                 </div>
                 <div className="flex-1 min-w-0">
