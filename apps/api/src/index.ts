@@ -11,7 +11,6 @@ import * as crypto from 'crypto'
 import * as Sentry from '@sentry/node'
 import path from 'path'
 import { fileURLToPath } from 'url'
-import { readFileSync } from 'fs'
 // import { randomUUID } from 'crypto'
 import { getConfig, validateConfig } from '@linea/config'
 import { sessionService } from './services/sessionService.js'
@@ -271,23 +270,59 @@ await app.register(swaggerUi, {
 // SPA routes - serve index.html for client-side routing (must be before static file serving)
 app.get('/events/*', async (request, reply) => {
   reply.type('text/html')
-  const indexPath = path.join(__dirname, '../../web/dist/index.html')
-  const content = readFileSync(indexPath, 'utf-8')
-  return reply.send(content)
+  // Simple HTML response for SPA routing
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Linea - Design Events</title>
+  <link rel="stylesheet" href="/main-DQwXswOK.css">
+</head>
+<body>
+  <div id="root"></div>
+  <script type="module" src="/main-BCO7StoB.js"></script>
+</body>
+</html>`
+  return reply.send(html)
 })
 
 app.get('/admin-portal', async (request, reply) => {
   reply.type('text/html')
-  const indexPath = path.join(__dirname, '../../web/dist/index.html')
-  const content = readFileSync(indexPath, 'utf-8')
-  return reply.send(content)
+  // Simple HTML response for SPA routing
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Linea - Admin Portal</title>
+  <link rel="stylesheet" href="/main-DQwXswOK.css">
+</head>
+<body>
+  <div id="root"></div>
+  <script type="module" src="/main-BCO7StoB.js"></script>
+</body>
+</html>`
+  return reply.send(html)
 })
 
 app.get('/owner-portal', async (request, reply) => {
   reply.type('text/html')
-  const indexPath = path.join(__dirname, '../../web/dist/index.html')
-  const content = readFileSync(indexPath, 'utf-8')
-  return reply.send(content)
+  // Simple HTML response for SPA routing
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Linea - Owner Portal</title>
+  <link rel="stylesheet" href="/main-DQwXswOK.css">
+</head>
+<body>
+  <div id="root"></div>
+  <script type="module" src="/main-BCO7StoB.js"></script>
+</body>
+</html>`
+  return reply.send(html)
 })
 
 // Serve uploaded files first (before frontend static files)
