@@ -207,7 +207,7 @@ export function EventList({
               <div className="flex items-start space-x-4">
                 <div className="flex-shrink-0">
                   <img
-                    src={event.metadata?.heroImageUrl || '/assets/linea_light.png'}
+                    src={(event.metadata?.heroImageUrl && (event.metadata.heroImageUrl.startsWith('http') || event.metadata.heroImageUrl.startsWith('/assets/'))) ? event.metadata.heroImageUrl : '/assets/linea_light.png'}
                     alt={event.title}
                     className="w-16 h-16 rounded-lg object-cover"
                     onError={(e) => {

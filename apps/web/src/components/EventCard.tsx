@@ -47,7 +47,11 @@ export function EventCard({
   }
   
   const getEventImage = () => {
-    if (event.metadata?.heroImageUrl) return event.metadata.heroImageUrl
+    const url = event.metadata?.heroImageUrl
+    // Only use provided URL if it's a fully qualified URL or points to bundled assets
+    if (typeof url === 'string' && (url.startsWith('http') || url.startsWith('/assets/'))) {
+      return url
+    }
     return '/assets/linea_light.png'
   }
   
