@@ -1,4 +1,4 @@
-import { PrismaClient, UserRole } from '@prisma/client'
+import { PrismaClient } from '@prisma/client'
 // import { hash } from 'bcryptjs'
 
 const prisma = new PrismaClient()
@@ -14,7 +14,7 @@ async function main() {
     create: {
       email: 'admin@linea.app',
       name: 'Admin User',
-      role: UserRole.ADMIN,
+      role: 'ADMIN',
       isActive: true,
       lastLoginAt: new Date(),
     },
@@ -29,7 +29,7 @@ async function main() {
     create: {
       email: 'owner@linea.app',
       name: 'Event Owner',
-      role: UserRole.OWNER,
+      role: 'OWNER',
       isActive: true,
       lastLoginAt: new Date(),
     },
@@ -803,7 +803,7 @@ async function main() {
       ]
 
       const userCount = 200
-      const usersToCreate: Array<{ email: string; name: string; role: UserRole; isActive: boolean; lastLoginAt: Date }>
+      const usersToCreate: Array<{ email: string; name: string; role: 'VISITOR'; isActive: boolean; lastLoginAt: Date }>
         = []
 
       for (let i = 0; i < userCount; i++) {
@@ -812,7 +812,7 @@ async function main() {
         const name = `${fn} ${ln}`
         // Use a stable but unique email scheme
         const email = `${fn.toLowerCase()}.${ln.toLowerCase()}${i + 1}@example.com`
-        usersToCreate.push({ email, name, role: UserRole.VISITOR, isActive: true, lastLoginAt: new Date() })
+        usersToCreate.push({ email, name, role: 'VISITOR', isActive: true, lastLoginAt: new Date() })
       }
 
       // Create users in bulk; skipDuplicates avoids collisions on re-seed
