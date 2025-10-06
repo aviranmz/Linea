@@ -1,14 +1,17 @@
 // Lightweight Google Maps loader usable in browser and during TS builds
 
-declare global {
-  // eslint-disable-next-line @typescript-eslint/no-namespace
-  namespace google { namespace maps {
-    class Map { constructor(element: HTMLElement, options?: Record<string, unknown>); fitBounds(bounds: LatLngBounds): void }
-    class Marker { constructor(options: Record<string, unknown>); setMap(map: Map | null): void; addListener(eventName: string, handler: () => void): void }
-    class LatLngBounds { extend(position: { lat: number; lng: number }): void; isEmpty(): boolean }
-    class InfoWindow { constructor(options?: Record<string, unknown>); open(opts: { map: Map | null; anchor: Marker }): void }
-  }}
-}
+// Minimal ambient types to satisfy TS during build; real types provided by runtime JS API
+// eslint-disable-next-line @typescript-eslint/no-namespace
+declare namespace google { namespace maps {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  class Map { constructor(element: HTMLElement, options?: Record<string, unknown>); fitBounds(bounds: LatLngBounds): void }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  class Marker { constructor(options: Record<string, unknown>); setMap(map: Map | null): void; addListener(eventName: string, handler: () => void): void }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  class LatLngBounds { extend(position: { lat: number; lng: number }): void; isEmpty(): boolean }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  class InfoWindow { constructor(options?: Record<string, unknown>); open(opts: { map: Map | null; anchor: Marker }): void }
+}} 
 
 type GoogleNamespace = typeof window & { google: typeof google }
 

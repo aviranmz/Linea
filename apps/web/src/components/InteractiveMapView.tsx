@@ -1,5 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { loadGoogleMaps } from '../lib/googleMaps'
+
+// Minimal types to satisfy TS for this file
+type GMap = any
+type GMarker = any
 import { getEventAddress, geocodeAddress } from '../lib/geocoding'
 import { Event } from '../types/Event'
 
@@ -7,27 +11,21 @@ interface InteractiveMapViewProps {
   events: Event[]
 }
 
-declare global {
-  // Provide minimal google type for eslint/ts in this file
-  // eslint-disable-next-line @typescript-eslint/no-namespace
-  namespace google { namespace maps { class Map {}; class Marker { setMap(_: any): void {} addListener(_: string, __: () => void): void {} }; class LatLngBounds { extend(_: any): void {}; isEmpty(): boolean { return true } }; class InfoWindow { constructor(_: any) {}; open(_: any): void {} } } }
-}
-
 export function InteractiveMapView({ events }: InteractiveMapViewProps) {
   const containerRef = useRef<HTMLDivElement | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    let map: google.maps.Map | null = null
-    let markers: google.maps.Marker[] = []
+    let map: GMap | null = null
+    let markers: GMarker[] = []
 
     loadGoogleMaps(['places'])
-      .then((google) => {
+      .then(() => {
         if (!containerRef.current) return
 
         const defaultCenter = { lat: 45.4642, lng: 9.1900 } // Milano
 
-        map = new google.maps.Map(containerRef.current, {
+        map = new (window as any).google.maps.Map(containerRef.current, {
           center: defaultCenter,
           zoom: 12,
           mapTypeControl: false,
@@ -36,11 +34,11 @@ export function InteractiveMapView({ events }: InteractiveMapViewProps) {
         })
 
         // Fit bounds to event markers if any have coordinates
-        const bounds = new google.maps.LatLngBounds()
+        const bounds = new (window as any).google.maps.LatLngBounds()
 
         const addMarker = (evt: Event, position: { lat: number; lng: number }) => {
-          const marker = new google.maps.Marker({ position, map, title: evt.title })
-          const info = new google.maps.InfoWindow({
+          const marker = new (window as any).google.maps.Marker({ position, map, title: evt.title })
+          const info = new (window as any).google.maps.InfoWindow({
             content: `<div style="max-width:220px">\n              <div style="font-weight:600;margin-bottom:4px">${evt.title}</div>\n              ${evt.venue ? `<div style="color:#4b5563">${evt.venue.city}, ${evt.venue.country}</div>` : ''}\n              <div style="margin-top:6px"><a href="/events/${evt.id}" style="color:#4f46e5;text-decoration:underline">View</a></div>\n            </div>`
           })
           marker.addListener('click', () => info.open({ map, anchor: marker }))
