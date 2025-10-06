@@ -5294,6 +5294,7 @@ app.post('/api/wipe-and-reseed', async (_request, reply) => {
 
     // Delete all data in the correct order to avoid foreign key constraints
     await prisma.waitlistEntry.deleteMany({})
+    await prisma.session.deleteMany({}) // Delete sessions first
     await prisma.event.deleteMany({})
     await prisma.venue.deleteMany({})
     await prisma.category.deleteMany({})
