@@ -4762,8 +4762,9 @@ app.get('/auth/dev/login-link', async (request, reply) => {
       update: { role: desiredRole, name: name ?? null, isActive: true, lastLoginAt: new Date() },
       create: { email, role: desiredRole, name: name ?? null, isActive: true, lastLoginAt: new Date() }
     }) as unknown as { id: string; email: string; role: 'VISITOR'|'OWNER'|'ADMIN'; name?: string | null }
+    app.log.info({ userId: user.id, email: user.email }, 'Dev login-link: User upserted successfully')
   } catch (e) {
-    app.log.warn({ e }, 'Dev login-link: DB unavailable, using in-memory user')
+    app.log.error({ e, email }, 'Dev login-link: DB upsert failed, using in-memory user')
     user = { id: crypto.randomUUID(), email, role: desiredRole, name: name ?? null }
   }
 

@@ -3,12 +3,12 @@ access-control-allow-credentials: true
 access-control-allow-origin: https://linea.app
 cross-origin-opener-policy: same-origin
 cross-origin-resource-policy: same-origin
-date: Mon, 06 Oct 2025 05:53:43 GMT
+date: Mon, 06 Oct 2025 05:58:38 GMT
 location: https://linea-production.up.railway.app
 origin-agent-cluster: ?1
 referrer-policy: no-referrer
 server: railway-edge
-set-cookie: linea_session=7950d614-2366-454c-bff7-5528c47f0ab8; Max-Age=604800; Path=/; HttpOnly; Secure; SameSite=Lax
+set-cookie: linea_session=d8dbfbe9-8b3a-4d06-b7be-14bc9864b492; Max-Age=604800; Path=/; HttpOnly; Secure; SameSite=Lax
 strict-transport-security: max-age=15552000; includeSubDomains
 vary: Origin
 x-content-type-options: nosniff
@@ -17,7 +17,7 @@ x-download-options: noopen
 x-frame-options: SAMEORIGIN
 x-permitted-cross-domain-policies: none
 x-railway-edge: railway/europe-west4-drams3a
-x-railway-request-id: hA04fZL_S9W6wZJzYqdHTg
+x-railway-request-id: k3jBlUylQtiwTlGbjUJq2g
 x-ratelimit-limit: 100
 x-ratelimit-remaining: 99
 x-ratelimit-reset: 900
