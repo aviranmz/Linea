@@ -4757,14 +4757,30 @@ app.get('/auth/dev/login-link', async (request, reply) => {
   let user: { id: string; email: string; role: 'VISITOR'|'OWNER'|'ADMIN'; name?: string | null }
   
   try {
-    user = await prisma.user.upsert({
-      where: { email },
-      update: { role: desiredRole, name: name ?? null, isActive: true, lastLoginAt: new Date() },
-      create: { email, role: desiredRole, name: name ?? null, isActive: true, lastLoginAt: new Date() }
-    }) as unknown as { id: string; email: string; role: 'VISITOR'|'OWNER'|'ADMIN'; name?: string | null }
-    app.log.info({ userId: user.id, email: user.email }, 'Dev login-link: User upserted successfully')
+    // First try to find existing user
+    const existingUser = await prisma.user.findFirst({
+      where: { email, isActive: true, deletedAt: null },
+      select: { id: true, email: true, role: true, name: true }
+    })
+    
+    if (existingUser) {
+      // Update existing user
+      user = await prisma.user.update({
+        where: { id: existingUser.id },
+        data: { role: desiredRole, name: name ?? null, lastLoginAt: new Date() },
+        select: { id: true, email: true, role: true, name: true }
+      }) as unknown as { id: string; email: string; role: 'VISITOR'|'OWNER'|'ADMIN'; name?: string | null }
+      app.log.info({ userId: user.id, email: user.email }, 'Dev login-link: Existing user updated')
+    } else {
+      // Create new user
+      user = await prisma.user.create({
+        data: { email, role: desiredRole, name: name ?? null, isActive: true, lastLoginAt: new Date() },
+        select: { id: true, email: true, role: true, name: true }
+      }) as unknown as { id: string; email: string; role: 'VISITOR'|'OWNER'|'ADMIN'; name?: string | null }
+      app.log.info({ userId: user.id, email: user.email }, 'Dev login-link: New user created')
+    }
   } catch (e) {
-    app.log.error({ e, email }, 'Dev login-link: DB upsert failed, using in-memory user')
+    app.log.error({ e, email }, 'Dev login-link: DB operation failed, using in-memory user')
     user = { id: crypto.randomUUID(), email, role: desiredRole, name: name ?? null }
   }
 
