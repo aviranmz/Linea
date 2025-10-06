@@ -5017,9 +5017,9 @@ const start = async () => {
 }
 
 // SPA catch-all route - serve index.html for all non-API routes
-app.setNotFoundHandler(async (request, reply) => {
-  // Only handle GET requests and routes that don't start with /api
-  if (request.method === 'GET' && !request.url.startsWith('/api')) {
+app.get('/*', async (request, reply) => {
+  // Only handle routes that don't start with /api
+  if (!request.url.startsWith('/api')) {
     reply.type('text/html')
     return reply.sendFile('index.html')
   }
