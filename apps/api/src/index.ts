@@ -270,25 +270,25 @@ await app.register(swaggerUi, {
 // SPA routes - serve index.html for client-side routing (must be before static file serving)
 app.get('/events/*', async (request, reply) => {
   reply.type('text/html')
-  const fs = await import('fs/promises')
+  const fs = require('fs')
   const indexPath = path.join(__dirname, '../../web/dist/index.html')
-  const content = await fs.readFile(indexPath, 'utf-8')
+  const content = fs.readFileSync(indexPath, 'utf-8')
   return reply.send(content)
 })
 
 app.get('/admin-portal', async (request, reply) => {
   reply.type('text/html')
-  const fs = await import('fs/promises')
+  const fs = require('fs')
   const indexPath = path.join(__dirname, '../../web/dist/index.html')
-  const content = await fs.readFile(indexPath, 'utf-8')
+  const content = fs.readFileSync(indexPath, 'utf-8')
   return reply.send(content)
 })
 
 app.get('/owner-portal', async (request, reply) => {
   reply.type('text/html')
-  const fs = await import('fs/promises')
+  const fs = require('fs')
   const indexPath = path.join(__dirname, '../../web/dist/index.html')
-  const content = await fs.readFile(indexPath, 'utf-8')
+  const content = fs.readFileSync(indexPath, 'utf-8')
   return reply.send(content)
 })
 
