@@ -5282,423 +5282,356 @@ app.post('/api/fix-images', async (_request, reply) => {
   }
 })
 
-// Wipe and reseed production database with local data
-app.post('/api/wipe-and-reseed', async (_request, reply) => {
-  try {
-    const { PrismaClient } = await import('@prisma/client')
-    const fs = await import('fs')
-    const path = await import('path')
-    const prisma = new PrismaClient()
+    // Wipe and reseed production database with comprehensive data
+    app.post('/api/wipe-and-reseed', async (_request, reply) => {
+      try {
+        const { PrismaClient } = await import('@prisma/client')
+        const prisma = new PrismaClient()
 
-    console.log('🗑️  Wiping production database...')
+        console.log('🗑️  Wiping production database...')
 
-    // Use raw SQL to disable foreign key checks and truncate all tables
-    await prisma.$executeRaw`SET session_replication_role = replica;`
-    
-    // Truncate all tables in the correct order to avoid foreign key constraints
-    await prisma.$executeRaw`TRUNCATE TABLE "WaitlistEntry" CASCADE;`
-    await prisma.$executeRaw`TRUNCATE TABLE "Session" CASCADE;`
-    await prisma.$executeRaw`TRUNCATE TABLE "Event" CASCADE;`
-    await prisma.$executeRaw`TRUNCATE TABLE "Venue" CASCADE;`
-    await prisma.$executeRaw`TRUNCATE TABLE "Category" CASCADE;`
-    await prisma.$executeRaw`TRUNCATE TABLE "Area" CASCADE;`
-    await prisma.$executeRaw`TRUNCATE TABLE "Product" CASCADE;`
-    await prisma.$executeRaw`TRUNCATE TABLE "User" CASCADE;`
+        // Use raw SQL to disable foreign key checks and truncate all tables
+        await prisma.$executeRaw`SET session_replication_role = replica;`
+        
+        // Truncate all tables in the correct order to avoid foreign key constraints
+        await prisma.$executeRaw`TRUNCATE TABLE "WaitlistEntry" CASCADE;`
+        await prisma.$executeRaw`TRUNCATE TABLE "Session" CASCADE;`
+        await prisma.$executeRaw`TRUNCATE TABLE "Event" CASCADE;`
+        await prisma.$executeRaw`TRUNCATE TABLE "Venue" CASCADE;`
+        await prisma.$executeRaw`TRUNCATE TABLE "Category" CASCADE;`
+        await prisma.$executeRaw`TRUNCATE TABLE "Area" CASCADE;`
+        await prisma.$executeRaw`TRUNCATE TABLE "Product" CASCADE;`
+        await prisma.$executeRaw`TRUNCATE TABLE "User" CASCADE;`
 
-    // Re-enable foreign key checks
-    await prisma.$executeRaw`SET session_replication_role = DEFAULT;`
+        // Re-enable foreign key checks
+        await prisma.$executeRaw`SET session_replication_role = DEFAULT;`
 
-    console.log('✅ Production database wiped')
+        console.log('✅ Production database wiped')
 
-    console.log('🌱 Loading local data...')
-    
-    // Load the exported data (we'll need to include this in the deployment)
-    const localData = {
-      users: [
-        {
-          id: "temp1",
-          email: "admin@linea.app",
-          name: "Admin User",
-          role: "ADMIN",
-          isActive: true,
-          lastLoginAt: new Date().toISOString(),
-          theme: null,
-          address: null,
-          businessIntro: null,
-          businessName: null,
-          city: null,
-          country: null,
-          facebookUrl: null,
-          instagramUrl: null,
-          latitude: null,
-          logoUrl: null,
-          longitude: null,
-          phone: null,
-          profilePictureUrl: null,
-          website: null
-        },
-        {
-          id: "temp2",
-          email: "owner1@example.com",
-          name: "Owner One",
-          role: "OWNER",
-          isActive: true,
-          lastLoginAt: new Date().toISOString(),
-          theme: null,
-          address: null,
-          businessIntro: null,
-          businessName: null,
-          city: null,
-          country: null,
-          facebookUrl: null,
-          instagramUrl: null,
-          latitude: null,
-          logoUrl: null,
-          longitude: null,
-          phone: null,
-          profilePictureUrl: null,
-          website: null
-        },
-        {
-          id: "temp3",
-          email: "owner2@example.com",
-          name: "Owner Two",
-          role: "OWNER",
-          isActive: true,
-          lastLoginAt: new Date().toISOString(),
-          theme: null,
-          address: null,
-          businessIntro: null,
-          businessName: null,
-          city: null,
-          country: null,
-          facebookUrl: null,
-          instagramUrl: null,
-          latitude: null,
-          logoUrl: null,
-          longitude: null,
-          phone: null,
-          profilePictureUrl: null,
-          website: null
-        }
-      ],
-      categories: [
-        {
-          id: "cat1",
-          name: "Design",
-          slug: "design",
-          description: "Design events, workshops, and exhibitions",
-          color: "#c4b69e",
-          icon: "🎨"
-        },
-        {
-          id: "cat2",
-          name: "Technology",
-          slug: "technology",
-          description: "Tech and innovation events",
-          color: "#3b82f6",
-          icon: "💻"
-        },
-        {
-          id: "cat3",
-          name: "Art & Culture",
-          slug: "art-culture",
-          description: "Art, culture, and creative events",
-          color: "#f59e0b",
-          icon: "🎭"
-        },
-        {
-          id: "cat4",
-          name: "Sustainability",
-          slug: "sustainability",
-          description: "Sustainable design and eco-friendly events",
-          color: "#10b981",
-          icon: "🌱"
-        }
-      ],
-      areas: [
-        {
-          id: "area1",
-          name: "Milano",
-          slug: "milano",
-          description: "Design capital of Italy",
-          country: "Italy",
-          coordinates: { lat: 45.4642, lng: 9.1900 }
-        }
-      ],
-      venues: [
-        {
-          id: "venue1",
-          name: "Milano Design Center",
-          address: "Via Tortona, 37, 20144 Milano MI, Italy",
-          city: "Milano",
-          country: "Italy",
-          coordinates: { lat: 45.4642, lng: 9.1900 },
-          capacity: 500,
-          amenities: ["WiFi", "Parking", "Accessibility"]
-        }
-      ],
-      products: [],
-      events: [
-        {
-          id: "event1",
-          title: "Sustainable Design Revolution",
-          slug: "sustainable-design-revolution",
-          description: "Explore the future of sustainable design with leading architects, designers, and environmental experts. Discover innovative materials, circular design principles, and eco-friendly solutions that are reshaping the industry.",
-          shortDescription: "Leading the charge in sustainable design innovation.",
-          status: "PUBLISHED",
-          startDate: "2024-06-15T09:00:00Z",
-          endDate: "2024-06-15T18:00:00Z",
-          capacity: 300,
-          isPublic: true,
-          isFeatured: true,
-          ownerId: "temp2",
-          categoryId: "cat4",
-          venueId: "venue1",
-          metadata: {
-            heroImageUrl: "/images/design-events.jpg",
-            tags: ["#sustainability", "#design", "#innovation"],
-            social: {
-              instagram: "@linea_events",
-              twitter: "@linea_events"
+        console.log('🌱 Seeding production database with comprehensive data...')
+
+        // Create users
+        const adminUser = await prisma.user.create({
+          data: {
+            email: 'admin@linea.app',
+            name: 'Admin User',
+            role: 'ADMIN',
+            isActive: true,
+            lastLoginAt: new Date(),
+          },
+        })
+        console.log(`✅ Created admin user: ${adminUser.email}`)
+
+        const owner1 = await prisma.user.create({
+          data: {
+            email: 'owner1@example.com',
+            name: 'Owner One',
+            role: 'OWNER',
+            isActive: true,
+            lastLoginAt: new Date(),
+            businessName: 'Design Studio One',
+            businessIntro: 'Leading design studio specializing in sustainable architecture',
+            city: 'Milano',
+            country: 'Italy',
+            phone: '+39 02 1234 5678',
+            website: 'https://designstudio1.com',
+            instagramUrl: '@designstudio1',
+            facebookUrl: 'https://facebook.com/designstudio1',
+          },
+        })
+        console.log(`✅ Created owner 1: ${owner1.email}`)
+
+        const owner2 = await prisma.user.create({
+          data: {
+            email: 'owner2@example.com',
+            name: 'Owner Two',
+            role: 'OWNER',
+            isActive: true,
+            lastLoginAt: new Date(),
+            businessName: 'Creative Arts Collective',
+            businessIntro: 'Innovative arts collective pushing boundaries in contemporary design',
+            city: 'Milano',
+            country: 'Italy',
+            phone: '+39 02 8765 4321',
+            website: 'https://creativearts.com',
+            instagramUrl: '@creativearts',
+            facebookUrl: 'https://facebook.com/creativearts',
+          },
+        })
+        console.log(`✅ Created owner 2: ${owner2.email}`)
+
+        // Create areas
+        const milanoArea = await prisma.area.create({
+          data: {
+            name: 'Milano',
+            slug: 'milano',
+            description: 'Design capital of Italy and global fashion hub',
+            country: 'Italy',
+            coordinates: { lat: 45.4642, lng: 9.1900 },
+          },
+        })
+        console.log(`✅ Created area: ${milanoArea.name}`)
+
+        // Create categories
+        const designCategory = await prisma.category.create({
+          data: {
+            name: 'Design',
+            slug: 'design',
+            description: 'Innovative design events, workshops, and exhibitions',
+            color: '#c4b69e',
+            icon: '🎨',
+          },
+        })
+        console.log(`✅ Created category: ${designCategory.name}`)
+
+        const techCategory = await prisma.category.create({
+          data: {
+            name: 'Technology',
+            slug: 'technology',
+            description: 'Tech and innovation events',
+            color: '#3b82f6',
+            icon: '💻',
+          },
+        })
+        console.log(`✅ Created category: ${techCategory.name}`)
+
+        const artCategory = await prisma.category.create({
+          data: {
+            name: 'Art & Culture',
+            slug: 'art-culture',
+            description: 'Art, culture, and creative events',
+            color: '#f59e0b',
+            icon: '🎭',
+          },
+        })
+        console.log(`✅ Created category: ${artCategory.name}`)
+
+        const sustainabilityCategory = await prisma.category.create({
+          data: {
+            name: 'Sustainability',
+            slug: 'sustainability',
+            description: 'Sustainable design and eco-friendly events',
+            color: '#10b981',
+            icon: '🌱',
+          },
+        })
+        console.log(`✅ Created category: ${sustainabilityCategory.name}`)
+
+        // Create venues
+        const milanoDesignCenter = await prisma.venue.create({
+          data: {
+            name: 'Milano Design Center',
+            address: 'Via Tortona, 37, 20144 Milano MI, Italy',
+            city: 'Milano',
+            country: 'Italy',
+            coordinates: { lat: 45.4642, lng: 9.1900 },
+            capacity: 500,
+            amenities: ['WiFi', 'Parking', 'Accessibility', 'Catering', 'AV Equipment'],
+          },
+        })
+        console.log(`✅ Created venue: ${milanoDesignCenter.name}`)
+
+        const creativeHub = await prisma.venue.create({
+          data: {
+            name: 'Creative Hub Milano',
+            address: 'Corso di Porta Ticinese, 87, 20123 Milano MI, Italy',
+            city: 'Milano',
+            country: 'Italy',
+            coordinates: { lat: 45.4500, lng: 9.1800 },
+            capacity: 200,
+            amenities: ['WiFi', 'Parking', 'Accessibility', 'Gallery Space'],
+          },
+        })
+        console.log(`✅ Created venue: ${creativeHub.name}`)
+
+        // Create events
+        const events = [
+          {
+            title: 'Sustainable Design Revolution',
+            slug: 'sustainable-design-revolution',
+            description: 'Explore the future of sustainable design with leading architects, designers, and environmental experts. Discover innovative materials, circular design principles, and eco-friendly solutions that are reshaping the industry.',
+            shortDescription: 'Leading the charge in sustainable design innovation.',
+            status: 'PUBLISHED',
+            startDate: new Date('2024-06-15T09:00:00Z'),
+            endDate: new Date('2024-06-15T18:00:00Z'),
+            capacity: 300,
+            isPublic: true,
+            isFeatured: true,
+            ownerId: owner1.id,
+            categoryId: sustainabilityCategory.id,
+            venueId: milanoDesignCenter.id,
+            metadata: {
+              heroImageUrl: '/images/design-events.jpg',
+              tags: ['#sustainability', '#design', '#innovation'],
+              social: {
+                instagram: '@linea_events',
+                twitter: '@linea_events'
+              }
+            }
+          },
+          {
+            title: 'Contemporary Art Exhibition',
+            slug: 'contemporary-art-exhibition',
+            description: 'A showcase of cutting-edge contemporary art from emerging and established artists. Experience innovative installations, digital art, and interactive exhibits that push the boundaries of artistic expression.',
+            shortDescription: 'Contemporary voices in modern art.',
+            status: 'PUBLISHED',
+            startDate: new Date('2024-06-18T10:00:00Z'),
+            endDate: new Date('2024-06-18T20:00:00Z'),
+            capacity: 200,
+            isPublic: true,
+            isFeatured: true,
+            ownerId: owner2.id,
+            categoryId: artCategory.id,
+            venueId: creativeHub.id,
+            metadata: {
+              heroImageUrl: '/images/design-events.jpg',
+              tags: ['#contemporary art', '#exhibition', '#culture'],
+              social: {
+                instagram: '@linea_events',
+                twitter: '@linea_events'
+              }
+            }
+          },
+          {
+            title: 'AI in Creative Industries',
+            slug: 'ai-creative-industries',
+            description: 'Discover how artificial intelligence is transforming creative industries. From AI-generated art to intelligent design tools, explore the intersection of technology and creativity.',
+            shortDescription: 'AI meets creativity.',
+            status: 'PUBLISHED',
+            startDate: new Date('2024-06-28T09:00:00Z'),
+            endDate: new Date('2024-06-28T17:00:00Z'),
+            capacity: 150,
+            isPublic: true,
+            isFeatured: true,
+            ownerId: owner2.id,
+            categoryId: techCategory.id,
+            venueId: milanoDesignCenter.id,
+            metadata: {
+              heroImageUrl: '/images/design-events.jpg',
+              tags: ['#AI', '#creativity', '#technology'],
+              social: {
+                instagram: '@linea_events',
+                twitter: '@linea_events'
+              }
+            }
+          },
+          {
+            title: 'Furniture Design Masterclass',
+            slug: 'furniture-design-masterclass',
+            description: 'Learn from master furniture designers about the art and craft of creating beautiful, functional pieces. Hands-on workshop with expert guidance.',
+            shortDescription: 'Master the art of furniture design.',
+            status: 'PUBLISHED',
+            startDate: new Date('2024-07-05T10:00:00Z'),
+            endDate: new Date('2024-07-05T16:00:00Z'),
+            capacity: 25,
+            isPublic: true,
+            isFeatured: false,
+            ownerId: owner1.id,
+            categoryId: designCategory.id,
+            venueId: creativeHub.id,
+            metadata: {
+              heroImageUrl: '/images/design-events.jpg',
+              tags: ['#furniture', '#workshop', '#design'],
+              social: {
+                instagram: '@linea_events',
+                twitter: '@linea_events'
+              }
+            }
+          },
+          {
+            title: 'Green Architecture Workshop',
+            slug: 'green-architecture-workshop',
+            description: 'Explore sustainable architecture principles and green building techniques. Learn from leading architects about eco-friendly design solutions.',
+            shortDescription: 'Building a sustainable future.',
+            status: 'PUBLISHED',
+            startDate: new Date('2024-07-12T09:00:00Z'),
+            endDate: new Date('2024-07-12T17:00:00Z'),
+            capacity: 50,
+            isPublic: true,
+            isFeatured: true,
+            ownerId: owner1.id,
+            categoryId: sustainabilityCategory.id,
+            venueId: milanoDesignCenter.id,
+            metadata: {
+              heroImageUrl: '/images/design-events.jpg',
+              tags: ['#architecture', '#sustainability', '#green building'],
+              social: {
+                instagram: '@linea_events',
+                twitter: '@linea_events'
+              }
             }
           }
-        },
-        {
-          id: "event2",
-          title: "Contemporary Art Exhibition",
-          slug: "contemporary-art-exhibition",
-          description: "A showcase of cutting-edge contemporary art from emerging and established artists. Experience innovative installations, digital art, and interactive exhibits that push the boundaries of artistic expression.",
-          shortDescription: "Contemporary voices in modern art.",
-          status: "PUBLISHED",
-          startDate: "2024-06-18T10:00:00Z",
-          endDate: "2024-06-18T20:00:00Z",
-          capacity: 200,
-          isPublic: true,
-          isFeatured: true,
-          ownerId: "temp3",
-          categoryId: "cat3",
-          venueId: "venue1",
-          metadata: {
-            heroImageUrl: "/images/design-events.jpg",
-            tags: ["#contemporary art", "#exhibition", "#culture"],
-            social: {
-              instagram: "@linea_events",
-              twitter: "@linea_events"
-            }
-          }
-        },
-        {
-          id: "event3",
-          title: "AI in Creative Industries",
-          slug: "ai-creative-industries",
-          description: "Discover how artificial intelligence is transforming creative industries. From AI-generated art to intelligent design tools, explore the intersection of technology and creativity.",
-          shortDescription: "AI meets creativity.",
-          status: "PUBLISHED",
-          startDate: "2024-06-28T09:00:00Z",
-          endDate: "2024-06-28T17:00:00Z",
-          capacity: 150,
-          isPublic: true,
-          isFeatured: true,
-          ownerId: "temp3",
-          categoryId: "cat2",
-          venueId: "venue1",
-          metadata: {
-            heroImageUrl: "/images/design-events.jpg",
-            tags: ["#AI", "#creativity", "#technology"],
-            social: {
-              instagram: "@linea_events",
-              twitter: "@linea_events"
-            }
+        ]
+
+        for (const eventData of events) {
+          const event = await prisma.event.create({
+            data: eventData,
+          })
+          console.log(`✅ Created event: ${event.title}`)
+        }
+
+        // Create some waitlist entries
+        const waitlistEntries = [
+          {
+            email: 'john.doe@example.com',
+            name: 'John Doe',
+            eventId: (await prisma.event.findFirst({ where: { slug: 'sustainable-design-revolution' } }))?.id,
+            status: 'PENDING',
+            joinedAt: new Date(),
+          },
+          {
+            email: 'jane.smith@example.com',
+            name: 'Jane Smith',
+            eventId: (await prisma.event.findFirst({ where: { slug: 'contemporary-art-exhibition' } }))?.id,
+            status: 'PENDING',
+            joinedAt: new Date(),
+          },
+          {
+            email: 'mario.rossi@example.com',
+            name: 'Mario Rossi',
+            eventId: (await prisma.event.findFirst({ where: { slug: 'ai-creative-industries' } }))?.id,
+            status: 'PENDING',
+            joinedAt: new Date(),
+          },
+        ]
+
+        for (const entryData of waitlistEntries) {
+          if (entryData.eventId) {
+            await prisma.waitlistEntry.create({
+              data: entryData,
+            })
+            console.log(`✅ Created waitlist entry for: ${entryData.email}`)
           }
         }
-      ],
-      waitlistEntries: []
-    }
 
-    console.log('📊 Local data loaded:')
-    console.log(`  Users: ${localData.users.length}`)
-    console.log(`  Categories: ${localData.categories.length}`)
-    console.log(`  Areas: ${localData.areas.length}`)
-    console.log(`  Venues: ${localData.venues.length}`)
-    console.log(`  Products: ${localData.products.length}`)
-    console.log(`  Events: ${localData.events.length}`)
-    console.log(`  Waitlist Entries: ${localData.waitlistEntries.length}`)
+        await prisma.$disconnect()
 
-    console.log('🌱 Seeding production database...')
+        console.log('\n🎉 Production database successfully seeded!')
+        console.log(`📊 Summary:`)
+        console.log(`  - Users: 3 (1 admin, 2 owners)`)
+        console.log(`  - Categories: 4`)
+        console.log(`  - Areas: 1`)
+        console.log(`  - Venues: 2`)
+        console.log(`  - Events: ${events.length}`)
+        console.log(`  - Waitlist Entries: ${waitlistEntries.length}`)
 
-    // Create users (preserve relationships)
-    const userMap = new Map()
-    for (const user of localData.users) {
-      const newUser = await prisma.user.create({
-        data: {
-          email: user.email,
-          name: user.name,
-          role: user.role,
-          isActive: user.isActive,
-          lastLoginAt: user.lastLoginAt ? new Date(user.lastLoginAt) : null,
-          theme: user.theme,
-          address: user.address,
-          businessIntro: user.businessIntro,
-          businessName: user.businessName,
-          city: user.city,
-          country: user.country,
-          facebookUrl: user.facebookUrl,
-          instagramUrl: user.instagramUrl,
-          latitude: user.latitude,
-          logoUrl: user.logoUrl,
-          longitude: user.longitude,
-          phone: user.phone,
-          profilePictureUrl: user.profilePictureUrl,
-          website: user.website,
-        },
-      })
-      userMap.set(user.id, newUser.id)
-      console.log(`✅ Created user: ${newUser.name} (${newUser.email})`)
-    }
-
-    // Create areas
-    const areaMap = new Map()
-    for (const area of localData.areas) {
-      const newArea = await prisma.area.create({
-        data: {
-          name: area.name,
-          slug: area.slug,
-          description: area.description,
-          country: area.country,
-          coordinates: area.coordinates,
-        },
-      })
-      areaMap.set(area.id, newArea.id)
-      console.log(`✅ Created area: ${newArea.name}`)
-    }
-
-    // Create categories
-    const categoryMap = new Map()
-    for (const category of localData.categories) {
-      const newCategory = await prisma.category.create({
-        data: {
-          name: category.name,
-          slug: category.slug,
-          description: category.description,
-          color: category.color,
-          icon: category.icon,
-        },
-      })
-      categoryMap.set(category.id, newCategory.id)
-      console.log(`✅ Created category: ${newCategory.name}`)
-    }
-
-    // Create products
-    const productMap = new Map()
-    for (const product of localData.products) {
-      const newProduct = await prisma.product.create({
-        data: {
-          name: product.name,
-          slug: product.slug,
-          description: product.description,
-          price: product.price,
-          currency: product.currency,
-          isActive: product.isActive,
-          imageUrl: product.imageUrl,
-          categoryId: categoryMap.get(product.categoryId),
-        },
-      })
-      productMap.set(product.id, newProduct.id)
-      console.log(`✅ Created product: ${newProduct.name}`)
-    }
-
-    // Create venues
-    const venueMap = new Map()
-    for (const venue of localData.venues) {
-      const newVenue = await prisma.venue.create({
-        data: {
-          name: venue.name,
-          address: venue.address,
-          city: venue.city,
-          country: venue.country,
-          coordinates: venue.coordinates,
-          capacity: venue.capacity,
-          amenities: venue.amenities,
-        },
-      })
-      venueMap.set(venue.id, newVenue.id)
-      console.log(`✅ Created venue: ${newVenue.name}`)
-    }
-
-    // Create events
-    const eventMap = new Map()
-    for (const event of localData.events) {
-      const newEvent = await prisma.event.create({
-        data: {
-          title: event.title,
-          slug: event.slug,
-          description: event.description,
-          shortDescription: event.shortDescription,
-          status: event.status,
-          startDate: new Date(event.startDate),
-          endDate: new Date(event.endDate),
-          capacity: event.capacity,
-          isPublic: event.isPublic,
-          isFeatured: event.isFeatured,
-          ownerId: userMap.get(event.ownerId),
-          categoryId: categoryMap.get(event.categoryId),
-          venueId: venueMap.get(event.venueId),
-          metadata: event.metadata,
-        },
-      })
-      eventMap.set(event.id, newEvent.id)
-      console.log(`✅ Created event: ${newEvent.title}`)
-    }
-
-    // Create waitlist entries
-    let waitlistCount = 0
-    for (const entry of localData.waitlistEntries) {
-      await prisma.waitlistEntry.create({
-        data: {
-          email: entry.email,
-          name: entry.name,
-          eventId: eventMap.get(entry.eventId),
-          status: entry.status,
-          joinedAt: new Date(entry.joinedAt),
-        },
-      })
-      waitlistCount++
-      if (waitlistCount % 1000 === 0) {
-        console.log(`✅ Created ${waitlistCount} waitlist entries...`)
-      }
-    }
-
-    await prisma.$disconnect()
-
-    console.log('\n🎉 Production database successfully seeded with local data!')
-    console.log(`📊 Summary:`)
-    console.log(`  - Users: ${localData.users.length}`)
-    console.log(`  - Categories: ${localData.categories.length}`)
-    console.log(`  - Areas: ${localData.areas.length}`)
-    console.log(`  - Venues: ${localData.venues.length}`)
-    console.log(`  - Products: ${localData.products.length}`)
-    console.log(`  - Events: ${localData.events.length}`)
-    console.log(`  - Waitlist Entries: ${waitlistCount}`)
-
-    reply.send({
-      success: true,
-      message: 'Production database wiped and reseeded successfully with local data',
-      summary: {
-        users: localData.users.length,
-        categories: localData.categories.length,
-        areas: localData.areas.length,
-        venues: localData.venues.length,
-        products: localData.products.length,
-        events: localData.events.length,
-        waitlistEntries: waitlistCount
+        reply.send({
+          success: true,
+          message: 'Production database wiped and reseeded successfully',
+          summary: {
+            users: 3,
+            categories: 4,
+            areas: 1,
+            venues: 2,
+            events: events.length,
+            waitlistEntries: waitlistEntries.length
+          }
+        })
+      } catch (error) {
+        console.error('❌ Error during wipe and reseed:', error)
+        reply.code(500).send({ error: 'Failed to wipe and reseed database' })
       }
     })
-  } catch (error) {
-    console.error('❌ Error during wipe and reseed:', error)
-    reply.code(500).send({ error: 'Failed to wipe and reseed database' })
-  }
-})
 
 // Favicon fallback
 app.get('/favicon.ico', async (_request, reply) => {
