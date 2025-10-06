@@ -3,12 +3,12 @@ access-control-allow-credentials: true
 access-control-allow-origin: https://linea.app
 cross-origin-opener-policy: same-origin
 cross-origin-resource-policy: same-origin
-date: Sun, 05 Oct 2025 23:34:56 GMT
+date: Mon, 06 Oct 2025 05:53:43 GMT
 location: https://linea-production.up.railway.app
 origin-agent-cluster: ?1
 referrer-policy: no-referrer
 server: railway-edge
-set-cookie: linea_session=1f93b2ac-4431-4b43-a3f7-909531ec7244; Max-Age=604800; Path=/; HttpOnly; Secure; SameSite=Lax
+set-cookie: linea_session=7950d614-2366-454c-bff7-5528c47f0ab8; Max-Age=604800; Path=/; HttpOnly; Secure; SameSite=Lax
 strict-transport-security: max-age=15552000; includeSubDomains
 vary: Origin
 x-content-type-options: nosniff
@@ -17,39 +17,10 @@ x-download-options: noopen
 x-frame-options: SAMEORIGIN
 x-permitted-cross-domain-policies: none
 x-railway-edge: railway/europe-west4-drams3a
-x-railway-request-id: CzsaA-dRQIOvpvk-N8N_Fg
+x-railway-request-id: hA04fZL_S9W6wZJzYqdHTg
 x-ratelimit-limit: 100
 x-ratelimit-remaining: 99
 x-ratelimit-reset: 900
 x-xss-protection: 0
 content-length: 0
-
-HTTP/2 200 
-accept-ranges: bytes
-access-control-allow-credentials: true
-access-control-allow-origin: https://linea.app
-cache-control: public, max-age=0
-content-type: text/html; charset=UTF-8
-cross-origin-opener-policy: same-origin
-cross-origin-resource-policy: same-origin
-date: Sun, 05 Oct 2025 23:34:56 GMT
-etag: W/"2d7-199b69d4828"
-last-modified: Sun, 05 Oct 2025 23:03:05 GMT
-origin-agent-cluster: ?1
-referrer-policy: no-referrer
-server: railway-edge
-strict-transport-security: max-age=15552000; includeSubDomains
-vary: Origin
-x-content-type-options: nosniff
-x-dns-prefetch-control: off
-x-download-options: noopen
-x-frame-options: SAMEORIGIN
-x-permitted-cross-domain-policies: none
-x-railway-edge: railway/europe-west4-drams3a
-x-railway-request-id: Dz2rwMrmTEacw1k2N8N_Fg
-x-ratelimit-limit: 100
-x-ratelimit-remaining: 98
-x-ratelimit-reset: 900
-x-xss-protection: 0
-content-length: 727
 

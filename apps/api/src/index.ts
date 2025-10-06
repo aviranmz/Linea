@@ -317,22 +317,26 @@ const getSessionUser = async (request: FastifyRequest) => {
     }
   }
   
-  // Fallback: check DB sessions
-  try {
-    const dbSession = await prisma.session.findFirst({
-      where: { token, expiresAt: { gt: new Date() } }
-    })
-    if (!dbSession) return null
-    const user = await prisma.user.findFirst({
-      where: { id: dbSession.userId, isActive: true, deletedAt: null },
-      select: { id: true, email: true, role: true, name: true, isActive: true }
-    })
-    if (!user) return null
-    return user
-  } catch (_e) {
-    // DB unavailable – act as unauthenticated
-    return null
+  // Fallback: check DB sessions (skip when using in-memory sessions)
+  if (process.env.SESSION_MOCK !== 'true') {
+    try {
+      const dbSession = await prisma.session.findFirst({
+        where: { token, expiresAt: { gt: new Date() } }
+      })
+      if (!dbSession) return null
+      const user = await prisma.user.findFirst({
+        where: { id: dbSession.userId, isActive: true, deletedAt: null },
+        select: { id: true, email: true, role: true, name: true, isActive: true }
+      })
+      if (!user) return null
+      return user
+    } catch (_e) {
+      // DB unavailable – act as unauthenticated
+      return null
+    }
   }
+  
+  return null
 }
 
 // Helper function to create and set session
@@ -340,12 +344,17 @@ const createSessionAndSetCookie = async (reply: FastifyReply, user: { id: string
   const sessionToken = crypto.randomUUID()
   const sessionDuration = config.security.SESSION_COOKIE_MAX_AGE || 7 * 24 * 60 * 60 * 1000
   
-  await sessionService.createSession(sessionToken, {
-    userId: user.id,
-    email: user.email,
-    role: user.role,
-    name: user.name || null
-  }, sessionDuration)
+  try {
+    await sessionService.createSession(sessionToken, {
+      userId: user.id,
+      email: user.email,
+      role: user.role,
+      name: user.name || null
+    }, sessionDuration)
+  } catch (error) {
+    app.log.error({ error }, 'Failed to create session')
+    throw error
+  }
   
   // Only try to persist DB session if not using in-memory sessions
   if (process.env.SESSION_MOCK !== 'true') {
