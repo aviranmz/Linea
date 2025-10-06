@@ -5226,6 +5226,62 @@ app.get('/env.js', async (_request, reply) => {
   reply.type('application/javascript').send(`window.__ENV__ = ${JSON.stringify(env)};`)
 })
 
+// Fix production images endpoint
+app.post('/api/fix-images', async (_request, reply) => {
+  try {
+    const { PrismaClient } = await import('@prisma/client')
+    const prisma = new PrismaClient()
+
+    console.log('🖼️  Fixing production event images...')
+
+    // Get all events
+    const events = await prisma.event.findMany({
+      select: {
+        id: true,
+        title: true,
+        metadata: true
+      }
+    })
+
+    console.log(`Found ${events.length} events in production`)
+
+    let updatedCount = 0
+    for (const event of events) {
+      const metadata = event.metadata as any
+      const currentImageUrl = metadata?.heroImageUrl
+      
+      // If it's pointing to the old /images/events/ path, update it
+      if (currentImageUrl && currentImageUrl.includes('/images/events/')) {
+        const updatedMetadata = {
+          ...metadata,
+          heroImageUrl: '/images/design-events.jpg'
+        }
+
+        await prisma.event.update({
+          where: { id: event.id },
+          data: {
+            metadata: updatedMetadata
+          }
+        })
+
+        updatedCount++
+        console.log(`✅ Updated ${event.title} to use /images/design-events.jpg`)
+      }
+    }
+
+    await prisma.$disconnect()
+
+    reply.send({
+      success: true,
+      message: `Fixed ${updatedCount} events`,
+      totalEvents: events.length
+    })
+  } catch (error) {
+    console.error('❌ Error fixing images:', error)
+    reply.code(500).send({ error: 'Failed to fix images' })
+  }
+})
+
 // Favicon fallback
 app.get('/favicon.ico', async (_request, reply) => {
   try {
