@@ -290,6 +290,17 @@ const getSessionUser = async (request: FastifyRequest) => {
   // Get session from Redis
   const sessionData = await sessionService.getSession(token)
   if (sessionData) {
+    // Skip database validation in demo mode
+    if (config.development.DEMO_MODE === true) {
+      return {
+        id: sessionData.userId,
+        email: sessionData.email,
+        role: sessionData.role,
+        name: sessionData.name ?? null,
+        isActive: true,
+      } as unknown as { id: string; email: string; role: string; name?: string | null; isActive: boolean }
+    }
+    
     // Get user from database to ensure they're still active
     try {
       const user = await prisma.user.findFirst({
