@@ -207,7 +207,16 @@ export function EventList({
               <div className="flex items-start space-x-4">
                 <div className="flex-shrink-0">
                   <img
-                    src={(event.metadata?.heroImageUrl && (event.metadata.heroImageUrl.startsWith('http') || event.metadata.heroImageUrl.startsWith('/assets/'))) ? event.metadata.heroImageUrl : '/assets/linea_light.png'}
+                    src={(() => {
+                      const url = event.metadata?.heroImageUrl
+                      if (typeof url === 'string' && (url.startsWith('http') || url.startsWith('/assets/') || url.startsWith('/uploads/'))) {
+                        return url
+                      }
+                      if (typeof url === 'string' && url.includes('/images/events/')) {
+                        return '/images/design-events.jpg'
+                      }
+                      return '/assets/linea_light.png'
+                    })()}
                     alt={event.title}
                     className="w-16 h-16 rounded-lg object-cover"
                     onError={(e) => {
