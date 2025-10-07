@@ -240,44 +240,4 @@ jobs:
             apps/*/dist
             packages/*/dist
 
-  deploy-staging:
-    name: Deploy to Staging
-    runs-on: ubuntu-latest
-    needs: [build, test-api]
-    if: github.ref == 'refs/heads/develop'
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Download build artifacts
-        uses: actions/download-artifact@v3
-        with:
-          name: build-artifacts
-
-      - name: Deploy to Railway (Staging)
-        run: |
-          echo "Deploying to Railway staging environment"
-          # Railway deployment would be configured here
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-
-  deploy-production:
-    name: Deploy to Production
-    runs-on: ubuntu-latest
-    needs: [build, test-api]
-    if: github.ref == 'refs/heads/main'
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Download build artifacts
-        uses: actions/download-artifact@v3
-        with:
-          name: build-artifacts
-
-      - name: Deploy to Railway (Production)
-        run: |
-          echo "Deploying to Railway production environment"
-          # Railway deployment would be configured here
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+  # Deployment jobs removed per request
