@@ -1,5 +1,6 @@
 // User preferences service with merge-update functionality
-import type { PrismaClient as PrismaClientType } from '@prisma/client';
+import type * as PrismaNamespace from '@prisma/client';
+type PrismaClientType = PrismaNamespace.PrismaClient;
 
 export interface UserPreferences {
   // Theme preferences

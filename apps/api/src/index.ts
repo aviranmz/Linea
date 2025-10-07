@@ -6376,7 +6376,9 @@ app.get('/env.js', async (_request, reply) => {
 // Fix production images endpoint
 app.post('/api/fix-images', async (_request, reply) => {
   try {
-    const { PrismaClient } = await import('@prisma/client');
+    const Prisma = await import('@prisma/client');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { PrismaClient } = (Prisma as any);
     const prisma = new PrismaClient();
 
     console.log('🖼️  Fixing production event images...');
@@ -6434,7 +6436,9 @@ app.post('/api/fix-images', async (_request, reply) => {
 // Wipe and reseed production database with comprehensive data
 app.post('/api/wipe-and-reseed', async (_request, reply) => {
   try {
-    const { PrismaClient } = await import('@prisma/client');
+    const Prisma = await import('@prisma/client');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { PrismaClient } = (Prisma as any);
     const prisma = new PrismaClient();
 
     console.log('🗑️  Wiping production database...');
