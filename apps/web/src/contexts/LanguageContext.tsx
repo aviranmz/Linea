@@ -1201,8 +1201,6 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
       enKeys.forEach(k => { if (!itKeys.has(k)) missingInIt.push(k) })
       itKeys.forEach(k => { if (!enKeys.has(k)) missingInEn.push(k) })
       if (missingInIt.length > 0 || missingInEn.length > 0) {
-        // Use console.warn in dev only; eslint rule disabled at top of file
-        // eslint-disable-next-line no-console
         console.warn('[i18n] Translation key mismatches detected', { missingInIt, missingInEn })
       }
     } catch {
@@ -1247,7 +1245,6 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
     if (import.meta.env.MODE === 'development') {
       const hasInLang = Object.prototype.hasOwnProperty.call(translations[language], key)
       if (!hasInLang) {
-        // eslint-disable-next-line no-console
         console.warn(`[i18n] Missing key in ${language}: ${key}`)
       }
     }

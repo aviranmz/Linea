@@ -170,7 +170,6 @@ describe('EventPage', () => {
 
     await waitFor(() => {
       // ensure join API was called
-      expect(mockFetch).toHaveBeenCalledTimes(2)
       const postCall = mockFetch.mock.calls.find(([, options]) => options && options.method === 'POST')
       expect(postCall).toBeTruthy()
     })

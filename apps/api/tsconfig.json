@@ -23,7 +23,12 @@
     "isolatedModules": true,
     "declaration": false,
     "declarationMap": false,
-    "sourceMap": true
+    "sourceMap": true,
+    "baseUrl": ".",
+    "paths": {
+      "@linea/config": ["../../packages/config/dist"],
+      "@linea/config/*": ["../../packages/config/dist/*"]
+    }
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist", "**/*.test.ts", "src/generated/**"]

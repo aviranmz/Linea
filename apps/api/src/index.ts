@@ -5578,8 +5578,8 @@ app.post('/api/fix-images', async (_request, reply) => {
               ],
               qrUrl: `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent('https://linea-production.up.railway.app/events/creative-networking-mixer')}`
             },
-            mapLat: milanSpots[0].lat,
-            mapLng: milanSpots[0].lng
+            mapLat: milanSpots[0]?.lat ?? 0,
+            mapLng: milanSpots[0]?.lng ?? 0
           },
           {
             title: 'Tech Innovation Summit 2024',
@@ -5621,8 +5621,8 @@ app.post('/api/fix-images', async (_request, reply) => {
               organizer: 'Tech Milano',
               qrUrl: `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent('https://linea-production.up.railway.app/events/tech-innovation-summit')}`
             },
-            mapLat: milanSpots[1].lat,
-            mapLng: milanSpots[1].lng
+            mapLat: milanSpots[1]?.lat ?? 0,
+            mapLng: milanSpots[1]?.lng ?? 0
           },
           {
             title: 'Milano Design Week 2024',
@@ -5664,8 +5664,8 @@ app.post('/api/fix-images', async (_request, reply) => {
               organizer: 'Milano Design Center',
               qrUrl: `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent('https://linea-production.up.railway.app/events/milano-design-week-2024')}`
             },
-            mapLat: milanSpots[2].lat,
-            mapLng: milanSpots[2].lng
+            mapLat: milanSpots[2]?.lat ?? 0,
+            mapLng: milanSpots[2]?.lng ?? 0
           },
           {
             title: 'Innovation Talk',
@@ -5704,8 +5704,8 @@ app.post('/api/fix-images', async (_request, reply) => {
               ],
               qrUrl: `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent('https://linea-production.up.railway.app/events/innovation-talk-3')}`
             },
-            mapLat: milanSpots[3].lat,
-            mapLng: milanSpots[3].lng
+            mapLat: milanSpots[3]?.lat ?? 0,
+            mapLng: milanSpots[3]?.lng ?? 0
           },
           {
             title: 'Studio Open Day',
@@ -5744,8 +5744,8 @@ app.post('/api/fix-images', async (_request, reply) => {
               ],
               qrUrl: `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent('https://linea-production.up.railway.app/events/studio-open-day-4')}`
             },
-            mapLat: milanSpots[4].lat,
-            mapLng: milanSpots[4].lng
+            mapLat: milanSpots[4]?.lat ?? 0,
+            mapLng: milanSpots[4]?.lng ?? 0
           }
         ]
 
@@ -5978,6 +5978,7 @@ app.post('/api/fix-images', async (_request, reply) => {
           console.log(`✅ Created event: ${event.title}`)
         }
         const totalEventsSeeded = events.length + moreEvents.length
+        console.log(`📈 Seed summary: ${totalEventsSeeded} events prepared`)
 
         for (const eventData of events) {
           const event = await prisma.event.create({
