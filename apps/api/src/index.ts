@@ -5290,44 +5290,21 @@ app.post('/api/fix-images', async (_request, reply) => {
 
         console.log('🗑️  Wiping production database...')
 
-        // First, let's check what tables exist and handle the schema properly
+        // Truncate using actual table names as mapped in schema (snake_case pluralized)
         try {
-          // Use raw SQL to disable foreign key checks
           await prisma.$executeRaw`SET session_replication_role = replica;`
-          
-          // Try to truncate tables that might exist, with error handling
-          const tablesToTruncate = [
-            'WaitlistEntry',
-            'Session', 
-            'Event',
-            'Venue',
-            'Category',
-            'Area',
-            'Product',
-            'User'
-          ]
-
-          for (const table of tablesToTruncate) {
-            try {
-              await prisma.$executeRaw`TRUNCATE TABLE "${table}" CASCADE;`
-              console.log(`✅ Truncated table: ${table}`)
-            } catch (error: any) {
-              if (error.code === 'P2010' && error.meta?.message?.includes('does not exist')) {
-                console.log(`⚠️  Table ${table} does not exist, skipping...`)
-              } else {
-                console.log(`⚠️  Could not truncate table ${table}:`, error.message)
-              }
-            }
-          }
-
-          // Re-enable foreign key checks
+          await prisma.$executeRaw`TRUNCATE TABLE "waitlist_entries" CASCADE;`
+          await prisma.$executeRaw`TRUNCATE TABLE "sessions" CASCADE;`
+          await prisma.$executeRaw`TRUNCATE TABLE "events" CASCADE;`
+          await prisma.$executeRaw`TRUNCATE TABLE "venues" CASCADE;`
+          await prisma.$executeRaw`TRUNCATE TABLE "categories" CASCADE;`
+          await prisma.$executeRaw`TRUNCATE TABLE "areas" CASCADE;`
+          await prisma.$executeRaw`TRUNCATE TABLE "products" CASCADE;`
+          await prisma.$executeRaw`TRUNCATE TABLE "users" CASCADE;`
           await prisma.$executeRaw`SET session_replication_role = DEFAULT;`
-
           console.log('✅ Production database wiped')
         } catch (error) {
           console.log('⚠️  Error during wipe, trying Prisma deleteMany...', error)
-          
-          // Fallback to Prisma deleteMany methods
           try {
             await prisma.waitlistEntry.deleteMany({})
             await prisma.session.deleteMany({})
@@ -5401,8 +5378,8 @@ app.post('/api/fix-images', async (_request, reply) => {
             name: 'Milano',
             slug: 'milano',
             description: 'Design capital of Italy and global fashion hub',
-            country: 'Italy',
-            coordinates: { lat: 45.4642, lng: 9.1900 },
+            color: '#8B4513',
+            icon: '🏛️',
           },
         })
         console.log(`✅ Created area: ${milanoArea.name}`)
@@ -5459,9 +5436,9 @@ app.post('/api/fix-images', async (_request, reply) => {
             address: 'Via Tortona, 37, 20144 Milano MI, Italy',
             city: 'Milano',
             country: 'Italy',
-            coordinates: { lat: 45.4642, lng: 9.1900 },
-            capacity: 500,
-            amenities: ['WiFi', 'Parking', 'Accessibility', 'Catering', 'AV Equipment'],
+            latitude: 45.4642,
+            longitude: 9.19,
+            website: 'https://milanodesigncenter.com',
           },
         })
         console.log(`✅ Created venue: ${milanoDesignCenter.name}`)
@@ -5472,9 +5449,9 @@ app.post('/api/fix-images', async (_request, reply) => {
             address: 'Corso di Porta Ticinese, 87, 20123 Milano MI, Italy',
             city: 'Milano',
             country: 'Italy',
-            coordinates: { lat: 45.4500, lng: 9.1800 },
-            capacity: 200,
-            amenities: ['WiFi', 'Parking', 'Accessibility', 'Gallery Space'],
+            latitude: 45.45,
+            longitude: 9.18,
+            website: 'https://creativehubmilano.com',
           },
         })
         console.log(`✅ Created venue: ${creativeHub.name}`)
@@ -5486,12 +5463,12 @@ app.post('/api/fix-images', async (_request, reply) => {
             slug: 'creative-networking-mixer',
             description: 'Connect with fellow creatives, entrepreneurs, and industry professionals at our dynamic Creative Networking Mixer, where meaningful connections and collaborative opportunities come to life.',
             shortDescription: 'Professional creative networking event',
-            status: 'PUBLISHED',
+            status: 'PUBLISHED' as const,
             startDate: new Date('2024-12-08T18:30:00.000Z'),
             endDate: new Date('2024-12-08T21:30:00.000Z'),
             capacity: 50,
             isPublic: true,
-            isFeatured: false,
+            featured: false,
             ownerId: owner1.id,
             categoryId: designCategory.id,
             venueId: milanoDesignCenter.id,
@@ -5525,12 +5502,12 @@ app.post('/api/fix-images', async (_request, reply) => {
             slug: 'tech-innovation-summit',
             description: 'Join us for the most anticipated technology and innovation event of the year! The Tech Innovation Summit 2024 brings together industry leaders, visionary entrepreneurs, and cutting-edge innovators.',
             shortDescription: 'Premier technology and innovation conference',
-            status: 'PUBLISHED',
+            status: 'PUBLISHED' as const,
             startDate: new Date('2024-12-15T09:00:00.000Z'),
             endDate: new Date('2024-12-15T18:00:00.000Z'),
             capacity: 500,
             isPublic: true,
-            isFeatured: true,
+            featured: true,
             ownerId: owner2.id,
             categoryId: techCategory.id,
             venueId: milanoDesignCenter.id,
@@ -5565,12 +5542,12 @@ app.post('/api/fix-images', async (_request, reply) => {
             slug: 'milano-design-week-2024',
             description: 'Experience the pinnacle of global design excellence at Milano Design Week 2024, the world\'s most prestigious design event. This week-long celebration of creativity, innovation, and craftsmanship brings together the finest designers, architects, and creative minds from around the globe.',
             shortDescription: 'World\'s premier design event',
-            status: 'PUBLISHED',
+            status: 'PUBLISHED' as const,
             startDate: new Date('2025-10-01T10:00:00.000Z'),
             endDate: new Date('2025-10-01T14:00:00.000Z'),
             capacity: 10000,
             isPublic: true,
-            isFeatured: true,
+            featured: true,
             ownerId: owner1.id,
             categoryId: designCategory.id,
             venueId: milanoDesignCenter.id,
@@ -5605,12 +5582,12 @@ app.post('/api/fix-images', async (_request, reply) => {
             slug: 'innovation-talk-3',
             description: 'Join us for an inspiring evening of innovation and forward-thinking design at our exclusive Innovation Talk series. This thought-provoking event brings together industry leaders, visionary designers, and innovative entrepreneurs.',
             shortDescription: 'Inspiring talks on innovation and design',
-            status: 'PUBLISHED',
+            status: 'PUBLISHED' as const,
             startDate: new Date('2025-10-01T10:00:00.000Z'),
             endDate: new Date('2025-10-01T14:00:00.000Z'),
             capacity: 80,
             isPublic: true,
-            isFeatured: false,
+            featured: false,
             ownerId: owner2.id,
             categoryId: techCategory.id,
             venueId: creativeHub.id,
@@ -5642,12 +5619,12 @@ app.post('/api/fix-images', async (_request, reply) => {
             slug: 'studio-open-day-4',
             description: 'Step inside our creative sanctuary and discover the magic behind exceptional design at our exclusive Studio Open Day. This intimate behind-the-scenes experience offers a rare glimpse into our design process.',
             shortDescription: 'Behind-the-scenes studio experience',
-            status: 'PUBLISHED',
+            status: 'PUBLISHED' as const,
             startDate: new Date('2025-10-01T10:00:00.000Z'),
             endDate: new Date('2025-10-01T14:00:00.000Z'),
             capacity: 25,
             isPublic: true,
-            isFeatured: false,
+            featured: false,
             ownerId: owner1.id,
             categoryId: designCategory.id,
             venueId: creativeHub.id,
@@ -5687,45 +5664,39 @@ app.post('/api/fix-images', async (_request, reply) => {
         const waitlistEntries = [
           {
             email: 'john.doe@example.com',
-            name: 'John Doe',
             eventId: (await prisma.event.findFirst({ where: { slug: 'creative-networking-mixer' } }))?.id,
-            status: 'PENDING',
-            joinedAt: new Date(),
+            status: 'PENDING' as const,
           },
           {
             email: 'jane.smith@example.com',
-            name: 'Jane Smith',
             eventId: (await prisma.event.findFirst({ where: { slug: 'tech-innovation-summit' } }))?.id,
-            status: 'PENDING',
-            joinedAt: new Date(),
+            status: 'PENDING' as const,
           },
           {
             email: 'mario.rossi@example.com',
-            name: 'Mario Rossi',
             eventId: (await prisma.event.findFirst({ where: { slug: 'milano-design-week-2024' } }))?.id,
-            status: 'PENDING',
-            joinedAt: new Date(),
+            status: 'PENDING' as const,
           },
           {
             email: 'sarah.johnson@example.com',
-            name: 'Sarah Johnson',
             eventId: (await prisma.event.findFirst({ where: { slug: 'innovation-talk-3' } }))?.id,
-            status: 'PENDING',
-            joinedAt: new Date(),
+            status: 'PENDING' as const,
           },
           {
             email: 'alex.chen@example.com',
-            name: 'Alex Chen',
             eventId: (await prisma.event.findFirst({ where: { slug: 'studio-open-day-4' } }))?.id,
-            status: 'PENDING',
-            joinedAt: new Date(),
+            status: 'PENDING' as const,
           },
         ]
 
         for (const entryData of waitlistEntries) {
           if (entryData.eventId) {
             await prisma.waitlistEntry.create({
-              data: entryData,
+              data: {
+                email: entryData.email,
+                eventId: entryData.eventId,
+                status: entryData.status,
+              },
             })
             console.log(`✅ Created waitlist entry for: ${entryData.email}`)
           }
