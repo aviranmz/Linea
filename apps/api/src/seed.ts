@@ -1,5 +1,6 @@
-import PrismaPkg from '@prisma/client';
-const { PrismaClient } = PrismaPkg;
+import * as Prisma from '@prisma/client';
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const { PrismaClient } = Prisma as any;
 // import { hash } from 'bcryptjs'
 
 const prisma = new PrismaClient();

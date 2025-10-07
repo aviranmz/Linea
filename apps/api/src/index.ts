@@ -6,8 +6,11 @@ import swagger from '@fastify/swagger';
 import swaggerUi from '@fastify/swagger-ui';
 import fastifyStatic from '@fastify/static';
 import cookie from '@fastify/cookie';
-import PrismaPkg from '@prisma/client';
-const { PrismaClient } = PrismaPkg;
+import * as Prisma from '@prisma/client';
+// Cast to any to tolerate ESM/CJS differences in CI environments
+// while preserving runtime behavior
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const { PrismaClient } = Prisma as any;
 import * as crypto from 'crypto';
 import * as Sentry from '@sentry/node';
 import path from 'path';

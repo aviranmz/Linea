@@ -7,8 +7,9 @@ import {
   SMSWebhookHandler,
   EmailWebhookHandler,
 } from '../services/webhookService.js';
-import PrismaPkg from '@prisma/client';
-const { PrismaClient } = PrismaPkg;
+import * as Prisma from '@prisma/client';
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const { PrismaClient } = Prisma as any;
 
 export async function webhookRoutes(fastify: FastifyInstance) {
   const prisma = new PrismaClient();
