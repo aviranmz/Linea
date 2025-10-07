@@ -487,7 +487,7 @@ const translations = {
     'form.videoUrl': 'Video URL',
     'form.pressKitUrl': 'Press Kit URL',
     'form.schedule': 'Schedule',
-    'form.qrUrl': 'QR Code URL',
+    // 'form.qrUrl': 'QR Code URL', // removed: QR is auto-generated
     'form.addFeature': 'Add Feature',
     'form.addAward': 'Add Award',
     'form.addTag': 'Add Tag',
@@ -1127,7 +1127,7 @@ const translations = {
     'form.videoUrl': 'URL Video',
     'form.pressKitUrl': 'URL Press Kit',
     'form.schedule': 'Programma',
-    'form.qrUrl': 'URL Codice QR',
+    // 'form.qrUrl': 'URL Codice QR', // removed: QR is auto-generated
     'form.addFeature': 'Aggiungi Caratteristica',
     'form.addAward': 'Aggiungi Premio',
     'form.addTag': 'Aggiungi Tag',

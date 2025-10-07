@@ -6,7 +6,8 @@ import swagger from '@fastify/swagger';
 import swaggerUi from '@fastify/swagger-ui';
 import fastifyStatic from '@fastify/static';
 import cookie from '@fastify/cookie';
-import { PrismaClient } from '@prisma/client';
+import pkg from '@prisma/client';
+const { PrismaClient } = pkg;
 import * as crypto from 'crypto';
 import * as Sentry from '@sentry/node';
 import path from 'path';
@@ -700,11 +701,9 @@ app.post('/api/seed-extra-events', async (_request, reply) => {
       !art ||
       !sustain
     ) {
-      reply
-        .code(400)
-        .send({
-          error: 'Missing base seed records. Run /api/wipe-and-reseed first.',
-        });
+      reply.code(400).send({
+        error: 'Missing base seed records. Run /api/wipe-and-reseed first.',
+      });
       return;
     }
 
@@ -1874,7 +1873,6 @@ app.post('/api/owner/events', async (request, reply) => {
       pressKitUrl,
       contact,
       schedule,
-      qrUrl,
     } = body || {};
     if (!title || !startDate) {
       reply
@@ -1887,15 +1885,12 @@ app.post('/api/owner/events', async (request, reply) => {
     // Generate QR code for the event
     const baseUrl = process.env.FRONTEND_URL || 'http://localhost:3050';
     const eventUrl = `${baseUrl}/events/${slug}`;
-    let generatedQRUrl = qrUrl;
-
-    if (!generatedQRUrl) {
-      try {
-        generatedQRUrl = await QRCodeGenerator.generateEventQR(eventUrl);
-      } catch (error) {
-        app.log.warn({ error }, 'Failed to generate QR code for event');
-        // Continue without QR code if generation fails
-      }
+    let generatedQRUrl: string | undefined;
+    try {
+      generatedQRUrl = await QRCodeGenerator.generateEventQR(eventUrl);
+    } catch (error) {
+      app.log.warn({ error }, 'Failed to generate QR code for event');
+      // Continue without QR code if generation fails
     }
 
     const event = await prisma.event.create({
@@ -1926,7 +1921,7 @@ app.post('/api/owner/events', async (request, reply) => {
           pressKitUrl: pressKitUrl ?? null,
           contact: contact ?? null,
           schedule: Array.isArray(schedule) ? schedule : [],
-          qrUrl: generatedQRUrl,
+          qrUrl: generatedQRUrl || null,
         },
       },
     });
@@ -1998,7 +1993,6 @@ app.put('/api/owner/events/:id', async (request, reply) => {
     if (typeof body.contact !== 'undefined') meta.contact = body.contact;
     if (typeof body.schedule !== 'undefined')
       meta.schedule = Array.isArray(body.schedule) ? body.schedule : [];
-    if (typeof body.qrUrl !== 'undefined') meta.qrUrl = body.qrUrl;
     if (Object.keys(meta).length > 0) {
       // Read existing metadata to merge (avoid overwriting other keys)
       const current = await prisma.event.findUnique({
@@ -2013,6 +2007,29 @@ app.put('/api/owner/events/:id', async (request, reply) => {
     if (typeof body.title === 'string' && body.title !== existing.title) {
       data.slug = await generateUniqueSlug(body.title);
     }
+
+    // If slug changed or existing QR missing, regenerate QR
+    try {
+      const newSlug = (data.slug as string) || existing.slug;
+      const shouldRegenerate = !!data.slug || !(existing.metadata as any)?.qrUrl;
+      if (shouldRegenerate) {
+        const baseUrl = process.env.FRONTEND_URL || 'http://localhost:3050';
+        const eventUrl = `${baseUrl}/events/${newSlug}`;
+        const qrUrl = await QRCodeGenerator.generateEventQR(eventUrl);
+        const current = await prisma.event.findUnique({
+          where: { id },
+          select: { metadata: true },
+        });
+        data.metadata = {
+          ...((current?.metadata as Record<string, unknown>) || {}),
+          ...((data.metadata as Record<string, unknown>) || {}),
+          qrUrl: qrUrl || null,
+        };
+      }
+    } catch (error) {
+      app.log.warn({ error }, 'Failed to (re)generate QR code for event');
+    }
+
     const event = await prisma.event.update({ where: { id }, data });
     return { event };
   } catch (error) {
@@ -3647,6 +3664,49 @@ app.post('/api/analytics/event-interaction', async (request, reply) => {
   }
 });
 
+// -------- Admin Dashboard (RBAC: ADMIN only) --------
+app.get('/api/admin/dashboard', async (request, reply) => {
+  const user = await requireAdmin(request, reply);
+  if (!user) return;
+
+  try {
+    const [totalOwners, totalEvents, totalWaitlist] = await Promise.all([
+      prisma.user
+        .count({ where: { deletedAt: null, role: 'OWNER' } })
+        .catch(() => 0),
+      prisma.event.count({ where: { deletedAt: null } }).catch(() => 0),
+      prisma.waitlistEntry.count({ where: { deletedAt: null } }).catch(() => 0),
+    ]);
+
+    // Simple active rate approximation based on events in the last 30 days
+    const recentEventsCount = await prisma.event
+      .count({
+        where: {
+          deletedAt: null,
+          createdAt: { gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) },
+        },
+      })
+      .catch(() => 0);
+    const activeRate = totalEvents
+      ? Math.round((recentEventsCount / totalEvents) * 100)
+      : 0;
+
+    reply.send({
+      stats: {
+        totalOwners,
+        totalEvents,
+        totalWaitlist,
+        activeRate,
+        pendingReviews: 0,
+      },
+      recentActivity: [],
+    });
+  } catch (error) {
+    request.log.error({ error }, 'Failed to load admin dashboard');
+    reply.code(500).send({ error: 'Failed to load admin dashboard' });
+  }
+});
+
 // Get analytics for a specific event
 app.get('/api/analytics/event/:eventId', async (request, reply) => {
   const user = await requireOwnerOrAdmin(request, reply);
@@ -3661,9 +3721,12 @@ app.get('/api/analytics/event/:eventId', async (request, reply) => {
       'Analytics request for event'
     );
 
-    // Verify event ownership
+    // Verify event ownership (admins can access any event)
     const event = await prisma.event.findFirst({
-      where: { id: eventId, ownerId: user.id, deletedAt: null },
+      where:
+        user.role === 'ADMIN'
+          ? { id: eventId, deletedAt: null }
+          : { id: eventId, ownerId: user.id, deletedAt: null },
     });
     if (!event) {
       // Check if event exists but doesn't belong to user
@@ -3671,13 +3734,16 @@ app.get('/api/analytics/event/:eventId', async (request, reply) => {
         where: { id: eventId, deletedAt: null },
       });
       if (eventExists) {
-        reply
-          .code(403)
-          .send({
+        // If user is admin, allow access even if not owner
+        if (user.role === 'ADMIN') {
+          // continue
+        } else {
+          reply.code(403).send({
             error:
               'Access denied. You do not have permission to view analytics for this event.',
           });
-        return;
+          return;
+        }
       } else {
         reply.code(404).send({ error: 'Event not found' });
         return;
@@ -4154,11 +4220,9 @@ app.register(async function (fastify) {
       // Validate file type
       const allowedTypes = config.storage.UPLOAD_ALLOWED_TYPES.split(',');
       if (!allowedTypes.includes(data.mimetype)) {
-        reply
-          .code(400)
-          .send({
-            error: 'Invalid file type. Allowed: ' + allowedTypes.join(', '),
-          });
+        reply.code(400).send({
+          error: 'Invalid file type. Allowed: ' + allowedTypes.join(', '),
+        });
         return;
       }
 
@@ -4211,11 +4275,9 @@ app.register(async function (fastify) {
       // Validate file type
       const allowedTypes = config.storage.UPLOAD_ALLOWED_TYPES.split(',');
       if (!allowedTypes.includes(data.mimetype)) {
-        reply
-          .code(400)
-          .send({
-            error: 'Invalid file type. Allowed: ' + allowedTypes.join(', '),
-          });
+        reply.code(400).send({
+          error: 'Invalid file type. Allowed: ' + allowedTypes.join(', '),
+        });
         return;
       }
 
@@ -5516,11 +5578,9 @@ app.post('/api/user/upload/profile-picture', async (request, reply) => {
     // Validate file type
     const allowedTypes = config.storage.UPLOAD_ALLOWED_TYPES.split(',');
     if (!allowedTypes.includes(data.mimetype)) {
-      reply
-        .code(400)
-        .send({
-          error: 'Invalid file type. Allowed: ' + allowedTypes.join(', '),
-        });
+      reply.code(400).send({
+        error: 'Invalid file type. Allowed: ' + allowedTypes.join(', '),
+      });
       return;
     }
 

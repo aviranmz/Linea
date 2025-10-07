@@ -26,6 +26,7 @@ import { Sitemap } from './pages/Sitemap';
 import { Robots } from './pages/Robots';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { LanguageProvider } from './contexts/LanguageContext.tsx';
+import DesignerProfile from './pages/DesignerProfile.tsx';
 
 function App() {
   return (
@@ -36,6 +37,7 @@ function App() {
             <Route path='/' element={<HomePage />} />
             <Route path='/events/:id' element={<EventPage />} />
             <Route path='/designers' element={<DesignersPage />} />
+            <Route path='/designers/:id' element={<DesignerProfile />} />
             <Route path='/favorites' element={<FavoritesPage />} />
             <Route path='/owner/*' element={<OwnerPortal />} />
             <Route path='/owner/profile' element={<OwnerProfile />} />

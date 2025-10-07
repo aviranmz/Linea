@@ -50,9 +50,10 @@ export function PhotoGallery({
 
   const loadPhotos = async () => {
     try {
-      const data = await getJson<{ photos: Photo[] }>(
-        '/api/owner/photo-gallery'
-      );
+      const endpoint = ownerId
+        ? `/api/owners/${ownerId}/photo-gallery`
+        : '/api/owner/photo-gallery';
+      const data = await getJson<{ photos: Photo[] }>(endpoint);
       setPhotos(data.photos || []);
     } catch (err) {
       console.error('Failed to load photos:', err);

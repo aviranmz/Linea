@@ -42,7 +42,6 @@ export function EventForm({
     videoUrl: '',
     pressKitUrl: '',
     schedule: [],
-    qrUrl: '',
   });
 
   const [errors, setErrors] = useState<Record<string, string[]>>({});
@@ -78,7 +77,6 @@ export function EventForm({
         videoUrl: event.metadata?.videoUrl || '',
         pressKitUrl: event.metadata?.pressKitUrl || '',
         schedule: event.metadata?.schedule || [],
-        qrUrl: event.metadata?.qrUrl || '',
       });
     }
   }, [event]);

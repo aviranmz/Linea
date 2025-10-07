@@ -229,7 +229,6 @@ export interface EventFormData {
   videoUrl?: string;
   pressKitUrl?: string;
   schedule?: EventMetadata['schedule'];
-  qrUrl?: string;
 }
 
 // Event Validation Rules

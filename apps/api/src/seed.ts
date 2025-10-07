@@ -1,4 +1,5 @@
-import { PrismaClient } from '@prisma/client';
+import pkg from '@prisma/client';
+const { PrismaClient } = pkg;
 // import { hash } from 'bcryptjs'
 
 const prisma = new PrismaClient();
@@ -237,7 +238,7 @@ async function main() {
     }),
   ]);
 
-  console.log('✅ Created categories:', categories.map(c => c.name).join(', '));
+  console.log('✅ Created categories:', categories.map((c: any) => c.name).join(', '));
 
   // Create areas
   const areas = await Promise.all([
@@ -347,7 +348,7 @@ async function main() {
     }),
   ]);
 
-  console.log('✅ Created areas:', areas.map(a => a.name).join(', '));
+  console.log('✅ Created areas:', areas.map((a: any) => a.name).join(', '));
 
   // Create products
   const products = await Promise.all([
@@ -502,7 +503,7 @@ async function main() {
     }),
   ]);
 
-  console.log('✅ Created products:', products.map(p => p.name).join(', '));
+  console.log('✅ Created products:', products.map((p: any) => p.name).join(', '));
 
   // Create venues
   const venues = await Promise.all([
@@ -547,7 +548,7 @@ async function main() {
     }),
   ]);
 
-  console.log('✅ Created venues:', venues.map(v => v.name).join(', '));
+  console.log('✅ Created venues:', venues.map((v: any) => v.name).join(', '));
 
   // Check if events already exist - if so, skip event creation entirely
   const existingEvents = await prisma.event.findMany({

@@ -1,6 +1,7 @@
 #!/usr/bin/env tsx
 
-import { PrismaClient } from '@prisma/client';
+import pkg from '@prisma/client';
+const { PrismaClient } = pkg;
 import { getConfig } from '@linea/config';
 
 async function runMigrations() {

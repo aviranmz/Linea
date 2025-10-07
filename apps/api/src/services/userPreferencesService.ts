@@ -1,5 +1,5 @@
 // User preferences service with merge-update functionality
-import { PrismaClient } from '@prisma/client';
+import type { PrismaClient as PrismaClientType } from '@prisma/client';
 
 export interface UserPreferences {
   // Theme preferences
@@ -96,9 +96,9 @@ export interface PreferenceUpdate {
 }
 
 export class UserPreferencesService {
-  private prisma: PrismaClient;
+  private prisma: PrismaClientType;
 
-  constructor(prisma: PrismaClient) {
+  constructor(prisma: PrismaClientType) {
     this.prisma = prisma;
   }
 
