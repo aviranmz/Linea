@@ -1102,7 +1102,7 @@ app.get('/api/events', async (request, _reply) => {
           select: { id: true, name: true, email: true, businessName: true }
         },
         venue: {
-          select: { id: true, name: true, address: true, city: true, country: true }
+          select: { id: true, name: true, address: true, city: true, country: true, latitude: true, longitude: true }
         },
         category: {
           select: { id: true, name: true, slug: true, color: true, icon: true }
