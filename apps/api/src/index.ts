@@ -6378,7 +6378,7 @@ app.post('/api/fix-images', async (_request, reply) => {
   try {
     const Prisma = await import('@prisma/client');
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { PrismaClient } = (Prisma as any);
+    const { PrismaClient } = Prisma as any;
     const prisma = new PrismaClient();
 
     console.log('🖼️  Fixing production event images...');
@@ -6438,7 +6438,7 @@ app.post('/api/wipe-and-reseed', async (_request, reply) => {
   try {
     const Prisma = await import('@prisma/client');
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { PrismaClient } = (Prisma as any);
+    const { PrismaClient } = Prisma as any;
     const prisma = new PrismaClient();
 
     console.log('🗑️  Wiping production database...');

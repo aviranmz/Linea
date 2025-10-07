@@ -1,7 +1,6 @@
 // Webhook service for handling inbound messages from various platforms
 import { FastifyRequest, FastifyReply } from 'fastify';
-import type * as PrismaNamespace from '@prisma/client';
-type PrismaClientType = PrismaNamespace.PrismaClient;
+type PrismaClientType = import('@prisma/client').PrismaClient;
 
 export interface InboundMessage {
   id: string;
