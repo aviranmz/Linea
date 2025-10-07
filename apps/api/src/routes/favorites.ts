@@ -1,5 +1,6 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import { PrismaClient } from '@prisma/client';
+import PrismaPkg from '@prisma/client';
+const { PrismaClient } = PrismaPkg;
 import { sessionService } from '../services/sessionService.js';
 
 // Import authentication functions from the main API
