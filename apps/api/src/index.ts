@@ -535,6 +535,82 @@ const prisma = new PrismaClient({
   }
 })
 
+// Seed extra events without wiping (adds 7 per owner)
+app.post('/api/seed-extra-events', async (_request, reply) => {
+  try {
+    const owner1 = await prisma.user.findFirst({ where: { email: 'owner1@example.com' } })
+    const owner2 = await prisma.user.findFirst({ where: { email: 'owner2@example.com' } })
+    const venue1 = await prisma.venue.findFirst({ where: { name: 'Milano Design Center' } })
+    const venue2 = await prisma.venue.findFirst({ where: { name: 'Creative Hub Milano' } })
+    const design = await prisma.category.findFirst({ where: { slug: 'design' } })
+    const tech = await prisma.category.findFirst({ where: { slug: 'technology' } })
+    const art = await prisma.category.findFirst({ where: { slug: 'art-culture' } })
+    const sustain = await prisma.category.findFirst({ where: { slug: 'sustainability' } })
+
+    if (!owner1 || !owner2 || !venue1 || !venue2 || !design || !tech || !art || !sustain) {
+      reply.code(400).send({ error: 'Missing base seed records. Run /api/wipe-and-reseed first.' })
+      return
+    }
+
+    const now = Date.now()
+    const baseEvents = [
+      // Owner1 (Design/Sustainability)
+      { title: 'Parametric Design Lab', cat: design.id, ven: venue1, owner: owner1, daysFromNow: 20, featured: false, img: 'https://images.unsplash.com/photo-1482192596544-9eb780fc7f66?w=1200&h=800&fit=crop' },
+      { title: 'Biodesign Materials Clinic', cat: sustain.id, ven: venue1, owner: owner1, daysFromNow: 28, featured: true, img: 'https://images.unsplash.com/photo-1517832207067-4db24a2ae47c?w=1200&h=800&fit=crop' },
+      { title: 'Furniture Sketch Jam', cat: design.id, ven: venue2, owner: owner1, daysFromNow: 35, featured: false, img: 'https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=1200&h=800&fit=crop' },
+      { title: 'Circular Studio Walkthrough', cat: sustain.id, ven: venue1, owner: owner1, daysFromNow: 42, featured: false, img: 'https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?w=1200&h=800&fit=crop' },
+      { title: 'Lighting for Interiors Workshop', cat: design.id, ven: venue2, owner: owner1, daysFromNow: 49, featured: true, img: 'https://images.unsplash.com/photo-1501045661006-fcebe0257c3f?w=1200&h=800&fit=crop' },
+      { title: 'Tactile Brand Systems', cat: art.id, ven: venue1, owner: owner1, daysFromNow: 56, featured: false, img: 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=1200&h=800&fit=crop' },
+      { title: 'Eco Packaging Sprint', cat: sustain.id, ven: venue2, owner: owner1, daysFromNow: 63, featured: false, img: 'https://images.unsplash.com/photo-1498550744921-75f79806b8a7?w=1200&h=800&fit=crop' },
+
+      // Owner2 (Tech/Art)
+      { title: 'Realtime Graphics Clinic', cat: tech.id, ven: venue2, owner: owner2, daysFromNow: 22, featured: false, img: 'https://images.unsplash.com/photo-1488229297570-58520851e868?w=1200&h=800&fit=crop' },
+      { title: 'GenAI for Designers', cat: tech.id, ven: venue1, owner: owner2, daysFromNow: 30, featured: true, img: 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=1200&h=800&fit=crop' },
+      { title: 'Audio-reactive Installations', cat: art.id, ven: venue2, owner: owner2, daysFromNow: 37, featured: false, img: 'https://images.unsplash.com/photo-1520975979652-99f207804ad1?w=1200&h=800&fit=crop' },
+      { title: 'WebXR Playground', cat: tech.id, ven: venue1, owner: owner2, daysFromNow: 44, featured: false, img: 'https://images.unsplash.com/photo-1526378722484-bd91ca387e72?w=1200&h=800&fit=crop' },
+      { title: 'Creative Ops Roundtable', cat: tech.id, ven: venue2, owner: owner2, daysFromNow: 51, featured: false, img: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=1200&h=800&fit=crop' },
+      { title: 'Procedural Art Night', cat: art.id, ven: venue1, owner: owner2, daysFromNow: 58, featured: true, img: 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=1200&h=800&fit=crop' },
+      { title: 'Machine Vision Sandbox', cat: tech.id, ven: venue2, owner: owner2, daysFromNow: 65, featured: false, img: 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=1200&h=800&fit=crop' }
+    ]
+
+    let created = 0
+    for (const e of baseEvents) {
+      const start = new Date(now + e.daysFromNow * 24 * 60 * 60 * 1000)
+      const end = new Date(start.getTime() + 3 * 60 * 60 * 1000)
+      const slug = e.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$|--+/g, '-') + '-' + Math.floor(now / 1000)
+      await prisma.event.create({
+        data: {
+          title: e.title,
+          slug,
+          description: e.title,
+          shortDescription: e.title,
+          status: 'PUBLISHED',
+          startDate: start,
+          endDate: end,
+          capacity: 200,
+          isPublic: true,
+          featured: e.featured,
+          ownerId: e.owner.id,
+          categoryId: e.cat,
+          venueId: e.ven.id,
+          mapLat: e.ven.latitude ?? null,
+          mapLng: e.ven.longitude ?? null,
+          metadata: {
+            heroImageUrl: e.img,
+            qr: { enabled: true, endpoint: '/api/events/:id/qr' }
+          }
+        }
+      })
+      created++
+    }
+
+    reply.send({ success: true, created })
+  } catch (error) {
+    console.error('❌ Error seeding extra events:', error)
+    reply.code(500).send({ error: 'Failed to seed extra events' })
+  }
+})
+
 // Generate QR code PNG for an event linking to its page
 app.get('/api/events/:id/qr', async (request, reply) => {
   try {
