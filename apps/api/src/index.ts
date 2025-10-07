@@ -5653,6 +5653,236 @@ app.post('/api/fix-images', async (_request, reply) => {
           }
         ]
 
+        // Additional events per owner to enrich the catalog
+        const moreEvents: Array<any> = [
+          {
+            title: 'Design Futures Forum',
+            slug: 'design-futures-forum',
+            description: 'A forward-looking forum exploring emerging trends in product and spatial design.',
+            shortDescription: 'Trends in design and spatial innovation',
+            status: 'PUBLISHED' as const,
+            startDate: new Date('2025-11-05T09:30:00.000Z'),
+            endDate: new Date('2025-11-05T16:30:00.000Z'),
+            capacity: 300,
+            isPublic: true,
+            featured: false,
+            ownerId: owner1.id,
+            categoryId: designCategory.id,
+            venueId: milanoDesignCenter.id,
+            metadata: {
+              heroImageUrl: 'https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=1200&h=800&fit=crop',
+              tags: ['design', 'trends', 'forum'],
+              social: { website: 'https://designfutures.example.com' },
+              contact: { email: 'contact@designfutures.example.com' },
+              features: ['Keynotes', 'Trend Briefings', 'Networking']
+            }
+          },
+          {
+            title: 'AI for Makers Workshop',
+            slug: 'ai-for-makers-workshop',
+            description: 'Hands-on workshop applying AI tools to creative prototyping and fabrication.',
+            shortDescription: 'Hands-on AI tools for makers',
+            status: 'PUBLISHED' as const,
+            startDate: new Date('2025-11-12T10:00:00.000Z'),
+            endDate: new Date('2025-11-12T17:00:00.000Z'),
+            capacity: 80,
+            isPublic: true,
+            featured: true,
+            ownerId: owner2.id,
+            categoryId: techCategory.id,
+            venueId: creativeHub.id,
+            metadata: {
+              heroImageUrl: 'https://images.unsplash.com/photo-1555255707-c07966088b7b?w=1200&h=800&fit=crop',
+              tags: ['AI', 'makers', 'workshop'],
+              social: { website: 'https://aimakers.example.com' },
+              contact: { email: 'hello@aimakers.example.com' },
+              features: ['Live Demos', 'Datasets', 'Guided Labs']
+            }
+          },
+          {
+            title: 'Sustainable Materials Expo',
+            slug: 'sustainable-materials-expo',
+            description: 'Showcase of next-gen sustainable materials for product and interior design.',
+            shortDescription: 'Next-gen sustainable materials',
+            status: 'PUBLISHED' as const,
+            startDate: new Date('2025-11-19T09:00:00.000Z'),
+            endDate: new Date('2025-11-19T18:00:00.000Z'),
+            capacity: 600,
+            isPublic: true,
+            featured: true,
+            ownerId: owner1.id,
+            categoryId: sustainabilityCategory.id,
+            venueId: milanoDesignCenter.id,
+            metadata: {
+              heroImageUrl: 'https://images.unsplash.com/photo-1509099836639-18ba1795216d?w=1200&h=800&fit=crop',
+              tags: ['sustainability', 'materials', 'expo'],
+              social: { website: 'https://sust-materials.example.com' },
+              contact: { email: 'info@sust-materials.example.com' },
+              features: ['Vendor Booths', 'Material Library', 'Talks']
+            }
+          },
+          {
+            title: 'Creative Coding Night',
+            slug: 'creative-coding-night',
+            description: 'An evening of live coding, visual arts, and music collaborations.',
+            shortDescription: 'Live coding and visuals',
+            status: 'PUBLISHED' as const,
+            startDate: new Date('2025-11-22T18:00:00.000Z'),
+            endDate: new Date('2025-11-22T22:00:00.000Z'),
+            capacity: 120,
+            isPublic: true,
+            featured: false,
+            ownerId: owner2.id,
+            categoryId: artCategory.id,
+            venueId: creativeHub.id,
+            metadata: {
+              heroImageUrl: 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=1200&h=800&fit=crop',
+              tags: ['coding', 'visuals', 'music'],
+              social: { website: 'https://creativecodingnight.example.com' },
+              contact: { email: 'team@creativecodingnight.example.com' },
+              features: ['Live Performances', 'Open Mic', 'Gallery']
+            }
+          },
+          {
+            title: 'Furniture Craft Mastery',
+            slug: 'furniture-craft-mastery',
+            description: 'Masterclass on contemporary furniture craftsmanship and small-batch production.',
+            shortDescription: 'Masterclass in furniture craft',
+            status: 'PUBLISHED' as const,
+            startDate: new Date('2025-12-03T09:00:00.000Z'),
+            endDate: new Date('2025-12-03T17:00:00.000Z'),
+            capacity: 60,
+            isPublic: true,
+            featured: false,
+            ownerId: owner1.id,
+            categoryId: designCategory.id,
+            venueId: milanoDesignCenter.id,
+            metadata: {
+              heroImageUrl: 'https://images.unsplash.com/photo-1501045661006-fcebe0257c3f?w=1200&h=800&fit=crop',
+              tags: ['furniture', 'craft', 'masterclass'],
+              social: { website: 'https://furniturecraft.example.com' },
+              contact: { email: 'workshop@furniturecraft.example.com' },
+              features: ['Tooling', 'Joinery', 'Finishing']
+            }
+          },
+          {
+            title: 'Data-Driven Design Meetup',
+            slug: 'data-driven-design-meetup',
+            description: 'Meetup on metrics, experimentation, and data pipelines for design ops.',
+            shortDescription: 'Metrics and design ops',
+            status: 'PUBLISHED' as const,
+            startDate: new Date('2025-12-10T17:30:00.000Z'),
+            endDate: new Date('2025-12-10T20:00:00.000Z'),
+            capacity: 150,
+            isPublic: true,
+            featured: false,
+            ownerId: owner2.id,
+            categoryId: techCategory.id,
+            venueId: creativeHub.id,
+            metadata: {
+              heroImageUrl: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=1200&h=800&fit=crop',
+              tags: ['data', 'design', 'meetup'],
+              social: { website: 'https://dddmeetup.example.com' },
+              contact: { email: 'team@dddmeetup.example.com' },
+              features: ['Talks', 'Lightning Rounds', 'Networking']
+            }
+          },
+          {
+            title: 'Art & Light Installation',
+            slug: 'art-and-light-installation',
+            description: 'Immersive installation blending light, space, and sound.',
+            shortDescription: 'Immersive art installation',
+            status: 'PUBLISHED' as const,
+            startDate: new Date('2025-12-15T17:00:00.000Z'),
+            endDate: new Date('2025-12-15T21:00:00.000Z'),
+            capacity: 200,
+            isPublic: true,
+            featured: true,
+            ownerId: owner1.id,
+            categoryId: artCategory.id,
+            venueId: milanoDesignCenter.id,
+            metadata: {
+              heroImageUrl: 'https://images.unsplash.com/photo-1520975979652-99f207804ad1?w=1200&h=800&fit=crop',
+              tags: ['art', 'light', 'installation'],
+              social: { website: 'https://artlight.example.com' },
+              contact: { email: 'info@artlight.example.com' },
+              features: ['Immersive', 'Soundscape', 'Curated Tour']
+            }
+          },
+          {
+            title: 'XR Prototyping Lab',
+            slug: 'xr-prototyping-lab',
+            description: 'Rapid prototyping lab for AR/VR experiences using web technologies.',
+            shortDescription: 'AR/VR rapid prototyping',
+            status: 'PUBLISHED' as const,
+            startDate: new Date('2026-01-10T09:30:00.000Z'),
+            endDate: new Date('2026-01-10T17:30:00.000Z'),
+            capacity: 80,
+            isPublic: true,
+            featured: false,
+            ownerId: owner2.id,
+            categoryId: techCategory.id,
+            venueId: creativeHub.id,
+            metadata: {
+              heroImageUrl: 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=1200&h=800&fit=crop',
+              tags: ['XR', 'AR', 'VR', 'prototype'],
+              social: { website: 'https://xr-lab.example.com' },
+              contact: { email: 'hello@xr-lab.example.com' },
+              features: ['Headsets', 'WebXR', 'Show-and-Tell']
+            }
+          },
+          {
+            title: 'Circular Design Bootcamp',
+            slug: 'circular-design-bootcamp',
+            description: 'Two-day bootcamp on circular design strategies and case studies.',
+            shortDescription: 'Circular design strategies',
+            status: 'PUBLISHED' as const,
+            startDate: new Date('2026-01-18T09:00:00.000Z'),
+            endDate: new Date('2026-01-19T17:00:00.000Z'),
+            capacity: 90,
+            isPublic: true,
+            featured: true,
+            ownerId: owner1.id,
+            categoryId: sustainabilityCategory.id,
+            venueId: milanoDesignCenter.id,
+            metadata: {
+              heroImageUrl: 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=1200&h=800&fit=crop',
+              tags: ['circular', 'sustainability', 'bootcamp'],
+              social: { website: 'https://circularbootcamp.example.com' },
+              contact: { email: 'team@circularbootcamp.example.com' },
+              features: ['Case Studies', 'Group Work', 'Coaching']
+            }
+          },
+          {
+            title: 'Founders in Design Fireside',
+            slug: 'founders-in-design-fireside',
+            description: 'Fireside chat with design-led founders on building sustainable brands.',
+            shortDescription: 'Fireside chat with founders',
+            status: 'PUBLISHED' as const,
+            startDate: new Date('2026-01-25T18:00:00.000Z'),
+            endDate: new Date('2026-01-25T20:00:00.000Z'),
+            capacity: 150,
+            isPublic: true,
+            featured: false,
+            ownerId: owner2.id,
+            categoryId: designCategory.id,
+            venueId: creativeHub.id,
+            metadata: {
+              heroImageUrl: 'https://images.unsplash.com/photo-1475724017904-b712052c192a?w=1200&h=800&fit=crop',
+              tags: ['founders', 'brand', 'design'],
+              social: { website: 'https://designfounders.example.com' },
+              contact: { email: 'info@designfounders.example.com' },
+              features: ['Fireside Chat', 'Q&A', 'Networking']
+            }
+          }
+        ]
+
+        for (const eventData of moreEvents) {
+          const event = await prisma.event.create({ data: eventData })
+          console.log(`✅ Created event: ${event.title}`)
+          events.push(eventData)
+        }
+
         for (const eventData of events) {
           const event = await prisma.event.create({
             data: eventData,
