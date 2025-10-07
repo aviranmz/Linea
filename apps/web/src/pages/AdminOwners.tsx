@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { getJson, putJson } from '../lib/api';
+import { getJson, putJson, postJson, deleteJson } from '../lib/api';
 
 type OwnerRow = {
   id: string;
@@ -66,6 +66,17 @@ export default function AdminOwners() {
     country: '',
   });
   const [saving, setSaving] = useState(false);
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [newOwner, setNewOwner] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    businessName: '',
+    website: '',
+    address: '',
+    city: '',
+    country: '',
+  });
 
   const query = useMemo(() => {
     const params = new URLSearchParams();
@@ -267,6 +278,59 @@ export default function AdminOwners() {
     }
   };
 
+  const createOwner = async () => {
+    if (!newOwner.email || !newOwner.name) {
+      alert('Email and name are required');
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const response = await postJson('/api/admin/owners', newOwner);
+
+      // Add the new owner to the list
+      setOwners(prev => [response as OwnerRow, ...prev]);
+
+      // Reset form and close modal
+      setNewOwner({
+        name: '',
+        email: '',
+        phone: '',
+        businessName: '',
+        website: '',
+        address: '',
+        city: '',
+        country: '',
+      });
+      setShowCreateForm(false);
+    } catch (error) {
+      console.error('Failed to create owner:', error);
+      alert('Failed to create owner. Please try again.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const deleteOwner = async (owner: OwnerRow) => {
+    if (
+      !confirm(
+        `Are you sure you want to delete ${owner.name || owner.email}? This action cannot be undone.`
+      )
+    ) {
+      return;
+    }
+
+    try {
+      await deleteJson(`/api/admin/owners/${owner.id}`);
+
+      // Remove from local state
+      setOwners(prev => prev.filter(o => o.id !== owner.id));
+    } catch (error) {
+      console.error('Failed to delete owner:', error);
+      alert('Failed to delete owner. Please try again.');
+    }
+  };
+
   if (authLoading)
     return (
       <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10'>
@@ -290,6 +354,12 @@ export default function AdminOwners() {
           </p>
         </div>
         <div className='flex gap-2'>
+          <button
+            className='btn btn-primary'
+            onClick={() => setShowCreateForm(true)}
+          >
+            Create Owner
+          </button>
           <input
             className='input'
             placeholder='Search email or name'
@@ -405,6 +475,12 @@ export default function AdminOwners() {
                         onClick={() => toggleOwnerStatus(o)}
                       >
                         {o.status === 'ACTIVE' ? 'Suspend' : 'Activate'}
+                      </button>
+                      <button
+                        className='px-3 py-1 text-xs bg-red-100 text-red-800 rounded hover:bg-red-200 transition-colors'
+                        onClick={() => deleteOwner(o)}
+                      >
+                        Delete
                       </button>
                     </div>
                   </td>
@@ -634,6 +710,159 @@ export default function AdminOwners() {
                 disabled={saving}
               >
                 {saving ? 'Saving...' : 'Save Changes'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Create Owner Modal */}
+      {showCreateForm && (
+        <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50'>
+          <div className='bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto'>
+            <div className='flex justify-between items-center mb-4'>
+              <h2 className='text-xl font-bold'>Create New Owner</h2>
+              <button
+                className='text-gray-400 hover:text-gray-600'
+                onClick={() => setShowCreateForm(false)}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+              <div>
+                <label className='block text-sm font-medium text-gray-700 mb-1'>
+                  Name *
+                </label>
+                <input
+                  type='text'
+                  className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+                  value={newOwner.name}
+                  onChange={e =>
+                    setNewOwner(prev => ({ ...prev, name: e.target.value }))
+                  }
+                  required
+                />
+              </div>
+
+              <div>
+                <label className='block text-sm font-medium text-gray-700 mb-1'>
+                  Email *
+                </label>
+                <input
+                  type='email'
+                  className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+                  value={newOwner.email}
+                  onChange={e =>
+                    setNewOwner(prev => ({ ...prev, email: e.target.value }))
+                  }
+                  required
+                />
+              </div>
+
+              <div>
+                <label className='block text-sm font-medium text-gray-700 mb-1'>
+                  Phone
+                </label>
+                <input
+                  type='tel'
+                  className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+                  value={newOwner.phone}
+                  onChange={e =>
+                    setNewOwner(prev => ({ ...prev, phone: e.target.value }))
+                  }
+                />
+              </div>
+
+              <div>
+                <label className='block text-sm font-medium text-gray-700 mb-1'>
+                  Business Name
+                </label>
+                <input
+                  type='text'
+                  className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+                  value={newOwner.businessName}
+                  onChange={e =>
+                    setNewOwner(prev => ({
+                      ...prev,
+                      businessName: e.target.value,
+                    }))
+                  }
+                />
+              </div>
+
+              <div>
+                <label className='block text-sm font-medium text-gray-700 mb-1'>
+                  Website
+                </label>
+                <input
+                  type='url'
+                  className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+                  value={newOwner.website}
+                  onChange={e =>
+                    setNewOwner(prev => ({ ...prev, website: e.target.value }))
+                  }
+                />
+              </div>
+
+              <div>
+                <label className='block text-sm font-medium text-gray-700 mb-1'>
+                  Address
+                </label>
+                <input
+                  type='text'
+                  className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+                  value={newOwner.address}
+                  onChange={e =>
+                    setNewOwner(prev => ({ ...prev, address: e.target.value }))
+                  }
+                />
+              </div>
+
+              <div>
+                <label className='block text-sm font-medium text-gray-700 mb-1'>
+                  City
+                </label>
+                <input
+                  type='text'
+                  className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+                  value={newOwner.city}
+                  onChange={e =>
+                    setNewOwner(prev => ({ ...prev, city: e.target.value }))
+                  }
+                />
+              </div>
+
+              <div>
+                <label className='block text-sm font-medium text-gray-700 mb-1'>
+                  Country
+                </label>
+                <input
+                  type='text'
+                  className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+                  value={newOwner.country}
+                  onChange={e =>
+                    setNewOwner(prev => ({ ...prev, country: e.target.value }))
+                  }
+                />
+              </div>
+            </div>
+
+            <div className='flex justify-end gap-3 mt-6'>
+              <button
+                className='px-4 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50'
+                onClick={() => setShowCreateForm(false)}
+                disabled={saving}
+              >
+                Cancel
+              </button>
+              <button
+                className='px-4 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50'
+                onClick={createOwner}
+                disabled={saving}
+              >
+                {saving ? 'Creating...' : 'Create Owner'}
               </button>
             </div>
           </div>

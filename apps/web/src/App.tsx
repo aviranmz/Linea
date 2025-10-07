@@ -16,6 +16,7 @@ import AdminEvents from './pages/AdminEvents';
 import AdminCategories from './pages/AdminCategories';
 import AdminAreas from './pages/AdminAreas';
 import AdminProducts from './pages/AdminProducts';
+import AdminSystemSettings from './pages/AdminSystemSettings';
 import SaloneDelMobile from './pages/SaloneDelMobile';
 import { Layout } from './components/Layout';
 import HelpCenter from './pages/HelpCenter';
@@ -61,6 +62,7 @@ function App() {
             <Route path='/admin/categories' element={<AdminCategories />} />
             <Route path='/admin/areas' element={<AdminAreas />} />
             <Route path='/admin/products' element={<AdminProducts />} />
+            <Route path='/admin/settings' element={<AdminSystemSettings />} />
             <Route path='/salone-del-mobile' element={<SaloneDelMobile />} />
             <Route path='/help' element={<HelpCenter />} />
             <Route path='/contact' element={<Contact />} />

@@ -25,12 +25,24 @@ export default function AdminEvents() {
   const [status, setStatus] = useState<
     '' | 'DRAFT' | 'PUBLISHED' | 'CANCELLED' | 'COMPLETED'
   >('');
+  const [category, setCategory] = useState('');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
+  const [featured, setFeatured] = useState<'' | 'true' | 'false'>('');
   const [totalPages, setTotalPages] = useState(1);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [sortKey, setSortKey] = useState<
-    'title' | 'ownerName' | 'waitlistCount' | 'status' | 'createdAt'
+    | 'title'
+    | 'ownerName'
+    | 'waitlistCount'
+    | 'status'
+    | 'createdAt'
+    | 'startDate'
   >('createdAt');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
+  const [categories, setCategories] = useState<
+    Array<{ id: string; name: string }>
+  >([]);
 
   const query = useMemo(() => {
     const params = new URLSearchParams();
@@ -38,8 +50,12 @@ export default function AdminEvents() {
     params.set('limit', String(limit));
     if (search) params.set('search', search);
     if (status) params.set('status', status);
+    if (category) params.set('category', category);
+    if (dateFrom) params.set('dateFrom', dateFrom);
+    if (dateTo) params.set('dateTo', dateTo);
+    if (featured) params.set('featured', featured);
     return params.toString();
-  }, [page, limit, search, status]);
+  }, [page, limit, search, status, category, dateFrom, dateTo, featured]);
 
   useEffect(() => {
     let mounted = true;
@@ -85,6 +101,20 @@ export default function AdminEvents() {
     };
   }, [query]);
 
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        const data = await getJson<{
+          categories: Array<{ id: string; name: string }>;
+        }>('/api/admin/categories');
+        setCategories(data.categories || []);
+      } catch (error) {
+        console.error('Failed to load categories:', error);
+      }
+    };
+    loadCategories();
+  }, []);
+
   const sortedEvents = useMemo(() => {
     const rows = [...events];
     const dir = sortDir === 'asc' ? 1 : -1;
@@ -98,6 +128,12 @@ export default function AdminEvents() {
           return ((a._count?.waitlist || 0) - (b._count?.waitlist || 0)) * dir;
         case 'status':
           return a.status.localeCompare(b.status) * dir;
+        case 'startDate':
+          return (
+            (new Date(a.startDate).getTime() -
+              new Date(b.startDate).getTime()) *
+            dir
+          );
         case 'createdAt':
         default:
           return (
@@ -197,7 +233,7 @@ export default function AdminEvents() {
           <h1 className='text-2xl font-bold'>{t('admin.events.title')}</h1>
           <p className='text-sm text-gray-600'>{t('admin.events.subtitle')}</p>
         </div>
-        <div className='flex gap-2'>
+        <div className='flex flex-wrap gap-2'>
           <input
             className='input'
             placeholder={t('admin.events.searchPlaceholder')}
@@ -228,6 +264,53 @@ export default function AdminEvents() {
             <option value='CANCELLED'>{t('admin.events.cancelled')}</option>
             <option value='COMPLETED'>{t('admin.events.completed')}</option>
           </select>
+          <select
+            className='input'
+            value={category}
+            onChange={e => {
+              setPage(1);
+              setCategory(e.target.value);
+            }}
+          >
+            <option value=''>All Categories</option>
+            {categories.map(cat => (
+              <option key={cat.id} value={cat.id}>
+                {cat.name}
+              </option>
+            ))}
+          </select>
+          <select
+            className='input'
+            value={featured}
+            onChange={e => {
+              setPage(1);
+              setFeatured(e.target.value as '' | 'true' | 'false');
+            }}
+          >
+            <option value=''>All Events</option>
+            <option value='true'>Featured Only</option>
+            <option value='false'>Non-Featured</option>
+          </select>
+          <input
+            type='date'
+            className='input'
+            placeholder='From Date'
+            value={dateFrom}
+            onChange={e => {
+              setPage(1);
+              setDateFrom(e.target.value);
+            }}
+          />
+          <input
+            type='date'
+            className='input'
+            placeholder='To Date'
+            value={dateTo}
+            onChange={e => {
+              setPage(1);
+              setDateTo(e.target.value);
+            }}
+          />
           <button className='btn btn-outline' onClick={exportCsv}>
             {t('admin.events.exportCsv')}
           </button>
@@ -257,6 +340,12 @@ export default function AdminEvents() {
                 {t('admin.events.waitlist')}
               </th>
               <th
+                onClick={() => setSort('startDate')}
+                className='px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer'
+              >
+                Start Date
+              </th>
+              <th
                 onClick={() => setSort('status')}
                 className='px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer'
               >
@@ -268,24 +357,29 @@ export default function AdminEvents() {
           <tbody className='bg-white divide-y divide-gray-200'>
             {loading ? (
               <tr>
-                <td className='px-4 py-6' colSpan={5}>
+                <td className='px-4 py-6' colSpan={6}>
                   {t('admin.events.loading')}
                 </td>
               </tr>
             ) : sortedEvents.length === 0 ? (
               <tr>
-                <td className='px-4 py-6' colSpan={5}>
+                <td className='px-4 py-6' colSpan={6}>
                   {t('admin.events.noEventsFound')}
                 </td>
               </tr>
             ) : (
               sortedEvents.map(ev => (
-                <tr key={ev.id}>
+                <tr key={ev.id} className='hover:bg-gray-50'>
                   <td className='px-4 py-2'>
                     <div className='text-sm font-medium text-gray-900'>
                       {ev.title}
                     </div>
                     <div className='text-xs text-gray-500'>/{ev.slug}</div>
+                    {ev.featured && (
+                      <span className='inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800 mt-1'>
+                        ⭐ Featured
+                      </span>
+                    )}
                   </td>
                   <td className='px-4 py-2 text-sm'>
                     {ev.owner?.name || 'N/A'}
@@ -293,8 +387,23 @@ export default function AdminEvents() {
                   <td className='px-4 py-2 text-sm'>
                     {ev._count?.waitlist || 0}
                   </td>
+                  <td className='px-4 py-2 text-sm text-gray-500'>
+                    {new Date(ev.startDate).toLocaleDateString()}
+                  </td>
                   <td className='px-4 py-2'>
-                    <span className='inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800'>
+                    <span
+                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        ev.status === 'PUBLISHED'
+                          ? 'bg-green-100 text-green-800'
+                          : ev.status === 'DRAFT'
+                            ? 'bg-gray-100 text-gray-800'
+                            : ev.status === 'CANCELLED'
+                              ? 'bg-red-100 text-red-800'
+                              : ev.status === 'COMPLETED'
+                                ? 'bg-blue-100 text-blue-800'
+                                : 'bg-yellow-100 text-yellow-800'
+                      }`}
+                    >
                       {ev.status}
                     </span>
                   </td>

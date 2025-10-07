@@ -1,36 +1,24 @@
+import { useLanguage } from '../hooks/useLanguage';
+
 export default function PrivacyPolicy() {
+  const { t } = useLanguage();
+
   return (
     <div className='container section'>
-      <h1 className='heading-2 mb-4'>Privacy Policy</h1>
+      <h1 className='heading-2 mb-4'>{t('privacy.title')}</h1>
+      <p className='text-body mb-6'>{t('privacy.subtitle')}</p>
       <div className='proseprose-invert max-w-none'>
-        <p>Effective date: 2025-09-24</p>
-        <h2>What We Collect</h2>
+        <h2>{t('privacy.collection')}</h2>
+        <p>{t('privacy.collectionText')}</p>
+        <h2>{t('privacy.use')}</h2>
+        <p>{t('privacy.useText')}</p>
+        <h2>{t('privacy.cookies')}</h2>
+        <p>{t('privacy.cookiesText')}</p>
+        <h2>{t('privacy.retention')}</h2>
+        <p>{t('privacy.retentionText')}</p>
+        <h2>{t('privacy.rights')}</h2>
         <p>
-          We currently collect only your email address for the purpose of
-          joining event waitlists and receiving updates. We do not collect
-          names, phone numbers, payment data, or precise location.
-        </p>
-        <h2>How We Use Your Email</h2>
-        <p>
-          We use your email to: (a) confirm your waitlist requests, (b) notify
-          you about event status, and (c) send essential service communications.
-          We do not sell your data.
-        </p>
-        <h2>Cookies</h2>
-        <p>
-          We use necessary cookies for core functionality and optional analytics
-          cookies to improve our product. You can accept or decline analytics
-          cookies in the banner.
-        </p>
-        <h2>Data Retention</h2>
-        <p>
-          Emails submitted by anonymous visitors are retained only as long as
-          needed for waitlist and service messages, after which they may be
-          deleted or anonymized.
-        </p>
-        <h2>Your Rights</h2>
-        <p>
-          You may request access or deletion of your email by contacting{' '}
+          {t('privacy.rightsText')}{' '}
           <a href='mailto:privacy@linea.app'>privacy@linea.app</a>.
         </p>
       </div>

@@ -10,10 +10,15 @@ export default function HelpCenter() {
       <div className='proseprose-invert max-w-none'>
         <h2>{t('help.gettingStarted')}</h2>
         <p>{t('help.gettingStartedText')}</p>
-        <h2>{t('help.accountPrivacy')}</h2>
-        <p>{t('help.accountPrivacyText')}</p>
-        <h2>{t('help.contactSupport')}</h2>
-        <p>{t('help.contactSupportText')}</p>
+        <h2>{t('help.account')}</h2>
+        <p>{t('help.accountText')}</p>
+        <h2>{t('help.events')}</h2>
+        <p>{t('help.eventsText')}</p>
+        <h2>{t('help.contact')}</h2>
+        <p>
+          {t('help.contactText')}{' '}
+          <a href='mailto:support@linea.app'>support@linea.app</a>.
+        </p>
       </div>
     </div>
   );
