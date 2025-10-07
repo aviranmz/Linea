@@ -1,5 +1,7 @@
 // User preferences service with merge-update functionality
-import { PrismaClient } from '@prisma/client';
+import * as Prisma from '@prisma/client';
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const { PrismaClient } = Prisma as any;
 
 export interface UserPreferences {
   // Theme preferences
@@ -96,9 +98,9 @@ export interface PreferenceUpdate {
 }
 
 export class UserPreferencesService {
-  private prisma: PrismaClient;
+  private prisma: typeof PrismaClient;
 
-  constructor(prisma: PrismaClient) {
+  constructor(prisma: typeof PrismaClient) {
     this.prisma = prisma;
   }
 

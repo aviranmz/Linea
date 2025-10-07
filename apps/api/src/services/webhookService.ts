@@ -1,6 +1,8 @@
 // Webhook service for handling inbound messages from various platforms
 import { FastifyRequest, FastifyReply } from 'fastify';
-import { PrismaClient } from '@prisma/client';
+import * as Prisma from '@prisma/client';
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const { PrismaClient } = Prisma as any;
 
 export interface InboundMessage {
   id: string;
@@ -224,9 +226,9 @@ export class EmailWebhookHandler implements WebhookHandler {
 
 export class WebhookService {
   private handlers: Map<string, WebhookHandler> = new Map();
-  private prisma: PrismaClient;
+  private prisma: typeof PrismaClient;
 
-  constructor(prisma: PrismaClient) {
+  constructor(prisma: typeof PrismaClient) {
     this.prisma = prisma;
   }
 
