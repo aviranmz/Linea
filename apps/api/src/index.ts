@@ -5880,8 +5880,8 @@ app.post('/api/fix-images', async (_request, reply) => {
         for (const eventData of moreEvents) {
           const event = await prisma.event.create({ data: eventData })
           console.log(`✅ Created event: ${event.title}`)
-          events.push(eventData)
         }
+        const totalEventsSeeded = events.length + moreEvents.length
 
         for (const eventData of events) {
           const event = await prisma.event.create({
