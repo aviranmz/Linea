@@ -1,2 +1,3 @@
-no side branche 
+no side branch 
 no commit without approval
+commit and push only after build and list passed

@@ -1,8 +1,7 @@
 // User preferences API routes
 import { FastifyInstance } from 'fastify';
 import { UserPreferencesService } from '../services/userPreferencesService.js';
-import pkg from '@prisma/client';
-const { PrismaClient } = pkg;
+import { PrismaClient } from '@prisma/client';
 
 export async function userPreferencesRoutes(fastify: FastifyInstance) {
   const prisma = new PrismaClient();
