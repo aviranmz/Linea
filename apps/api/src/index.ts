@@ -3200,9 +3200,8 @@ app.get('/api/owner/profile', async (request, reply) => {
         address: true,
         city: true,
         country: true,
-        latitude: true,
-        longitude: true,
-        areaId: true,
+        facebookUrl: true,
+        instagramUrl: true,
         area: {
           select: {
             id: true,
@@ -3212,7 +3211,6 @@ app.get('/api/owner/profile', async (request, reply) => {
             icon: true
           }
         },
-        productId: true,
         product: {
           select: {
             id: true,
@@ -3221,9 +3219,7 @@ app.get('/api/owner/profile', async (request, reply) => {
             color: true,
             icon: true
           }
-        },
-        facebookUrl: true,
-        instagramUrl: true
+        }
       }
     })
     reply.send(profile)
@@ -5532,6 +5528,15 @@ app.post('/api/fix-images', async (_request, reply) => {
         })
         console.log(`✅ Created venue: ${creativeHub.name}`)
 
+        // Spread locations across Milan Centro for better map distribution
+        const milanSpots = [
+          { lat: 45.4654, lng: 9.1866 }, // Duomo
+          { lat: 45.4659, lng: 9.1900 }, // Galleria
+          { lat: 45.4670, lng: 9.1925 }, // Brera edge
+          { lat: 45.4619, lng: 9.1880 }, // Missori
+          { lat: 45.4686, lng: 9.1819 }, // Castello
+        ]
+
         // Create events with real local data and proper image URLs
         const events = [
           {
@@ -5570,8 +5575,11 @@ app.post('/api/fix-images', async (_request, reply) => {
                 'Collaboration Opportunities',
                 'Professional Development',
                 'Creative Showcase'
-              ]
-            }
+              ],
+              qrUrl: `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent('https://linea-production.up.railway.app/events/creative-networking-mixer')}`
+            },
+            mapLat: milanSpots[0].lat,
+            mapLng: milanSpots[0].lng
           },
           {
             title: 'Tech Innovation Summit 2024',
@@ -5610,8 +5618,11 @@ app.post('/api/fix-images', async (_request, reply) => {
                 'Panel Discussions',
                 'Startup Pitch Competition'
               ],
-              organizer: 'Tech Milano'
-            }
+              organizer: 'Tech Milano',
+              qrUrl: `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent('https://linea-production.up.railway.app/events/tech-innovation-summit')}`
+            },
+            mapLat: milanSpots[1].lat,
+            mapLng: milanSpots[1].lng
           },
           {
             title: 'Milano Design Week 2024',
@@ -5650,8 +5661,11 @@ app.post('/api/fix-images', async (_request, reply) => {
                 'Workshop Sessions',
                 'Networking Events'
               ],
-              organizer: 'Milano Design Center'
-            }
+              organizer: 'Milano Design Center',
+              qrUrl: `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent('https://linea-production.up.railway.app/events/milano-design-week-2024')}`
+            },
+            mapLat: milanSpots[2].lat,
+            mapLng: milanSpots[2].lng
           },
           {
             title: 'Innovation Talk',
@@ -5687,8 +5701,11 @@ app.post('/api/fix-images', async (_request, reply) => {
                 'Networking',
                 'Q&A Sessions',
                 'Light Refreshments'
-              ]
-            }
+              ],
+              qrUrl: `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent('https://linea-production.up.railway.app/events/innovation-talk-3')}`
+            },
+            mapLat: milanSpots[3].lat,
+            mapLng: milanSpots[3].lng
           },
           {
             title: 'Studio Open Day',
@@ -5724,8 +5741,11 @@ app.post('/api/fix-images', async (_request, reply) => {
                 'Meet the Team',
                 'Interactive Workshops',
                 'Refreshments'
-              ]
-            }
+              ],
+              qrUrl: `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent('https://linea-production.up.railway.app/events/studio-open-day-4')}`
+            },
+            mapLat: milanSpots[4].lat,
+            mapLng: milanSpots[4].lng
           }
         ]
 
