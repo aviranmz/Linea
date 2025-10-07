@@ -238,7 +238,10 @@ async function main() {
     }),
   ]);
 
-  console.log('✅ Created categories:', categories.map((c: any) => c.name).join(', '));
+  console.log(
+    '✅ Created categories:',
+    categories.map((c: any) => c.name).join(', ')
+  );
 
   // Create areas
   const areas = await Promise.all([
@@ -503,7 +506,10 @@ async function main() {
     }),
   ]);
 
-  console.log('✅ Created products:', products.map((p: any) => p.name).join(', '));
+  console.log(
+    '✅ Created products:',
+    products.map((p: any) => p.name).join(', ')
+  );
 
   // Create venues
   const venues = await Promise.all([

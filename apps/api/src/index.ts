@@ -6,8 +6,7 @@ import swagger from '@fastify/swagger';
 import swaggerUi from '@fastify/swagger-ui';
 import fastifyStatic from '@fastify/static';
 import cookie from '@fastify/cookie';
-import pkg from '@prisma/client';
-const { PrismaClient } = pkg;
+import { PrismaClient } from '@prisma/client';
 import * as crypto from 'crypto';
 import * as Sentry from '@sentry/node';
 import path from 'path';
@@ -2011,7 +2010,8 @@ app.put('/api/owner/events/:id', async (request, reply) => {
     // If slug changed or existing QR missing, regenerate QR
     try {
       const newSlug = (data.slug as string) || existing.slug;
-      const shouldRegenerate = !!data.slug || !(existing.metadata as any)?.qrUrl;
+      const shouldRegenerate =
+        !!data.slug || !(existing.metadata as any)?.qrUrl;
       if (shouldRegenerate) {
         const baseUrl = process.env.FRONTEND_URL || 'http://localhost:3050';
         const eventUrl = `${baseUrl}/events/${newSlug}`;

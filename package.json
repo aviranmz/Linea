@@ -1,6 +1,6 @@
 {
   "name": "linea",
-  "version": "0.2.8",
+  "version": "0.2.9",
   "description": "Event management platform with email-only access and waitlist functionality",
   "private": true,
   "workspaces": [
