@@ -1,18 +1,18 @@
 #!/usr/bin/env node
 
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient } from '@prisma/client';
 
-const prisma = new PrismaClient()
+const prisma = new PrismaClient();
 
 async function getAdminData() {
   try {
-    console.log('🔍 Fetching admin data from production database...')
-    
+    console.log('🔍 Fetching admin data from production database...');
+
     // Get admin users
     const adminUsers = await prisma.user.findMany({
       where: {
         role: 'ADMIN',
-        deletedAt: null
+        deletedAt: null,
       },
       select: {
         id: true,
@@ -21,16 +21,16 @@ async function getAdminData() {
         role: true,
         createdAt: true,
         lastLoginAt: true,
-        isActive: true
-      }
-    })
-    
+        isActive: true,
+      },
+    });
+
     // Get email verifications for admin users
     const emailVerifications = await prisma.emailVerification.findMany({
       where: {
         user: {
-          role: 'ADMIN'
-        }
+          role: 'ADMIN',
+        },
       },
       select: {
         id: true,
@@ -44,40 +44,39 @@ async function getAdminData() {
             id: true,
             email: true,
             name: true,
-            role: true
-          }
-        }
+            role: true,
+          },
+        },
       },
       orderBy: {
-        createdAt: 'desc'
-      }
-    })
-    
+        createdAt: 'desc',
+      },
+    });
+
     // Get total user count
     const totalUsers = await prisma.user.count({
       where: {
-        deletedAt: null
-      }
-    })
-    
+        deletedAt: null,
+      },
+    });
+
     const result = {
       summary: {
         totalUsers,
         adminUsers: adminUsers.length,
-        emailVerifications: emailVerifications.length
+        emailVerifications: emailVerifications.length,
       },
       adminUsers,
-      emailVerifications
-    }
-    
-    console.log(JSON.stringify(result, null, 2))
-    
+      emailVerifications,
+    };
+
+    console.log(JSON.stringify(result, null, 2));
   } catch (error) {
-    console.error('❌ Error:', error.message)
-    process.exit(1)
+    console.error('❌ Error:', error.message);
+    process.exit(1);
   } finally {
-    await prisma.$disconnect()
+    await prisma.$disconnect();
   }
 }
 
-getAdminData()
+getAdminData();

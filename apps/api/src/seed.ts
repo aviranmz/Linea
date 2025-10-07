@@ -1,11 +1,11 @@
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient } from '@prisma/client';
 // import { hash } from 'bcryptjs'
 
-const prisma = new PrismaClient()
+const prisma = new PrismaClient();
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars, no-unused-vars
 async function main() {
-  console.log('🌱 Starting database seed...')
+  console.log('🌱 Starting database seed...');
 
   // Create admin user
   const adminUser = await prisma.user.upsert({
@@ -18,9 +18,9 @@ async function main() {
       isActive: true,
       lastLoginAt: new Date(),
     },
-  })
+  });
 
-  console.log('✅ Created admin user:', adminUser.email)
+  console.log('✅ Created admin user:', adminUser.email);
 
   // Create sample owner
   const ownerUser = await prisma.user.upsert({
@@ -33,9 +33,9 @@ async function main() {
       isActive: true,
       lastLoginAt: new Date(),
     },
-  })
+  });
 
-  console.log('✅ Created owner user:', ownerUser.email)
+  console.log('✅ Created owner user:', ownerUser.email);
 
   // Create categories
   const categories = await Promise.all([
@@ -106,7 +106,8 @@ async function main() {
       create: {
         name: 'Kitchen Appliances',
         slug: 'kitchen-appliances',
-        description: 'Kitchen appliances, cooking equipment, and smart home solutions',
+        description:
+          'Kitchen appliances, cooking equipment, and smart home solutions',
         color: '#d0c5b1',
         icon: 'Appliances',
         isActive: true,
@@ -118,7 +119,8 @@ async function main() {
       create: {
         name: 'Kitchen Cabinetry',
         slug: 'kitchen-cabinetry',
-        description: 'Kitchen cabinets, storage solutions, and organization systems',
+        description:
+          'Kitchen cabinets, storage solutions, and organization systems',
         color: '#ddd4c4',
         icon: 'Storage',
         isActive: true,
@@ -233,9 +235,9 @@ async function main() {
         isActive: true,
       },
     }),
-  ])
+  ]);
 
-  console.log('✅ Created categories:', categories.map(c => c.name).join(', '))
+  console.log('✅ Created categories:', categories.map(c => c.name).join(', '));
 
   // Create areas
   const areas = await Promise.all([
@@ -245,7 +247,8 @@ async function main() {
       create: {
         name: 'Brera',
         slug: 'brera',
-        description: 'Historic artistic district with galleries, boutiques, and design studios',
+        description:
+          'Historic artistic district with galleries, boutiques, and design studios',
         color: '#8b5cf6',
         icon: 'Design',
         isActive: true,
@@ -257,7 +260,8 @@ async function main() {
       create: {
         name: '5vie',
         slug: '5vie',
-        description: 'Design district with contemporary furniture showrooms and design studios',
+        description:
+          'Design district with contemporary furniture showrooms and design studios',
         color: '#06b6d4',
         icon: '🏛️',
         isActive: true,
@@ -269,7 +273,8 @@ async function main() {
       create: {
         name: 'Porta Nuova',
         slug: 'porta-nuova',
-        description: 'Modern business district with contemporary architecture and design',
+        description:
+          'Modern business district with contemporary architecture and design',
         color: '#10b981',
         icon: '🏢',
         isActive: true,
@@ -281,7 +286,8 @@ async function main() {
       create: {
         name: 'Navigli',
         slug: 'navigli',
-        description: 'Historic canal district with trendy bars, restaurants, and creative spaces',
+        description:
+          'Historic canal district with trendy bars, restaurants, and creative spaces',
         color: '#f59e0b',
         icon: '🚤',
         isActive: true,
@@ -293,7 +299,8 @@ async function main() {
       create: {
         name: 'Quadrilatero della Moda',
         slug: 'quadrilatero-della-moda',
-        description: 'Fashion district with luxury boutiques and high-end design',
+        description:
+          'Fashion district with luxury boutiques and high-end design',
         color: '#ec4899',
         icon: '👗',
         isActive: true,
@@ -305,7 +312,8 @@ async function main() {
       create: {
         name: 'Garibaldi',
         slug: 'garibaldi',
-        description: 'Modern district with contemporary design and architecture',
+        description:
+          'Modern district with contemporary design and architecture',
         color: '#3b82f6',
         icon: 'Build',
         isActive: true,
@@ -317,7 +325,8 @@ async function main() {
       create: {
         name: 'Tortona',
         slug: 'tortona',
-        description: 'Design district with showrooms, studios, and creative spaces',
+        description:
+          'Design district with showrooms, studios, and creative spaces',
         color: '#ef4444',
         icon: 'Art',
         isActive: true,
@@ -329,15 +338,16 @@ async function main() {
       create: {
         name: 'Isola',
         slug: 'isola',
-        description: 'Emerging design district with contemporary architecture and creative spaces',
+        description:
+          'Emerging design district with contemporary architecture and creative spaces',
         color: '#84cc16',
         icon: '🏝️',
         isActive: true,
       },
     }),
-  ])
+  ]);
 
-  console.log('✅ Created areas:', areas.map(a => a.name).join(', '))
+  console.log('✅ Created areas:', areas.map(a => a.name).join(', '));
 
   // Create products
   const products = await Promise.all([
@@ -359,7 +369,8 @@ async function main() {
       create: {
         name: 'Spotlights',
         slug: 'spotlights',
-        description: 'Directional lighting fixtures for accent and task lighting',
+        description:
+          'Directional lighting fixtures for accent and task lighting',
         color: '#3b82f6',
         icon: '🔦',
         isActive: true,
@@ -371,7 +382,8 @@ async function main() {
       create: {
         name: 'Pendant Lights',
         slug: 'pendant-lights',
-        description: 'Hanging light fixtures for ambient and decorative lighting',
+        description:
+          'Hanging light fixtures for ambient and decorative lighting',
         color: '#8b5cf6',
         icon: '🕯️',
         isActive: true,
@@ -395,7 +407,8 @@ async function main() {
       create: {
         name: 'Wall Sconces',
         slug: 'wall-sconces',
-        description: 'Wall-mounted lighting fixtures for ambient and accent lighting',
+        description:
+          'Wall-mounted lighting fixtures for ambient and accent lighting',
         color: '#10b981',
         icon: '🕯️',
         isActive: true,
@@ -443,7 +456,8 @@ async function main() {
       create: {
         name: 'LED Strips',
         slug: 'led-strips',
-        description: 'Flexible LED lighting strips for accent and decorative lighting',
+        description:
+          'Flexible LED lighting strips for accent and decorative lighting',
         color: '#84cc16',
         icon: '🌈',
         isActive: true,
@@ -467,7 +481,8 @@ async function main() {
       create: {
         name: 'Smart Lighting',
         slug: 'smart-lighting',
-        description: 'Connected lighting systems with app control and automation',
+        description:
+          'Connected lighting systems with app control and automation',
         color: '#8b5cf6',
         icon: '🤖',
         isActive: true,
@@ -485,9 +500,9 @@ async function main() {
         isActive: true,
       },
     }),
-  ])
+  ]);
 
-  console.log('✅ Created products:', products.map(p => p.name).join(', '))
+  console.log('✅ Created products:', products.map(p => p.name).join(', '));
 
   // Create venues
   const venues = await Promise.all([
@@ -526,363 +541,517 @@ async function main() {
         city: 'Milano',
         country: 'Italy',
         latitude: 45.4444,
-        longitude: 9.2000,
+        longitude: 9.2,
         website: 'https://fondazioneprada.org',
       },
     }),
-  ])
+  ]);
 
-  console.log('✅ Created venues:', venues.map(v => v.name).join(', '))
+  console.log('✅ Created venues:', venues.map(v => v.name).join(', '));
 
   // Check if events already exist - if so, skip event creation entirely
   const existingEvents = await prisma.event.findMany({
-    select: { slug: true }
-  })
-  
+    select: { slug: true },
+  });
+
   if (existingEvents.length > 0) {
-    console.log('✅ Events already exist, skipping event creation to prevent duplicates')
+    console.log(
+      '✅ Events already exist, skipping event creation to prevent duplicates'
+    );
   } else {
-    console.log('🌱 No events found, creating sample events...')
-    const existingSlugs = new Set(existingEvents.map((e: any) => e.slug))
-    const events = []
-    
+    console.log('🌱 No events found, creating sample events...');
+    const existingSlugs = new Set(existingEvents.map((e: any) => e.slug));
+    const events = [];
+
     if (!existingSlugs.has('milano-design-week-2024')) {
-    const event = await prisma.event.create({
-      data: {
-        title: 'Milano Design Week 2024',
-        slug: 'milano-design-week-2024',
-        description: 'The most important design event in the world, showcasing the latest trends in furniture, lighting, and home accessories.',
-        shortDescription: 'Discover the future of design at the world\'s premier design event.',
-        status: 'PUBLISHED',
-        startDate: new Date('2024-04-15T10:00:00Z'),
-        endDate: new Date('2024-04-21T18:00:00Z'),
-        capacity: 1000,
-        currentWaitlist: 0,
-        youtubeUrl: 'https://www.youtube.com/watch?v=example1',
-        mapLat: 45.4508,
-        mapLng: 9.1734,
-        mapZoom: 15,
-        mapAddress: 'Via Tortona, 37, 20144 Milano MI, Italy',
-        ownerId: ownerUser.id,
-        venueId: venues[0].id,
-        categoryId: categories[0].id,
-        isPublic: true,
-        featured: true,
-        tags: ['design', 'furniture', 'innovation', 'sustainability'],
-        metadata: {
-          organizer: 'Milano Design Center',
-          contact: 'info@milanodesigncenter.com',
-          social: {
-            instagram: '@milanodesigncenter',
-            twitter: '@milanodesign',
-          },
-        },
-      }
-    })
-    events.push(event)
-  }
-  
-  if (!existingSlugs.has('tech-innovation-summit')) {
-    const event = await prisma.event.create({
-      data: {
-        title: 'Tech Innovation Summit 2024',
-        slug: 'tech-innovation-summit',
-        description: 'A gathering of tech leaders, entrepreneurs, and innovators to discuss the future of technology and its impact on society.',
-        shortDescription: 'Join the conversation about the future of technology.',
-        status: 'PUBLISHED',
-        startDate: new Date('2024-05-20T09:00:00Z'),
-        endDate: new Date('2024-05-22T17:00:00Z'),
-        capacity: 500,
-        currentWaitlist: 0,
-        youtubeUrl: 'https://www.youtube.com/watch?v=example2',
-        mapLat: 45.4722,
-        mapLng: 9.1708,
-        mapZoom: 15,
-        mapAddress: 'Viale Emilio Alemagna, 6, 20121 Milano MI, Italy',
-        ownerId: ownerUser.id,
-        venueId: venues[1].id,
-        categoryId: categories[1].id,
-        isPublic: true,
-        featured: false,
-        tags: ['technology', 'innovation', 'startups', 'AI'],
-        metadata: {
-          organizer: 'Tech Milano',
-          contact: 'hello@techmilano.it',
-          social: {
-            linkedin: 'Tech Milano',
-            twitter: '@techmilano',
-          },
-        },
-      }
-    })
-    events.push(event)
-  }
-  
-  if (!existingSlugs.has('contemporary-art-exhibition')) {
-    const event = await prisma.event.create({
-      data: {
-        title: 'Contemporary Art Exhibition',
-        slug: 'contemporary-art-exhibition',
-        description: 'An immersive exhibition featuring works by emerging and established contemporary artists from around the world.',
-        shortDescription: 'Experience cutting-edge contemporary art in the heart of Milano.',
-        status: 'DRAFT',
-        startDate: new Date('2024-06-10T11:00:00Z'),
-        endDate: new Date('2024-08-10T19:00:00Z'),
-        capacity: 200,
-        currentWaitlist: 0,
-        mapLat: 45.4444,
-        mapLng: 9.2000,
-        mapZoom: 15,
-        mapAddress: 'Largo Isarco, 2, 20139 Milano MI, Italy',
-        ownerId: ownerUser.id,
-        venueId: venues[2].id,
-        categoryId: categories[2].id,
-        isPublic: false,
-        featured: false,
-        tags: ['art', 'contemporary', 'exhibition', 'culture'],
-        metadata: {
-          organizer: 'Fondazione Prada',
-          contact: 'info@fondazioneprada.org',
-          social: {
-            instagram: '@fondazioneprada',
-            facebook: 'Fondazione Prada',
-          },
-        },
-      }
-    })
-    events.push(event)
-  }
-  
-  console.log('✅ Created events:', events.map(e => e.title).join(', '))
-  
-  // Create sample shows for the first event (only if events were created)
-  const shows = []
-  if (events.length > 0) {
-    const newShows = await Promise.all([
-      prisma.show.create({
+      const event = await prisma.event.create({
         data: {
-          title: 'Opening Ceremony',
-          description: 'Official opening of Milano Design Week 2024',
+          title: 'Milano Design Week 2024',
+          slug: 'milano-design-week-2024',
+          description:
+            'The most important design event in the world, showcasing the latest trends in furniture, lighting, and home accessories.',
+          shortDescription:
+            "Discover the future of design at the world's premier design event.",
+          status: 'PUBLISHED',
           startDate: new Date('2024-04-15T10:00:00Z'),
-          endDate: new Date('2024-04-15T12:00:00Z'),
+          endDate: new Date('2024-04-21T18:00:00Z'),
+          capacity: 1000,
+          currentWaitlist: 0,
+          youtubeUrl: 'https://www.youtube.com/watch?v=example1',
+          mapLat: 45.4508,
+          mapLng: 9.1734,
+          mapZoom: 15,
+          mapAddress: 'Via Tortona, 37, 20144 Milano MI, Italy',
+          ownerId: ownerUser.id,
+          venueId: venues[0].id,
+          categoryId: categories[0].id,
+          isPublic: true,
+          featured: true,
+          tags: ['design', 'furniture', 'innovation', 'sustainability'],
+          metadata: {
+            organizer: 'Milano Design Center',
+            contact: 'info@milanodesigncenter.com',
+            social: {
+              instagram: '@milanodesigncenter',
+              twitter: '@milanodesign',
+            },
+          },
+        },
+      });
+      events.push(event);
+    }
+
+    if (!existingSlugs.has('tech-innovation-summit')) {
+      const event = await prisma.event.create({
+        data: {
+          title: 'Tech Innovation Summit 2024',
+          slug: 'tech-innovation-summit',
+          description:
+            'A gathering of tech leaders, entrepreneurs, and innovators to discuss the future of technology and its impact on society.',
+          shortDescription:
+            'Join the conversation about the future of technology.',
+          status: 'PUBLISHED',
+          startDate: new Date('2024-05-20T09:00:00Z'),
+          endDate: new Date('2024-05-22T17:00:00Z'),
+          capacity: 500,
+          currentWaitlist: 0,
+          youtubeUrl: 'https://www.youtube.com/watch?v=example2',
+          mapLat: 45.4722,
+          mapLng: 9.1708,
+          mapZoom: 15,
+          mapAddress: 'Viale Emilio Alemagna, 6, 20121 Milano MI, Italy',
+          ownerId: ownerUser.id,
+          venueId: venues[1].id,
+          categoryId: categories[1].id,
+          isPublic: true,
+          featured: false,
+          tags: ['technology', 'innovation', 'startups', 'AI'],
+          metadata: {
+            organizer: 'Tech Milano',
+            contact: 'hello@techmilano.it',
+            social: {
+              linkedin: 'Tech Milano',
+              twitter: '@techmilano',
+            },
+          },
+        },
+      });
+      events.push(event);
+    }
+
+    if (!existingSlugs.has('contemporary-art-exhibition')) {
+      const event = await prisma.event.create({
+        data: {
+          title: 'Contemporary Art Exhibition',
+          slug: 'contemporary-art-exhibition',
+          description:
+            'An immersive exhibition featuring works by emerging and established contemporary artists from around the world.',
+          shortDescription:
+            'Experience cutting-edge contemporary art in the heart of Milano.',
+          status: 'DRAFT',
+          startDate: new Date('2024-06-10T11:00:00Z'),
+          endDate: new Date('2024-08-10T19:00:00Z'),
           capacity: 200,
           currentWaitlist: 0,
-          youtubeUrl: 'https://www.youtube.com/watch?v=opening',
-          eventId: events[0]?.id || '',
+          mapLat: 45.4444,
+          mapLng: 9.2,
+          mapZoom: 15,
+          mapAddress: 'Largo Isarco, 2, 20139 Milano MI, Italy',
+          ownerId: ownerUser.id,
+          venueId: venues[2].id,
+          categoryId: categories[2].id,
+          isPublic: false,
+          featured: false,
+          tags: ['art', 'contemporary', 'exhibition', 'culture'],
+          metadata: {
+            organizer: 'Fondazione Prada',
+            contact: 'info@fondazioneprada.org',
+            social: {
+              instagram: '@fondazioneprada',
+              facebook: 'Fondazione Prada',
+            },
+          },
         },
-      }),
-      prisma.show.create({
-        data: {
-          title: 'Design Innovation Panel',
-          description: 'Panel discussion on the future of design innovation',
-          startDate: new Date('2024-04-16T14:00:00Z'),
-          endDate: new Date('2024-04-16T16:00:00Z'),
-          capacity: 150,
-          currentWaitlist: 0,
-          eventId: events[0]?.id || '',
-        },
-      }),
-    ])
-    shows.push(...newShows)
-  }
-
-  console.log('✅ Created shows:', shows.map(s => s.title).join(', '))
-
-  // Create sample waitlist entries (only if events were created)
-  const waitlistEntries = []
-  if (events.length > 0) {
-    const newWaitlistEntries = await Promise.all([
-      prisma.waitlistEntry.create({
-        data: {
-          email: 'visitor1@example.com',
-          eventId: events[0]?.id || '',
-          status: 'PENDING',
-        },
-      }),
-      prisma.waitlistEntry.create({
-        data: {
-          email: 'visitor2@example.com',
-          eventId: events[0]?.id || '',
-          status: 'CONFIRMED',
-        },
-      }),
-      events[1] ? prisma.waitlistEntry.create({
-        data: {
-          email: 'visitor3@example.com',
-          eventId: events[1].id,
-          status: 'PENDING',
-        },
-      }) : null,
-    ])
-    waitlistEntries.push(...newWaitlistEntries.filter(Boolean))
-  }
-
-  console.log('✅ Created waitlist entries:', waitlistEntries.length)
-
-  // Add 20-30 random waitlist emails per event
-  for (let eventIndex = 0; eventIndex < events.length; eventIndex++) {
-    const event = events[eventIndex]
-    if (!event) continue
-    const count = 20 + Math.floor(Math.random() * 11) // 20..30
-    const statuses = ['PENDING','CONFIRMED','APPROVED','REJECTED','ARRIVED','CANCELLED'] as const
-    const emails: { email: string; eventId: string; status: (typeof statuses)[number] }[] = []
-    for (let i = 0; i < count; i++) {
-      const email = `seed-user-${eventIndex}-${i}@example.com`
-      const status = statuses[Math.floor(Math.random() * statuses.length)] as (typeof statuses)[number]
-      emails.push({ email, eventId: event.id, status })
+      });
+      events.push(event);
     }
-    // Use createMany for efficiency; skipDuplicates to avoid clashes with prior seeds
-    await prisma.waitlistEntry.createMany({ data: emails, skipDuplicates: true })
-    console.log(`✅ Added ${count} waitlist entries for event:`, event.title)
-  }
 
-  // Create sample nearby places (only if events were created)
-  const nearbyPlaces = []
-  if (events.length > 0) {
-    const newNearbyPlaces = await Promise.all([
-      prisma.nearbyPlace.create({
-        data: {
-          name: 'Ristorante Da Giacomo',
-          address: 'Via Pasquale Sottocorno, 6, 20129 Milano MI, Italy',
-          latitude: 45.4510,
-          longitude: 9.1730,
-          category: 'restaurant',
-          rating: 4.5,
-          website: 'https://ristorantedagiacomo.it',
-          phone: '+39 02 5810 2812',
-          distance: 150,
-          eventId: events[0]?.id || '',
-        },
-      }),
-      prisma.nearbyPlace.create({
-        data: {
-          name: 'Museo della Scienza e della Tecnologia',
-          address: 'Via San Vittore, 21, 20123 Milano MI, Italy',
-          latitude: 45.4720,
-          longitude: 9.1700,
-          category: 'museum',
-          rating: 4.3,
-          website: 'https://museoscienza.org',
-          phone: '+39 02 485 551',
-          distance: 300,
-          eventId: events[0]?.id || '',
-        },
-      }),
-    ])
-    nearbyPlaces.push(...newNearbyPlaces)
-  }
+    console.log('✅ Created events:', events.map(e => e.title).join(', '));
 
-  console.log('✅ Created nearby places:', nearbyPlaces.map(p => p.name).join(', '))
+    // Create sample shows for the first event (only if events were created)
+    const shows = [];
+    if (events.length > 0) {
+      const newShows = await Promise.all([
+        prisma.show.create({
+          data: {
+            title: 'Opening Ceremony',
+            description: 'Official opening of Milano Design Week 2024',
+            startDate: new Date('2024-04-15T10:00:00Z'),
+            endDate: new Date('2024-04-15T12:00:00Z'),
+            capacity: 200,
+            currentWaitlist: 0,
+            youtubeUrl: 'https://www.youtube.com/watch?v=opening',
+            eventId: events[0]?.id || '',
+          },
+        }),
+        prisma.show.create({
+          data: {
+            title: 'Design Innovation Panel',
+            description: 'Panel discussion on the future of design innovation',
+            startDate: new Date('2024-04-16T14:00:00Z'),
+            endDate: new Date('2024-04-16T16:00:00Z'),
+            capacity: 150,
+            currentWaitlist: 0,
+            eventId: events[0]?.id || '',
+          },
+        }),
+      ]);
+      shows.push(...newShows);
+    }
 
-  // ------------------------------------------------------------------
-  // Bulk: Create 200 real-looking users and register each to 2 events
-  // ------------------------------------------------------------------
-  try {
-    // Fetch a few events to register users to (fallback-safe)
-    const eventsForRegistration = await prisma.event.findMany({
-      where: { deletedAt: null },
-      select: { id: true, title: true },
-      orderBy: { createdAt: 'asc' },
-      take: 5,
-    }) as Array<{ id: string; title: string }>
+    console.log('✅ Created shows:', shows.map(s => s.title).join(', '));
 
-    if (eventsForRegistration.length >= 2) {
-      const firstNames = [
-        'Liam','Noah','Oliver','Elijah','James','William','Benjamin','Lucas','Henry','Theodore',
-        'Olivia','Emma','Charlotte','Amelia','Ava','Sophia','Isabella','Mia','Evelyn','Harper',
-        'Ethan','Michael','Daniel','Jacob','Logan','Jackson','Levi','Sebastian','Mateo','Jack',
-        'Aiden','Owen','Samuel','Matthew','Joseph','John','David','Wyatt','Carter','Julian',
-        'Emily','Abigail','Ella','Elizabeth','Sofia','Avery','Scarlett','Eleanor','Madison','Luna'
-      ]
-      const lastNames = [
-        'Smith','Johnson','Williams','Brown','Jones','Garcia','Miller','Davis','Rodriguez','Martinez',
-        'Hernandez','Lopez','Gonzalez','Wilson','Anderson','Thomas','Taylor','Moore','Jackson','Martin',
-        'Lee','Perez','Thompson','White','Harris','Sanchez','Clark','Ramirez','Lewis','Robinson',
-        'Walker','Young','Allen','King','Wright','Scott','Torres','Nguyen','Hill','Flores',
-        'Green','Adams','Nelson','Baker','Hall','Rivera','Campbell','Mitchell','Carter','Roberts'
-      ]
+    // Create sample waitlist entries (only if events were created)
+    const waitlistEntries = [];
+    if (events.length > 0) {
+      const newWaitlistEntries = await Promise.all([
+        prisma.waitlistEntry.create({
+          data: {
+            email: 'visitor1@example.com',
+            eventId: events[0]?.id || '',
+            status: 'PENDING',
+          },
+        }),
+        prisma.waitlistEntry.create({
+          data: {
+            email: 'visitor2@example.com',
+            eventId: events[0]?.id || '',
+            status: 'CONFIRMED',
+          },
+        }),
+        events[1]
+          ? prisma.waitlistEntry.create({
+              data: {
+                email: 'visitor3@example.com',
+                eventId: events[1].id,
+                status: 'PENDING',
+              },
+            })
+          : null,
+      ]);
+      waitlistEntries.push(...newWaitlistEntries.filter(Boolean));
+    }
 
-      const userCount = 200
-      const usersToCreate: Array<{ email: string; name: string; role: 'VISITOR'; isActive: boolean; lastLoginAt: Date }>
-        = []
+    console.log('✅ Created waitlist entries:', waitlistEntries.length);
 
-      for (let i = 0; i < userCount; i++) {
-        const fn: string = firstNames[i % firstNames.length] ?? 'User'
-        const ln: string = lastNames[(Math.floor(i / firstNames.length) + i) % lastNames.length] ?? 'Demo'
-        const name = `${fn} ${ln}`
-        // Use a stable but unique email scheme
-        const email = `${fn.toLowerCase()}.${ln.toLowerCase()}${i + 1}@example.com`
-        usersToCreate.push({ email, name, role: 'VISITOR', isActive: true, lastLoginAt: new Date() })
+    // Add 20-30 random waitlist emails per event
+    for (let eventIndex = 0; eventIndex < events.length; eventIndex++) {
+      const event = events[eventIndex];
+      if (!event) continue;
+      const count = 20 + Math.floor(Math.random() * 11); // 20..30
+      const statuses = [
+        'PENDING',
+        'CONFIRMED',
+        'APPROVED',
+        'REJECTED',
+        'ARRIVED',
+        'CANCELLED',
+      ] as const;
+      const emails: {
+        email: string;
+        eventId: string;
+        status: (typeof statuses)[number];
+      }[] = [];
+      for (let i = 0; i < count; i++) {
+        const email = `seed-user-${eventIndex}-${i}@example.com`;
+        const status = statuses[
+          Math.floor(Math.random() * statuses.length)
+        ] as (typeof statuses)[number];
+        emails.push({ email, eventId: event.id, status });
       }
+      // Use createMany for efficiency; skipDuplicates to avoid clashes with prior seeds
+      await prisma.waitlistEntry.createMany({
+        data: emails,
+        skipDuplicates: true,
+      });
+      console.log(`✅ Added ${count} waitlist entries for event:`, event.title);
+    }
 
-      // Create users in bulk; skipDuplicates avoids collisions on re-seed
-      await prisma.user.createMany({ data: usersToCreate, skipDuplicates: true })
-      console.log(`✅ Ensured ${userCount} users exist`)
+    // Create sample nearby places (only if events were created)
+    const nearbyPlaces = [];
+    if (events.length > 0) {
+      const newNearbyPlaces = await Promise.all([
+        prisma.nearbyPlace.create({
+          data: {
+            name: 'Ristorante Da Giacomo',
+            address: 'Via Pasquale Sottocorno, 6, 20129 Milano MI, Italy',
+            latitude: 45.451,
+            longitude: 9.173,
+            category: 'restaurant',
+            rating: 4.5,
+            website: 'https://ristorantedagiacomo.it',
+            phone: '+39 02 5810 2812',
+            distance: 150,
+            eventId: events[0]?.id || '',
+          },
+        }),
+        prisma.nearbyPlace.create({
+          data: {
+            name: 'Museo della Scienza e della Tecnologia',
+            address: 'Via San Vittore, 21, 20123 Milano MI, Italy',
+            latitude: 45.472,
+            longitude: 9.17,
+            category: 'museum',
+            rating: 4.3,
+            website: 'https://museoscienza.org',
+            phone: '+39 02 485 551',
+            distance: 300,
+            eventId: events[0]?.id || '',
+          },
+        }),
+      ]);
+      nearbyPlaces.push(...newNearbyPlaces);
+    }
 
-      // Register each user to 2 events (round-robin across available events)
-      const userEmails = usersToCreate.map(u => u.email)
-      const regs: { email: string; eventId: string; status: 'PENDING'|'CONFIRMED' }[] = []
-      const eventIds: string[] = eventsForRegistration
-        .map(e => e.id as string)
-        .filter((id): id is string => typeof id === 'string' && id.length > 0)
+    console.log(
+      '✅ Created nearby places:',
+      nearbyPlaces.map(p => p.name).join(', ')
+    );
 
-      if (eventIds.length >= 2) {
-        for (let i = 0; i < userEmails.length; i++) {
-          const email = userEmails[i]!
-          const id1 = eventIds[i % eventIds.length]!
-          const id2 = eventIds[(i + 1) % eventIds.length]!
-          if (id1) regs.push({ email, eventId: id1, status: 'CONFIRMED' })
-          if (id2) regs.push({ email, eventId: id2, status: 'PENDING' })
+    // ------------------------------------------------------------------
+    // Bulk: Create 200 real-looking users and register each to 2 events
+    // ------------------------------------------------------------------
+    try {
+      // Fetch a few events to register users to (fallback-safe)
+      const eventsForRegistration = (await prisma.event.findMany({
+        where: { deletedAt: null },
+        select: { id: true, title: true },
+        orderBy: { createdAt: 'asc' },
+        take: 5,
+      })) as Array<{ id: string; title: string }>;
+
+      if (eventsForRegistration.length >= 2) {
+        const firstNames = [
+          'Liam',
+          'Noah',
+          'Oliver',
+          'Elijah',
+          'James',
+          'William',
+          'Benjamin',
+          'Lucas',
+          'Henry',
+          'Theodore',
+          'Olivia',
+          'Emma',
+          'Charlotte',
+          'Amelia',
+          'Ava',
+          'Sophia',
+          'Isabella',
+          'Mia',
+          'Evelyn',
+          'Harper',
+          'Ethan',
+          'Michael',
+          'Daniel',
+          'Jacob',
+          'Logan',
+          'Jackson',
+          'Levi',
+          'Sebastian',
+          'Mateo',
+          'Jack',
+          'Aiden',
+          'Owen',
+          'Samuel',
+          'Matthew',
+          'Joseph',
+          'John',
+          'David',
+          'Wyatt',
+          'Carter',
+          'Julian',
+          'Emily',
+          'Abigail',
+          'Ella',
+          'Elizabeth',
+          'Sofia',
+          'Avery',
+          'Scarlett',
+          'Eleanor',
+          'Madison',
+          'Luna',
+        ];
+        const lastNames = [
+          'Smith',
+          'Johnson',
+          'Williams',
+          'Brown',
+          'Jones',
+          'Garcia',
+          'Miller',
+          'Davis',
+          'Rodriguez',
+          'Martinez',
+          'Hernandez',
+          'Lopez',
+          'Gonzalez',
+          'Wilson',
+          'Anderson',
+          'Thomas',
+          'Taylor',
+          'Moore',
+          'Jackson',
+          'Martin',
+          'Lee',
+          'Perez',
+          'Thompson',
+          'White',
+          'Harris',
+          'Sanchez',
+          'Clark',
+          'Ramirez',
+          'Lewis',
+          'Robinson',
+          'Walker',
+          'Young',
+          'Allen',
+          'King',
+          'Wright',
+          'Scott',
+          'Torres',
+          'Nguyen',
+          'Hill',
+          'Flores',
+          'Green',
+          'Adams',
+          'Nelson',
+          'Baker',
+          'Hall',
+          'Rivera',
+          'Campbell',
+          'Mitchell',
+          'Carter',
+          'Roberts',
+        ];
+
+        const userCount = 200;
+        const usersToCreate: Array<{
+          email: string;
+          name: string;
+          role: 'VISITOR';
+          isActive: boolean;
+          lastLoginAt: Date;
+        }> = [];
+
+        for (let i = 0; i < userCount; i++) {
+          const fn: string = firstNames[i % firstNames.length] ?? 'User';
+          const ln: string =
+            lastNames[
+              (Math.floor(i / firstNames.length) + i) % lastNames.length
+            ] ?? 'Demo';
+          const name = `${fn} ${ln}`;
+          // Use a stable but unique email scheme
+          const email = `${fn.toLowerCase()}.${ln.toLowerCase()}${i + 1}@example.com`;
+          usersToCreate.push({
+            email,
+            name,
+            role: 'VISITOR',
+            isActive: true,
+            lastLoginAt: new Date(),
+          });
         }
-      } else {
-        console.log('ℹ️  Skipping user registrations: insufficient valid event IDs')
-      }
 
-      // Use createMany with skipDuplicates to be idempotent
-      await prisma.waitlistEntry.createMany({ data: regs, skipDuplicates: true })
-      console.log(`✅ Registered ${userEmails.length} users to 2 events each (total entries: ${regs.length})`)
-    } else {
-      console.log('ℹ️  Skipping user registrations: fewer than 2 events available')
+        // Create users in bulk; skipDuplicates avoids collisions on re-seed
+        await prisma.user.createMany({
+          data: usersToCreate,
+          skipDuplicates: true,
+        });
+        console.log(`✅ Ensured ${userCount} users exist`);
+
+        // Register each user to 2 events (round-robin across available events)
+        const userEmails = usersToCreate.map(u => u.email);
+        const regs: {
+          email: string;
+          eventId: string;
+          status: 'PENDING' | 'CONFIRMED';
+        }[] = [];
+        const eventIds: string[] = eventsForRegistration
+          .map(e => e.id as string)
+          .filter(
+            (id): id is string => typeof id === 'string' && id.length > 0
+          );
+
+        if (eventIds.length >= 2) {
+          for (let i = 0; i < userEmails.length; i++) {
+            const email = userEmails[i]!;
+            const id1 = eventIds[i % eventIds.length]!;
+            const id2 = eventIds[(i + 1) % eventIds.length]!;
+            if (id1) regs.push({ email, eventId: id1, status: 'CONFIRMED' });
+            if (id2) regs.push({ email, eventId: id2, status: 'PENDING' });
+          }
+        } else {
+          console.log(
+            'ℹ️  Skipping user registrations: insufficient valid event IDs'
+          );
+        }
+
+        // Use createMany with skipDuplicates to be idempotent
+        await prisma.waitlistEntry.createMany({
+          data: regs,
+          skipDuplicates: true,
+        });
+        console.log(
+          `✅ Registered ${userEmails.length} users to 2 events each (total entries: ${regs.length})`
+        );
+      } else {
+        console.log(
+          'ℹ️  Skipping user registrations: fewer than 2 events available'
+        );
+      }
+    } catch (err) {
+      console.log(
+        '⚠️  Skipped bulk user+registration seeding due to an error:',
+        err
+      );
     }
-  } catch (err) {
-    console.log('⚠️  Skipped bulk user+registration seeding due to an error:', err)
+
+    // Create sample consents
+    const consents = await Promise.all([
+      prisma.consent.create({
+        data: {
+          userId: adminUser.id,
+          type: 'NECESSARY',
+          granted: true,
+          grantedAt: new Date(),
+          ipAddress: '127.0.0.1',
+          userAgent: 'Mozilla/5.0 (compatible; Seed Script)',
+        },
+      }),
+      prisma.consent.create({
+        data: {
+          userId: adminUser.id,
+          type: 'ANALYTICS',
+          granted: true,
+          grantedAt: new Date(),
+          ipAddress: '127.0.0.1',
+          userAgent: 'Mozilla/5.0 (compatible; Seed Script)',
+        },
+      }),
+    ]);
+
+    console.log('✅ Created consents:', consents.length);
+
+    console.log('🎉 Database seed completed successfully!');
   }
 
-  // Create sample consents
-  const consents = await Promise.all([
-    prisma.consent.create({
-      data: {
-        userId: adminUser.id,
-        type: 'NECESSARY',
-        granted: true,
-        grantedAt: new Date(),
-        ipAddress: '127.0.0.1',
-        userAgent: 'Mozilla/5.0 (compatible; Seed Script)',
-      },
-    }),
-    prisma.consent.create({
-      data: {
-        userId: adminUser.id,
-        type: 'ANALYTICS',
-        granted: true,
-        grantedAt: new Date(),
-        ipAddress: '127.0.0.1',
-        userAgent: 'Mozilla/5.0 (compatible; Seed Script)',
-      },
-    }),
-  ])
-
-  console.log('✅ Created consents:', consents.length)
-
-  console.log('🎉 Database seed completed successfully!')
-}
-
-main()
-  .catch((e) => {
-    console.error('❌ Error during seed:', e)
-    process.exit(1)
-  })
-  .finally(async () => {
-    await prisma.$disconnect()
-  })
+  main()
+    .catch(e => {
+      console.error('❌ Error during seed:', e);
+      process.exit(1);
+    })
+    .finally(async () => {
+      await prisma.$disconnect();
+    });
 }

@@ -8,16 +8,20 @@
   * {
     @apply border-neutral-200;
   }
-  
+
   html {
     scroll-behavior: smooth;
   }
-  
+
   body {
     @apply bg-milano-cream text-neutral-900 antialiased;
-    font-feature-settings: "rlig" 1, "calt" 1;
-    transition: background-color 0.3s ease, color 0.3s ease;
-    
+    font-feature-settings:
+      'rlig' 1,
+      'calt' 1;
+    transition:
+      background-color 0.3s ease,
+      color 0.3s ease;
+
     /* Owner theme variables */
     font-family: var(--font-family, 'Inter', sans-serif);
     font-size: var(--font-size, 16px);
@@ -25,36 +29,36 @@
     color: var(--color-text, inherit);
     background-color: var(--color-bg, inherit);
   }
-  
+
   .dark body {
     @apply bg-neutral-900 text-neutral-100;
   }
-  
+
   /* Custom scrollbar */
   ::-webkit-scrollbar {
     width: 8px;
   }
-  
+
   ::-webkit-scrollbar-track {
     @apply bg-neutral-100;
   }
-  
+
   ::-webkit-scrollbar-thumb {
     @apply bg-neutral-300 rounded-full;
   }
-  
+
   ::-webkit-scrollbar-thumb:hover {
     @apply bg-neutral-400;
   }
-  
+
   .dark ::-webkit-scrollbar-track {
     @apply bg-neutral-800;
   }
-  
+
   .dark ::-webkit-scrollbar-thumb {
     @apply bg-neutral-600;
   }
-  
+
   .dark ::-webkit-scrollbar-thumb:hover {
     @apply bg-neutral-500;
   }
@@ -65,126 +69,126 @@
   .btn {
     @apply inline-flex items-center justify-center rounded-lg text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 px-4 py-2.5;
   }
-  
+
   .btn-primary {
     @apply bg-accent-800 text-white hover:bg-accent-900 shadow-milano hover:shadow-milano-lg;
   }
-  
+
   .btn-secondary {
     @apply bg-neutral-100 text-neutral-900 hover:bg-neutral-200 border border-neutral-200;
   }
-  
+
   .btn-outline {
     @apply border-2 border-accent-800 text-accent-800 hover:bg-accent-50 hover:border-accent-900 hover:text-accent-900;
   }
-  
+
   .btn-ghost {
     @apply text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100;
   }
-  
+
   /* Card Components */
   .card {
     @apply rounded-xl border border-neutral-200 bg-white shadow-milano hover:shadow-milano-lg transition-shadow duration-200;
   }
-  
+
   .card-elevated {
     @apply rounded-xl bg-white shadow-milano-lg;
   }
-  
+
   /* Input Components */
   .input {
     @apply flex h-11 w-full rounded-lg border border-neutral-300 bg-white px-3 py-2.5 text-sm placeholder:text-neutral-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-colors duration-200;
   }
-  
+
   .input-error {
     @apply border-red-500 focus-visible:ring-red-500;
   }
-  
+
   /* Typography Components */
   .heading-1 {
     @apply text-4xl md:text-5xl lg:text-6xl font-display font-semibold text-neutral-900;
   }
-  
+
   .heading-2 {
     @apply text-3xl md:text-4xl lg:text-5xl font-display font-semibold text-neutral-900;
   }
-  
+
   .heading-3 {
     @apply text-2xl md:text-3xl font-display font-medium text-neutral-900;
   }
-  
+
   .heading-4 {
     @apply text-xl md:text-2xl font-display font-medium text-neutral-900;
   }
-  
+
   .text-body {
     @apply text-base text-neutral-600 leading-relaxed;
   }
-  
+
   .text-caption {
     @apply text-sm text-neutral-500;
   }
-  
+
   /* Layout Components */
   .container {
     @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
   }
-  
+
   .section {
     @apply py-16 md:py-24;
   }
-  
+
   .section-sm {
     @apply py-8 md:py-12;
   }
-  
+
   /* Milano Design Elements */
   .milano-gradient {
     @apply bg-gradient-to-br from-milano-cream via-white to-milano-sage/10;
   }
-  
+
   .milano-accent {
     @apply text-accent-600;
   }
-  
+
   .milano-border {
     @apply border-milano-gold/20;
   }
-  
+
   /* Animation Classes - Use Tailwind's built-in animations directly */
-  
+
   /* Focus States */
   .focus-milano {
     @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2;
   }
-  
+
   /* Owner Theme Utilities */
   .theme-primary {
     background-color: var(--color-primary, theme('colors.accent.500'));
     color: white;
   }
-  
+
   .theme-secondary {
     background-color: var(--color-secondary, theme('colors.purple.500'));
     color: white;
   }
-  
+
   .theme-text {
     color: var(--color-text, inherit);
   }
-  
+
   .theme-bg {
     background-color: var(--color-bg, inherit);
   }
-  
+
   .theme-border-primary {
     border-color: var(--color-primary, theme('colors.accent.500'));
   }
-  
+
   .theme-border-secondary {
     border-color: var(--color-secondary, theme('colors.purple.500'));
   }
-  
+
   .owner-logo {
     background-image: var(--owner-logo, none);
     background-size: contain;

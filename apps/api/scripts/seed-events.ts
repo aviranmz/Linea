@@ -1,15 +1,15 @@
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient } from '@prisma/client';
 
-const prisma = new PrismaClient()
+const prisma = new PrismaClient();
 
 async function main() {
-  console.log('🌱 Starting comprehensive event seeding...')
+  console.log('🌱 Starting comprehensive event seeding...');
 
   try {
     // Delete all existing events first
-    console.log('🗑️  Deleting all existing events...')
-    await prisma.event.deleteMany({})
-    console.log('✅ All existing events deleted')
+    console.log('🗑️  Deleting all existing events...');
+    await prisma.event.deleteMany({});
+    console.log('✅ All existing events deleted');
 
     // Get or create the two demo owners
     const owner1 = await prisma.user.upsert({
@@ -22,7 +22,7 @@ async function main() {
         isActive: true,
         lastLoginAt: new Date(),
       },
-    })
+    });
 
     const owner2 = await prisma.user.upsert({
       where: { email: 'owner2@example.com' },
@@ -34,9 +34,9 @@ async function main() {
         isActive: true,
         lastLoginAt: new Date(),
       },
-    })
+    });
 
-    console.log('✅ Demo owners ready:', owner1.name, 'and', owner2.name)
+    console.log('✅ Demo owners ready:', owner1.name, 'and', owner2.name);
 
     // Create categories
     const categories = await Promise.all([
@@ -84,9 +84,9 @@ async function main() {
           icon: '🌱',
         },
       }),
-    ])
+    ]);
 
-    console.log('✅ Categories created:', categories.length)
+    console.log('✅ Categories created:', categories.length);
 
     // Create venues
     const venues = await Promise.all([
@@ -125,7 +125,7 @@ async function main() {
           city: 'Milano',
           country: 'Italy',
           latitude: 45.4444,
-          longitude: 9.2000,
+          longitude: 9.2,
           website: 'https://fondazioneprada.org',
         },
       }),
@@ -142,17 +142,19 @@ async function main() {
           website: 'https://palazzoclerici.it',
         },
       }),
-    ])
+    ]);
 
-    console.log('✅ Venues created:', venues.length)
+    console.log('✅ Venues created:', venues.length);
 
     // Create 4 events for Owner 1
     const owner1Events = [
       {
         title: 'Sustainable Design Revolution',
         slug: 'sustainable-design-revolution',
-        description: 'Explore the future of sustainable design with leading architects, designers, and environmental experts. Discover innovative materials, circular design principles, and eco-friendly solutions that are reshaping the industry.',
-        shortDescription: 'Leading the charge in sustainable design innovation.',
+        description:
+          'Explore the future of sustainable design with leading architects, designers, and environmental experts. Discover innovative materials, circular design principles, and eco-friendly solutions that are reshaping the industry.',
+        shortDescription:
+          'Leading the charge in sustainable design innovation.',
         startDate: new Date('2024-06-15T09:00:00Z'),
         endDate: new Date('2024-06-15T18:00:00Z'),
         capacity: 300,
@@ -164,7 +166,8 @@ async function main() {
       {
         title: 'Digital Art & Technology Fusion',
         slug: 'digital-art-technology-fusion',
-        description: 'Experience the intersection of art and technology in this immersive exhibition featuring digital installations, VR experiences, and interactive artworks by contemporary artists.',
+        description:
+          'Experience the intersection of art and technology in this immersive exhibition featuring digital installations, VR experiences, and interactive artworks by contemporary artists.',
         shortDescription: 'Where art meets cutting-edge technology.',
         startDate: new Date('2024-06-20T10:00:00Z'),
         endDate: new Date('2024-06-20T20:00:00Z'),
@@ -177,7 +180,8 @@ async function main() {
       {
         title: 'Furniture Design Masterclass',
         slug: 'furniture-design-masterclass',
-        description: 'Learn from master furniture designers in this hands-on workshop covering traditional techniques, modern materials, and innovative approaches to furniture design.',
+        description:
+          'Learn from master furniture designers in this hands-on workshop covering traditional techniques, modern materials, and innovative approaches to furniture design.',
         shortDescription: 'Master the art of furniture design.',
         startDate: new Date('2024-06-25T09:00:00Z'),
         endDate: new Date('2024-06-25T17:00:00Z'),
@@ -190,7 +194,8 @@ async function main() {
       {
         title: 'Smart Home Innovation Summit',
         slug: 'smart-home-innovation-summit',
-        description: 'Discover the latest in smart home technology, IoT devices, and connected living solutions. Features live demonstrations, expert panels, and networking opportunities.',
+        description:
+          'Discover the latest in smart home technology, IoT devices, and connected living solutions. Features live demonstrations, expert panels, and networking opportunities.',
         shortDescription: 'The future of connected living.',
         startDate: new Date('2024-07-01T09:00:00Z'),
         endDate: new Date('2024-07-01T18:00:00Z'),
@@ -200,14 +205,15 @@ async function main() {
         tags: ['smart home', 'IoT', 'technology', 'innovation'],
         featured: true,
       },
-    ]
+    ];
 
     // Create 4 events for Owner 2
     const owner2Events = [
       {
         title: 'Contemporary Art Exhibition',
         slug: 'contemporary-art-exhibition',
-        description: 'A curated exhibition featuring works by emerging and established contemporary artists, exploring themes of identity, society, and the human condition.',
+        description:
+          'A curated exhibition featuring works by emerging and established contemporary artists, exploring themes of identity, society, and the human condition.',
         shortDescription: 'Contemporary voices in modern art.',
         startDate: new Date('2024-06-18T10:00:00Z'),
         endDate: new Date('2024-06-18T20:00:00Z'),
@@ -220,7 +226,8 @@ async function main() {
       {
         title: 'Green Architecture Workshop',
         slug: 'green-architecture-workshop',
-        description: 'Learn sustainable architecture principles with hands-on workshops, case studies, and expert guidance on creating environmentally responsible buildings.',
+        description:
+          'Learn sustainable architecture principles with hands-on workshops, case studies, and expert guidance on creating environmentally responsible buildings.',
         shortDescription: 'Building a sustainable future.',
         startDate: new Date('2024-06-22T09:00:00Z'),
         endDate: new Date('2024-06-22T17:00:00Z'),
@@ -233,7 +240,8 @@ async function main() {
       {
         title: 'AI in Creative Industries',
         slug: 'ai-creative-industries',
-        description: 'Explore how artificial intelligence is transforming creative industries, from design automation to AI-assisted art creation and content generation.',
+        description:
+          'Explore how artificial intelligence is transforming creative industries, from design automation to AI-assisted art creation and content generation.',
         shortDescription: 'AI meets creativity.',
         startDate: new Date('2024-06-28T09:00:00Z'),
         endDate: new Date('2024-06-28T18:00:00Z'),
@@ -246,7 +254,8 @@ async function main() {
       {
         title: 'Textile Design Innovation',
         slug: 'textile-design-innovation',
-        description: 'Discover the latest innovations in textile design, from smart fabrics to sustainable materials, with demonstrations and hands-on workshops.',
+        description:
+          'Discover the latest innovations in textile design, from smart fabrics to sustainable materials, with demonstrations and hands-on workshops.',
         shortDescription: 'The future of fabric design.',
         startDate: new Date('2024-07-05T10:00:00Z'),
         endDate: new Date('2024-07-05T18:00:00Z'),
@@ -256,10 +265,10 @@ async function main() {
         tags: ['textile', 'design', 'innovation', 'fashion'],
         featured: false,
       },
-    ]
+    ];
 
     // Create events for Owner 1
-    console.log('🌱 Creating events for Owner 1...')
+    console.log('🌱 Creating events for Owner 1...');
     for (const eventData of owner1Events) {
       const event = await prisma.event.create({
         data: {
@@ -298,12 +307,12 @@ async function main() {
             ],
           },
         },
-      })
-      console.log(`✅ Created event: ${event.title}`)
+      });
+      console.log(`✅ Created event: ${event.title}`);
     }
 
     // Create events for Owner 2
-    console.log('🌱 Creating events for Owner 2...')
+    console.log('🌱 Creating events for Owner 2...');
     for (const eventData of owner2Events) {
       const event = await prisma.event.create({
         data: {
@@ -342,26 +351,23 @@ async function main() {
             ],
           },
         },
-      })
-      console.log(`✅ Created event: ${event.title}`)
+      });
+      console.log(`✅ Created event: ${event.title}`);
     }
 
-    console.log('🎉 Event seeding completed successfully!')
-    console.log(`📊 Created 8 events total:`)
-    console.log(`   - 4 events for Owner 1 (${owner1.name})`)
-    console.log(`   - 4 events for Owner 2 (${owner2.name})`)
-
+    console.log('🎉 Event seeding completed successfully!');
+    console.log(`📊 Created 8 events total:`);
+    console.log(`   - 4 events for Owner 1 (${owner1.name})`);
+    console.log(`   - 4 events for Owner 2 (${owner2.name})`);
   } catch (error) {
-    console.error('❌ Error during seeding:', error)
-    throw error
+    console.error('❌ Error during seeding:', error);
+    throw error;
   } finally {
-    await prisma.$disconnect()
+    await prisma.$disconnect();
   }
 }
 
-main()
-  .catch((e) => {
-    console.error(e)
-    process.exit(1)
-  })
-
+main().catch(e => {
+  console.error(e);
+  process.exit(1);
+});

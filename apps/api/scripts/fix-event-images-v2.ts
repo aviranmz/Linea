@@ -1,9 +1,9 @@
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient } from '@prisma/client';
 
-const prisma = new PrismaClient()
+const prisma = new PrismaClient();
 
 async function main() {
-  console.log('🖼️  Fixing event images (v2)...')
+  console.log('🖼️  Fixing event images (v2)...');
 
   try {
     // Get all events
@@ -11,71 +11,73 @@ async function main() {
       select: {
         id: true,
         title: true,
-        metadata: true
-      }
-    })
+        metadata: true,
+      },
+    });
 
-    console.log(`Found ${events.length} events`)
+    console.log(`Found ${events.length} events`);
 
     for (const event of events) {
-      const metadata = event.metadata as any
-      const currentImageUrl = metadata?.heroImageUrl
-      
-      console.log(`Event: ${event.title}`)
-      console.log(`  Current image: ${currentImageUrl}`)
+      const metadata = event.metadata as any;
+      const currentImageUrl = metadata?.heroImageUrl;
+
+      console.log(`Event: ${event.title}`);
+      console.log(`  Current image: ${currentImageUrl}`);
 
       // Update to use a working image
-      let newImageUrl = '/images/design-events.jpg'
-      
+      let newImageUrl = '/images/design-events.jpg';
+
       // If it's already a working external URL, keep it
-      if (currentImageUrl && (currentImageUrl.startsWith('http') || currentImageUrl.startsWith('/uploads/'))) {
-        console.log(`  Keeping existing working image: ${currentImageUrl}`)
-        continue
+      if (
+        currentImageUrl &&
+        (currentImageUrl.startsWith('http') ||
+          currentImageUrl.startsWith('/uploads/'))
+      ) {
+        console.log(`  Keeping existing working image: ${currentImageUrl}`);
+        continue;
       }
 
       // Update the metadata
       const updatedMetadata = {
         ...metadata,
-        heroImageUrl: newImageUrl
-      }
+        heroImageUrl: newImageUrl,
+      };
 
       await prisma.event.update({
         where: { id: event.id },
         data: {
-          metadata: updatedMetadata
-        }
-      })
+          metadata: updatedMetadata,
+        },
+      });
 
-      console.log(`  Updated to: ${newImageUrl}`)
+      console.log(`  Updated to: ${newImageUrl}`);
     }
 
-    console.log('✅ All events updated')
+    console.log('✅ All events updated');
 
     // Verify the changes
     const updatedEvents = await prisma.event.findMany({
       select: {
         id: true,
         title: true,
-        metadata: true
-      }
-    })
+        metadata: true,
+      },
+    });
 
-    console.log('📋 Updated events:')
+    console.log('📋 Updated events:');
     updatedEvents.forEach(event => {
-      const heroImageUrl = (event.metadata as any)?.heroImageUrl || 'No image'
-      console.log(`  - ${event.title}: ${heroImageUrl}`)
-    })
-
+      const heroImageUrl = (event.metadata as any)?.heroImageUrl || 'No image';
+      console.log(`  - ${event.title}: ${heroImageUrl}`);
+    });
   } catch (error) {
-    console.error('❌ Error fixing images:', error)
-    throw error
+    console.error('❌ Error fixing images:', error);
+    throw error;
   } finally {
-    await prisma.$disconnect()
+    await prisma.$disconnect();
   }
 }
 
-main()
-  .catch((e) => {
-    console.error(e)
-    process.exit(1)
-  })
+main().catch(e => {
+  console.error(e);
+  process.exit(1);
+});

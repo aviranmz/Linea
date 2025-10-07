@@ -1,21 +1,23 @@
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient } from '@prisma/client';
 
-const prisma = new PrismaClient()
+const prisma = new PrismaClient();
 
 async function add5OwnersComplete() {
   try {
-    console.log('🚀 Starting to add 5 new owners with complete details...')
+    console.log('🚀 Starting to add 5 new owners with complete details...');
 
     // Get existing users for waitlist population
     const existingUsers = await prisma.user.findMany({
       where: {
         role: 'VISITOR',
-        isActive: true
+        isActive: true,
       },
-      take: 50 // Get up to 50 existing users
-    })
+      take: 50, // Get up to 50 existing users
+    });
 
-    console.log(`📊 Found ${existingUsers.length} existing users for waitlist population`)
+    console.log(
+      `📊 Found ${existingUsers.length} existing users for waitlist population`
+    );
 
     // Define design images for events
     const designImages = [
@@ -48,8 +50,8 @@ async function add5OwnersComplete() {
       'https://img.freepik.com/free-photo/art-studio_23-2149444457.jpg',
       'https://img.freepik.com/free-photo/design-workshop_23-2149444458.jpg',
       'https://img.freepik.com/free-photo/creative-collaboration_23-2149444459.jpg',
-      'https://img.freepik.com/free-photo/artistic-event_23-2149444460.jpg'
-    ]
+      'https://img.freepik.com/free-photo/artistic-event_23-2149444460.jpg',
+    ];
 
     // Define 5 new owners with complete details
     const owners = [
@@ -57,7 +59,8 @@ async function add5OwnersComplete() {
         email: 'alessandro.rossi@milano-design.it',
         name: 'Alessandro Rossi',
         businessName: 'Milano Design Studio',
-        businessIntro: 'Premier design studio specializing in contemporary Italian furniture and interior design. We create bespoke pieces that blend traditional craftsmanship with modern aesthetics.',
+        businessIntro:
+          'Premier design studio specializing in contemporary Italian furniture and interior design. We create bespoke pieces that blend traditional craftsmanship with modern aesthetics.',
         website: 'https://milano-design-studio.com',
         facebookUrl: 'https://facebook.com/milanodesignstudio',
         instagramUrl: 'https://instagram.com/milanodesignstudio',
@@ -66,15 +69,18 @@ async function add5OwnersComplete() {
         country: 'Italy',
         address: 'Via Montenapoleone 12, 20121 Milano MI, Italy',
         latitude: 45.4689,
-        longitude: 9.1960,
-        logoUrl: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=400&fit=crop&crop=center',
-        profilePictureUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face'
+        longitude: 9.196,
+        logoUrl:
+          'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=400&fit=crop&crop=center',
+        profilePictureUrl:
+          'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face',
       },
       {
         email: 'sophie.martin@paris-art.fr',
         name: 'Sophie Martin',
         businessName: 'Atelier Sophie Martin',
-        businessIntro: 'Contemporary art gallery and cultural space in the heart of Paris. We showcase emerging and established artists, hosting exhibitions, workshops, and cultural events.',
+        businessIntro:
+          'Contemporary art gallery and cultural space in the heart of Paris. We showcase emerging and established artists, hosting exhibitions, workshops, and cultural events.',
         website: 'https://atelier-sophie-martin.fr',
         facebookUrl: 'https://facebook.com/ateliersophiemartin',
         instagramUrl: 'https://instagram.com/ateliersophiemartin',
@@ -84,14 +90,17 @@ async function add5OwnersComplete() {
         address: '15 Rue de Rivoli, 75001 Paris, France',
         latitude: 48.8566,
         longitude: 2.3522,
-        logoUrl: 'https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=400&h=400&fit=crop&crop=center',
-        profilePictureUrl: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=400&h=400&fit=crop&crop=face'
+        logoUrl:
+          'https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=400&h=400&fit=crop&crop=center',
+        profilePictureUrl:
+          'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=400&h=400&fit=crop&crop=face',
       },
       {
         email: 'david.kim@seoul-tech.kr',
         name: 'David Kim',
         businessName: 'Seoul Innovation Lab',
-        businessIntro: 'Leading technology innovation hub in Seoul, South Korea. We organize tech conferences, startup incubator programs, and digital transformation workshops for enterprises.',
+        businessIntro:
+          'Leading technology innovation hub in Seoul, South Korea. We organize tech conferences, startup incubator programs, and digital transformation workshops for enterprises.',
         website: 'https://seoul-innovation-lab.kr',
         facebookUrl: 'https://facebook.com/seoulinnovationlab',
         instagramUrl: 'https://instagram.com/seoulinnovationlab',
@@ -100,15 +109,18 @@ async function add5OwnersComplete() {
         country: 'South Korea',
         address: '123 Gangnam-daero, Gangnam-gu, Seoul, South Korea',
         latitude: 37.5665,
-        longitude: 126.9780,
-        logoUrl: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=400&h=400&fit=crop&crop=center',
-        profilePictureUrl: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face'
+        longitude: 126.978,
+        logoUrl:
+          'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=400&h=400&fit=crop&crop=center',
+        profilePictureUrl:
+          'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face',
       },
       {
         email: 'maria.garcia@madrid-fashion.es',
         name: 'María García',
         businessName: 'Madrid Fashion House',
-        businessIntro: 'Exclusive fashion house specializing in sustainable and ethical fashion. We host fashion shows, designer showcases, and sustainable fashion workshops.',
+        businessIntro:
+          'Exclusive fashion house specializing in sustainable and ethical fashion. We host fashion shows, designer showcases, and sustainable fashion workshops.',
         website: 'https://madrid-fashion-house.es',
         facebookUrl: 'https://facebook.com/madridfashionhouse',
         instagramUrl: 'https://instagram.com/madridfashionhouse',
@@ -118,14 +130,17 @@ async function add5OwnersComplete() {
         address: 'Calle de Serrano 45, 28001 Madrid, Spain',
         latitude: 40.4168,
         longitude: -3.7038,
-        logoUrl: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=400&fit=crop&crop=center',
-        profilePictureUrl: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=400&fit=crop&crop=face'
+        logoUrl:
+          'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=400&fit=crop&crop=center',
+        profilePictureUrl:
+          'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=400&fit=crop&crop=face',
       },
       {
         email: 'james.wilson@london-creative.co.uk',
         name: 'James Wilson',
         businessName: 'London Creative Collective',
-        businessIntro: 'Multidisciplinary creative agency and event space in London. We organize art exhibitions, music events, creative workshops, and networking events for the creative community.',
+        businessIntro:
+          'Multidisciplinary creative agency and event space in London. We organize art exhibitions, music events, creative workshops, and networking events for the creative community.',
         website: 'https://london-creative-collective.co.uk',
         facebookUrl: 'https://facebook.com/londoncreativecollective',
         instagramUrl: 'https://instagram.com/londoncreativecollective',
@@ -135,10 +150,12 @@ async function add5OwnersComplete() {
         address: '15 Shoreditch High Street, London E1 6JQ, UK',
         latitude: 51.5074,
         longitude: -0.1278,
-        logoUrl: 'https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?w=400&h=400&fit=crop&crop=center',
-        profilePictureUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop&crop=face'
-      }
-    ]
+        logoUrl:
+          'https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?w=400&h=400&fit=crop&crop=center',
+        profilePictureUrl:
+          'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop&crop=face',
+      },
+    ];
 
     // Create venues for each owner
     const venues = [
@@ -148,8 +165,8 @@ async function add5OwnersComplete() {
         city: 'Milan',
         country: 'Italy',
         latitude: 45.4689,
-        longitude: 9.1960,
-        website: 'https://milano-design-studio.com'
+        longitude: 9.196,
+        website: 'https://milano-design-studio.com',
       },
       {
         name: 'Atelier Sophie Martin Gallery',
@@ -158,7 +175,7 @@ async function add5OwnersComplete() {
         country: 'France',
         latitude: 48.8566,
         longitude: 2.3522,
-        website: 'https://atelier-sophie-martin.fr'
+        website: 'https://atelier-sophie-martin.fr',
       },
       {
         name: 'Seoul Innovation Center',
@@ -166,8 +183,8 @@ async function add5OwnersComplete() {
         city: 'Seoul',
         country: 'South Korea',
         latitude: 37.5665,
-        longitude: 126.9780,
-        website: 'https://seoul-innovation-lab.kr'
+        longitude: 126.978,
+        website: 'https://seoul-innovation-lab.kr',
       },
       {
         name: 'Madrid Fashion House',
@@ -176,7 +193,7 @@ async function add5OwnersComplete() {
         country: 'Spain',
         latitude: 40.4168,
         longitude: -3.7038,
-        website: 'https://madrid-fashion-house.es'
+        website: 'https://madrid-fashion-house.es',
       },
       {
         name: 'London Creative Space',
@@ -185,91 +202,116 @@ async function add5OwnersComplete() {
         country: 'United Kingdom',
         latitude: 51.5074,
         longitude: -0.1278,
-        website: 'https://london-creative-collective.co.uk'
-      }
-    ]
+        website: 'https://london-creative-collective.co.uk',
+      },
+    ];
 
     // Create categories
     const categories = [
-      { name: 'Design & Architecture', slug: 'design-architecture', color: '#8B5CF6', icon: '🏗️' },
-      { name: 'Art & Culture', slug: 'art-culture', color: '#F59E0B', icon: '🎨' },
-      { name: 'Technology & Innovation', slug: 'technology-innovation', color: '#10B981', icon: '💻' },
-      { name: 'Fashion & Style', slug: 'fashion-style', color: '#EF4444', icon: '👗' },
-      { name: 'Creative & Arts', slug: 'creative-arts', color: '#3B82F6', icon: '🎭' }
-    ]
+      {
+        name: 'Design & Architecture',
+        slug: 'design-architecture',
+        color: '#8B5CF6',
+        icon: '🏗️',
+      },
+      {
+        name: 'Art & Culture',
+        slug: 'art-culture',
+        color: '#F59E0B',
+        icon: '🎨',
+      },
+      {
+        name: 'Technology & Innovation',
+        slug: 'technology-innovation',
+        color: '#10B981',
+        icon: '💻',
+      },
+      {
+        name: 'Fashion & Style',
+        slug: 'fashion-style',
+        color: '#EF4444',
+        icon: '👗',
+      },
+      {
+        name: 'Creative & Arts',
+        slug: 'creative-arts',
+        color: '#3B82F6',
+        icon: '🎭',
+      },
+    ];
 
     // Create categories first
-    console.log('📂 Creating categories...')
-    const createdCategories = []
+    console.log('📂 Creating categories...');
+    const createdCategories = [];
     for (const categoryData of categories) {
       try {
         const category = await prisma.category.upsert({
           where: { slug: categoryData.slug },
           update: {},
-          create: categoryData
-        })
-        createdCategories.push(category)
-        console.log(`✅ Created/Found category: ${category.name}`)
+          create: categoryData,
+        });
+        createdCategories.push(category);
+        console.log(`✅ Created/Found category: ${category.name}`);
       } catch (error) {
         // If upsert fails due to name conflict, try to find existing
         const existingCategory = await prisma.category.findFirst({
-          where: { name: categoryData.name }
-        })
+          where: { name: categoryData.name },
+        });
         if (existingCategory) {
-          createdCategories.push(existingCategory)
-          console.log(`✅ Found existing category: ${existingCategory.name}`)
+          createdCategories.push(existingCategory);
+          console.log(`✅ Found existing category: ${existingCategory.name}`);
         } else {
           // Create with unique name
-          const uniqueName = `${categoryData.name} ${Date.now()}`
+          const uniqueName = `${categoryData.name} ${Date.now()}`;
           const category = await prisma.category.create({
-            data: { ...categoryData, name: uniqueName }
-          })
-          createdCategories.push(category)
-          console.log(`✅ Created category with unique name: ${category.name}`)
+            data: { ...categoryData, name: uniqueName },
+          });
+          createdCategories.push(category);
+          console.log(`✅ Created category with unique name: ${category.name}`);
         }
       }
     }
 
     // Create venues
-    console.log('🏢 Creating venues...')
-    const createdVenues = []
+    console.log('🏢 Creating venues...');
+    const createdVenues = [];
     for (const venueData of venues) {
       try {
         const venue = await prisma.venue.upsert({
           where: { name: venueData.name },
           update: {},
-          create: venueData
-        })
-        createdVenues.push(venue)
-        console.log(`✅ Created/Found venue: ${venue.name}`)
+          create: venueData,
+        });
+        createdVenues.push(venue);
+        console.log(`✅ Created/Found venue: ${venue.name}`);
       } catch (error) {
         // If upsert fails, try to find existing
         const existingVenue = await prisma.venue.findFirst({
-          where: { name: venueData.name }
-        })
+          where: { name: venueData.name },
+        });
         if (existingVenue) {
-          createdVenues.push(existingVenue)
-          console.log(`✅ Found existing venue: ${existingVenue.name}`)
+          createdVenues.push(existingVenue);
+          console.log(`✅ Found existing venue: ${existingVenue.name}`);
         } else {
           // Create with unique name
-          const uniqueName = `${venueData.name} ${Date.now()}`
+          const uniqueName = `${venueData.name} ${Date.now()}`;
           const venue = await prisma.venue.create({
-            data: { ...venueData, name: uniqueName }
-          })
-          createdVenues.push(venue)
-          console.log(`✅ Created venue with unique name: ${venue.name}`)
+            data: { ...venueData, name: uniqueName },
+          });
+          createdVenues.push(venue);
+          console.log(`✅ Created venue with unique name: ${venue.name}`);
         }
       }
     }
 
     // Create owners and their events
     for (let i = 0; i < owners.length; i++) {
-      const ownerData = owners[i]
-      const venue = createdVenues[i]
-      const category = createdCategories[i]
+      const ownerData = owners[i];
+      const venue = createdVenues[i];
+      const category = createdCategories[i];
 
-      console.log(`\n👤 Creating owner ${i + 1}: ${ownerData.name}`)
-      
+      console.log(`\n👤 Creating owner ${i + 1}: ${ownerData.name}`);
+
       // Create owner
       const owner = await prisma.user.upsert({
         where: { email: ownerData.email },
@@ -278,20 +320,23 @@ async function add5OwnersComplete() {
           ...ownerData,
           role: 'OWNER',
           isActive: true,
-          lastLoginAt: new Date()
-        }
-      })
+          lastLoginAt: new Date(),
+        },
+      });
 
-      console.log(`✅ Created owner: ${owner.name} (${owner.email})`)
+      console.log(`✅ Created owner: ${owner.name} (${owner.email})`);
 
       // Create 3 events for each owner
       const eventsData = [
         {
           title: `${ownerData.businessName} - Spring Collection Launch`,
           description: `Join us for the exclusive launch of our spring collection featuring innovative designs and sustainable materials. This event will showcase our latest creations and provide insights into our design philosophy.`,
-          shortDescription: 'Exclusive spring collection launch with innovative designs',
+          shortDescription:
+            'Exclusive spring collection launch with innovative designs',
           startDate: new Date(Date.now() + (i * 7 + 1) * 24 * 60 * 60 * 1000), // Different dates for each owner
-          endDate: new Date(Date.now() + (i * 7 + 1) * 24 * 60 * 60 * 1000 + 4 * 60 * 60 * 1000), // 4 hours later
+          endDate: new Date(
+            Date.now() + (i * 7 + 1) * 24 * 60 * 60 * 1000 + 4 * 60 * 60 * 1000
+          ), // 4 hours later
           capacity: 150,
           youtubeUrl: `https://youtube.com/watch?v=spring${i}`,
           mapLat: venue.latitude,
@@ -313,16 +358,18 @@ async function add5OwnersComplete() {
             galleryImages: [
               designImages[i * 3 + 0],
               designImages[i * 3 + 1],
-              designImages[i * 3 + 2]
-            ]
-          }
+              designImages[i * 3 + 2],
+            ],
+          },
         },
         {
           title: `${ownerData.businessName} - Workshop Series`,
           description: `Hands-on workshop series where participants will learn from industry experts. This interactive session covers the latest trends, techniques, and best practices in our field.`,
           shortDescription: 'Interactive workshop with industry experts',
           startDate: new Date(Date.now() + (i * 7 + 3) * 24 * 60 * 60 * 1000),
-          endDate: new Date(Date.now() + (i * 7 + 3) * 24 * 60 * 60 * 1000 + 6 * 60 * 60 * 1000), // 6 hours later
+          endDate: new Date(
+            Date.now() + (i * 7 + 3) * 24 * 60 * 60 * 1000 + 6 * 60 * 60 * 1000
+          ), // 6 hours later
           capacity: 80,
           youtubeUrl: `https://youtube.com/watch?v=workshop${i}`,
           mapLat: venue.latitude,
@@ -343,16 +390,19 @@ async function add5OwnersComplete() {
             galleryImages: [
               designImages[i * 3 + 0],
               designImages[i * 3 + 1],
-              designImages[i * 3 + 2]
-            ]
-          }
+              designImages[i * 3 + 2],
+            ],
+          },
         },
         {
           title: `${ownerData.businessName} - Networking Evening`,
           description: `Exclusive networking evening bringing together industry professionals, creatives, and enthusiasts. Enjoy cocktails, canapés, and meaningful conversations in an elegant setting.`,
-          shortDescription: 'Exclusive networking evening with industry professionals',
+          shortDescription:
+            'Exclusive networking evening with industry professionals',
           startDate: new Date(Date.now() + (i * 7 + 5) * 24 * 60 * 60 * 1000),
-          endDate: new Date(Date.now() + (i * 7 + 5) * 24 * 60 * 60 * 1000 + 3 * 60 * 60 * 1000), // 3 hours later
+          endDate: new Date(
+            Date.now() + (i * 7 + 5) * 24 * 60 * 60 * 1000 + 3 * 60 * 60 * 1000
+          ), // 3 hours later
           capacity: 120,
           youtubeUrl: `https://youtube.com/watch?v=networking${i}`,
           mapLat: venue.latitude,
@@ -373,36 +423,41 @@ async function add5OwnersComplete() {
             galleryImages: [
               designImages[i * 3 + 0],
               designImages[i * 3 + 1],
-              designImages[i * 3 + 2]
-            ]
-          }
-        }
-      ]
+              designImages[i * 3 + 2],
+            ],
+          },
+        },
+      ];
 
-      console.log(`📅 Creating 3 events for ${owner.name}...`)
-      
+      console.log(`📅 Creating 3 events for ${owner.name}...`);
+
       for (const eventData of eventsData) {
-        const slug = eventData.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
-        
+        const slug = eventData.title
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-+|-+$/g, '');
+
         const event = await prisma.event.create({
           data: {
             ...eventData,
             slug,
-            ownerId: owner.id
-          }
-        })
+            ownerId: owner.id,
+          },
+        });
 
-        console.log(`✅ Created event: ${event.title}`)
+        console.log(`✅ Created event: ${event.title}`);
 
         // Create waitlist entries (10% of capacity)
-        const waitlistCount = Math.floor(event.capacity * 0.1)
-        console.log(`📝 Creating ${waitlistCount} waitlist entries for ${event.title}...`)
+        const waitlistCount = Math.floor(event.capacity * 0.1);
+        console.log(
+          `📝 Creating ${waitlistCount} waitlist entries for ${event.title}...`
+        );
 
         // Use existing users for waitlist
-        const usersForWaitlist = existingUsers.slice(0, waitlistCount)
-        
+        const usersForWaitlist = existingUsers.slice(0, waitlistCount);
+
         for (let j = 0; j < waitlistCount; j++) {
-          const user = usersForWaitlist[j]
+          const user = usersForWaitlist[j];
           if (user) {
             try {
               await prisma.waitlistEntry.create({
@@ -410,12 +465,16 @@ async function add5OwnersComplete() {
                   email: user.email,
                   eventId: event.id,
                   userId: user.id,
-                  status: 'PENDING'
-                }
-              })
-              console.log(`✅ Added ${user.email} to waitlist for ${event.title}`)
+                  status: 'PENDING',
+                },
+              });
+              console.log(
+                `✅ Added ${user.email} to waitlist for ${event.title}`
+              );
             } catch (error) {
-              console.log(`⚠️ User ${user.email} already on waitlist for ${event.title}`)
+              console.log(
+                `⚠️ User ${user.email} already on waitlist for ${event.title}`
+              );
             }
           }
         }
@@ -423,8 +482,8 @@ async function add5OwnersComplete() {
         // Update event waitlist count
         await prisma.event.update({
           where: { id: event.id },
-          data: { currentWaitlist: waitlistCount }
-        })
+          data: { currentWaitlist: waitlistCount },
+        });
 
         // Create photo gallery for the event with real design images
 
@@ -436,7 +495,7 @@ async function add5OwnersComplete() {
             thumbnailUrl: designImages[i * 3 + 0],
             altText: `${event.title} main promotional image`,
             order: 0,
-            ownerId: owner.id
+            ownerId: owner.id,
           },
           {
             title: `${event.title} - Venue & Setup`,
@@ -445,7 +504,7 @@ async function add5OwnersComplete() {
             thumbnailUrl: designImages[i * 3 + 1],
             altText: `${event.title} venue and setup`,
             order: 1,
-            ownerId: owner.id
+            ownerId: owner.id,
           },
           {
             title: `${event.title} - Behind the Scenes`,
@@ -454,39 +513,41 @@ async function add5OwnersComplete() {
             thumbnailUrl: designImages[i * 3 + 2],
             altText: `${event.title} behind the scenes`,
             order: 2,
-            ownerId: owner.id
-          }
-        ]
+            ownerId: owner.id,
+          },
+        ];
 
         for (const photoData of photoGallery) {
           await prisma.photoGallery.create({
-            data: photoData
-          })
+            data: photoData,
+          });
         }
 
-        console.log(`📸 Created photo gallery for ${event.title}`)
+        console.log(`📸 Created photo gallery for ${event.title}`);
       }
     }
 
-    console.log('\n🎉 Successfully added 5 new owners with complete details!')
-    console.log('📊 Summary:')
-    console.log('  - 5 new owners created with full business details')
-    console.log('  - 15 events created (3 per owner)')
-    console.log('  - All events have waitlists populated with existing users (10% capacity)')
-    console.log('  - All events include images, social media links, and complete metadata')
-    console.log('  - Photo galleries created for each event')
-    console.log('  - Venues and categories created and linked')
-
+    console.log('\n🎉 Successfully added 5 new owners with complete details!');
+    console.log('📊 Summary:');
+    console.log('  - 5 new owners created with full business details');
+    console.log('  - 15 events created (3 per owner)');
+    console.log(
+      '  - All events have waitlists populated with existing users (10% capacity)'
+    );
+    console.log(
+      '  - All events include images, social media links, and complete metadata'
+    );
+    console.log('  - Photo galleries created for each event');
+    console.log('  - Venues and categories created and linked');
   } catch (error) {
-    console.error('❌ Error:', error)
-    throw error
+    console.error('❌ Error:', error);
+    throw error;
   } finally {
-    await prisma.$disconnect()
+    await prisma.$disconnect();
   }
 }
 
-add5OwnersComplete()
-  .catch((e) => {
-    console.error('❌ Error:', e)
-    process.exit(1)
-  })
+add5OwnersComplete().catch(e => {
+  console.error('❌ Error:', e);
+  process.exit(1);
+});

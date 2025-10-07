@@ -1,9 +1,7 @@
 module.exports = {
   root: true,
   env: { node: true, es2020: true },
-  extends: [
-    'eslint:recommended',
-  ],
+  extends: ['eslint:recommended'],
   ignorePatterns: ['dist', '.eslintrc.cjs'],
   parser: '@typescript-eslint/parser',
   plugins: ['@typescript-eslint'],
@@ -14,4 +12,4 @@ module.exports = {
     '@typescript-eslint/explicit-function-return-type': 'off',
     '@typescript-eslint/explicit-module-boundary-types': 'off',
   },
-}
+};

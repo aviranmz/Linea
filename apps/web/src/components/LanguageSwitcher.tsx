@@ -1,14 +1,14 @@
-import React from 'react'
-import { useLanguage } from '../hooks/useLanguage'
+import React from 'react';
+import { useLanguage } from '../hooks/useLanguage';
 
 interface LanguageSwitcherProps {
-  className?: string
+  className?: string;
 }
 
-export const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({ 
-  className = '' 
+export const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
+  className = '',
 }) => {
-  const { language, setLanguage } = useLanguage()
+  const { language, setLanguage } = useLanguage();
 
   return (
     <div className={`flex items-center space-x-1 ${className}`}>
@@ -22,7 +22,7 @@ export const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
       >
         EN
       </button>
-      <span className="text-neutral-300">|</span>
+      <span className='text-neutral-300'>|</span>
       <button
         onClick={() => setLanguage('it')}
         className={`text-sm font-medium transition-colors ${
@@ -34,7 +34,7 @@ export const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
         IT
       </button>
     </div>
-  )
-}
+  );
+};
 
-export default LanguageSwitcher
+export default LanguageSwitcher;

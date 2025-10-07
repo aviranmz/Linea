@@ -1,11 +1,13 @@
 # Events to Create for Owner 2 and Owner 3
 
 ## Overview
+
 This document contains the event data for creating 6 events (3 for each owner) scheduled for next week.
 
 ## Owner 2: Sarah Johnson (Creative Events Co.)
 
 **Business Details:**
+
 - Email: owner2@linea.app
 - Name: Sarah Johnson
 - Business: Creative Events Co.
@@ -16,6 +18,7 @@ This document contains the event data for creating 6 events (3 for each owner) s
 ### Events for Owner 2
 
 #### 1. Creative Design Workshop
+
 - **Title:** Creative Design Workshop
 - **Description:** Join us for an immersive design workshop where creativity meets innovation. Learn from industry experts and create stunning visual experiences.
 - **Short Description:** Immersive design workshop with industry experts
@@ -32,6 +35,7 @@ This document contains the event data for creating 6 events (3 for each owner) s
 - **Map:** 40.7589, -73.9851, Zoom 15
 
 #### 2. Art Gallery Opening Night
+
 - **Title:** Art Gallery Opening Night
 - **Description:** Experience the latest contemporary art exhibition featuring emerging and established artists. Network with art enthusiasts and collectors.
 - **Short Description:** Contemporary art exhibition opening night
@@ -48,6 +52,7 @@ This document contains the event data for creating 6 events (3 for each owner) s
 - **Map:** 40.7505, -73.9934, Zoom 15
 
 #### 3. Creative Networking Mixer
+
 - **Title:** Creative Networking Mixer
 - **Description:** Connect with fellow creatives, entrepreneurs, and industry professionals in a relaxed and inspiring atmosphere.
 - **Short Description:** Networking event for creative professionals
@@ -66,6 +71,7 @@ This document contains the event data for creating 6 events (3 for each owner) s
 ## Owner 3: Michael Chen (Tech Innovation Hub)
 
 **Business Details:**
+
 - Email: owner3@linea.app
 - Name: Michael Chen
 - Business: Tech Innovation Hub
@@ -76,6 +82,7 @@ This document contains the event data for creating 6 events (3 for each owner) s
 ### Events for Owner 3
 
 #### 1. AI Innovation Summit
+
 - **Title:** AI Innovation Summit
 - **Description:** Explore the latest developments in artificial intelligence and machine learning. Hear from leading researchers and industry pioneers.
 - **Short Description:** Latest AI and ML developments summit
@@ -92,6 +99,7 @@ This document contains the event data for creating 6 events (3 for each owner) s
 - **Map:** 37.7749, -122.4194, Zoom 15
 
 #### 2. Startup Pitch Competition
+
 - **Title:** Startup Pitch Competition
 - **Description:** Watch innovative startups pitch their ideas to a panel of investors and industry experts. Great opportunity for networking and learning.
 - **Short Description:** Startup pitch competition with investors
@@ -108,6 +116,7 @@ This document contains the event data for creating 6 events (3 for each owner) s
 - **Map:** 37.7849, -122.4094, Zoom 15
 
 #### 3. Tech Leadership Workshop
+
 - **Title:** Tech Leadership Workshop
 - **Description:** Develop your leadership skills in the tech industry. Interactive sessions with experienced tech leaders and executives.
 - **Short Description:** Leadership development for tech professionals

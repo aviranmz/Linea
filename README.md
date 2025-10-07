@@ -14,6 +14,7 @@ A modern event management platform with email-only access, waitlist functionalit
 ### Development Setup
 
 1. **Clone and install dependencies:**
+
    ```bash
    git clone <repository-url>
    cd linea
@@ -21,18 +22,21 @@ A modern event management platform with email-only access, waitlist functionalit
    ```
 
 2. **Environment setup:**
+
    ```bash
    cp .env.example .env
    # Edit .env with your configuration
    ```
 
 3. **Database setup:**
+
    ```bash
    pnpm db:push
    pnpm db:seed
    ```
 
 4. **Start development servers:**
+
    ```bash
    pnpm dev
    ```
@@ -71,6 +75,7 @@ linea/
 ## 🎯 Features
 
 ### MVP Features
+
 - Email-only visitor authentication (magic links)
 - Event pages with waitlist functionality
 - Owner portal for event management
@@ -80,6 +85,7 @@ linea/
 - Milano Design Week inspired theme
 
 ### Future Features
+
 - Payment integration
 - Maps and nearby suggestions
 - Advanced analytics
@@ -152,4 +158,5 @@ This project is licensed under the MIT License.
 - [Project Board](https://app.asana.com/1/1211186475239403/project/1211419367649012/board/1211420999627060)
 - [API Documentation](https://api.linea.app/docs)
 - [Production Site](https://linea.app)
+
 # Railway Token Added - CI Pipeline Ready

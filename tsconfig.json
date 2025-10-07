@@ -27,15 +27,6 @@
       "@/utils/*": ["./src/utils/*"]
     }
   },
-  "include": [
-    "apps/**/*",
-    "packages/**/*",
-    "scripts/**/*"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "build",
-    "coverage"
-  ]
+  "include": ["apps/**/*", "packages/**/*", "scripts/**/*"],
+  "exclude": ["node_modules", "dist", "build", "coverage"]
 }

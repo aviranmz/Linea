@@ -1,11 +1,11 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import path from 'path'
-import { resolve } from 'path'
-import { readFileSync } from 'fs'
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import path from 'path';
+import { resolve } from 'path';
+import { readFileSync } from 'fs';
 
 // Read version from package.json
-const packageJson = JSON.parse(readFileSync('package.json', 'utf-8'))
+const packageJson = JSON.parse(readFileSync('package.json', 'utf-8'));
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -13,9 +13,9 @@ export default defineConfig({
   build: {
     rollupOptions: {
       input: {
-        main: resolve(__dirname, 'index.html')
-      }
-    }
+        main: resolve(__dirname, 'index.html'),
+      },
+    },
   },
   assetsInclude: ['**/*.xml', '**/*.txt'],
   resolve: {
@@ -41,8 +41,8 @@ export default defineConfig({
         target: 'http://localhost:9050',
         changeOrigin: true,
         secure: false,
-      }
-    }
+      },
+    },
   },
   preview: {
     port: 3050,
@@ -56,4 +56,4 @@ export default defineConfig({
   define: {
     'import.meta.env.VITE_APP_VERSION': JSON.stringify(packageJson.version),
   },
-})
+});

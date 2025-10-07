@@ -1873,13 +1873,7 @@
         "heroImageUrl": "/uploads/event_innovation-talk-3_1759578178000_s14t4.jpg"
       },
       "shortDescription": "Inspiring talks on innovation and design",
-      "tags": [
-        "innovation",
-        "design",
-        "technology",
-        "networking",
-        "talks"
-      ],
+      "tags": ["innovation", "design", "technology", "networking", "talks"],
       "owner": {
         "id": "cmgb1hxc20002prnpljdfyack",
         "email": "carla@artisanstudio.dev",
@@ -2021,9 +2015,7 @@
         "heroImageUrl": "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=800&h=600&fit=crop"
       },
       "shortDescription": "Design showcase",
-      "tags": [
-        "design"
-      ],
+      "tags": ["design"],
       "owner": {
         "id": "cmgb1hxbv0000prnpcwfitejb",
         "email": "alice@kitchenco.dev",
@@ -2079,9 +2071,7 @@
       "mapAddress": "Milano, Italy",
       "metadata": {
         "qrUrl": "https://example.com/qr/linea-1",
-        "awards": [
-          "Best Startup 2025"
-        ],
+        "awards": ["Best Startup 2025"],
         "social": {
           "tiktok": "https://tiktok.com/@linea_demo_1",
           "facebook": "https://facebook.com/linea_demo_1",
@@ -2092,11 +2082,7 @@
           "email": "owner1@example.com",
           "phone": "+1-555-0101"
         },
-        "features": [
-          "Networking",
-          "Live Demo",
-          "Q&A"
-        ],
+        "features": ["Networking", "Live Demo", "Q&A"],
         "schedule": [],
         "videoUrl": "https://youtu.be/dQw4w9WgXcQ",
         "pressKitUrl": "https://example.com/press/linea-1.pdf",
@@ -2106,11 +2092,7 @@
         "valueProposition": "Clear value proposition for event 1"
       },
       "shortDescription": "Short blurb for event 1",
-      "tags": [
-        "demo",
-        "owner",
-        "event1"
-      ],
+      "tags": ["demo", "owner", "event1"],
       "owner": {
         "id": "cmgetomte0000rdmkoy4x4wzx",
         "email": "owner1@example.com",
@@ -2166,9 +2148,7 @@
       "mapAddress": "Milano, Italy",
       "metadata": {
         "qrUrl": "https://example.com/qr/linea-2",
-        "awards": [
-          "Best Startup 2025"
-        ],
+        "awards": ["Best Startup 2025"],
         "social": {
           "tiktok": "https://tiktok.com/@linea_demo_2",
           "facebook": "https://facebook.com/linea_demo_2",
@@ -2179,11 +2159,7 @@
           "email": "owner1@example.com",
           "phone": "+1-555-0102"
         },
-        "features": [
-          "Networking",
-          "Live Demo",
-          "Q&A"
-        ],
+        "features": ["Networking", "Live Demo", "Q&A"],
         "schedule": [],
         "videoUrl": "https://youtu.be/dQw4w9WgXcQ",
         "pressKitUrl": "https://example.com/press/linea-2.pdf",
@@ -2193,11 +2169,7 @@
         "valueProposition": "Clear value proposition for event 2"
       },
       "shortDescription": "Short blurb for event 2",
-      "tags": [
-        "demo",
-        "owner",
-        "event2"
-      ],
+      "tags": ["demo", "owner", "event2"],
       "owner": {
         "id": "cmgetomte0000rdmkoy4x4wzx",
         "email": "owner1@example.com",
@@ -2253,9 +2225,7 @@
       "mapAddress": "Milano, Italy",
       "metadata": {
         "qrUrl": "https://example.com/qr/linea-3",
-        "awards": [
-          "Best Startup 2025"
-        ],
+        "awards": ["Best Startup 2025"],
         "social": {
           "tiktok": "https://tiktok.com/@linea_demo_3",
           "facebook": "https://facebook.com/linea_demo_3",
@@ -2266,11 +2236,7 @@
           "email": "owner1@example.com",
           "phone": "+1-555-0103"
         },
-        "features": [
-          "Networking",
-          "Live Demo",
-          "Q&A"
-        ],
+        "features": ["Networking", "Live Demo", "Q&A"],
         "schedule": [],
         "videoUrl": "https://youtu.be/dQw4w9WgXcQ",
         "pressKitUrl": "https://example.com/press/linea-3.pdf",
@@ -2280,11 +2246,7 @@
         "valueProposition": "Clear value proposition for event 3"
       },
       "shortDescription": "Short blurb for event 3",
-      "tags": [
-        "demo",
-        "owner",
-        "event3"
-      ],
+      "tags": ["demo", "owner", "event3"],
       "owner": {
         "id": "cmgetomte0000rdmkoy4x4wzx",
         "email": "owner1@example.com",

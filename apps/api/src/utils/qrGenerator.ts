@@ -1,12 +1,12 @@
-import QRCode from 'qrcode'
+import QRCode from 'qrcode';
 
 export interface QRCodeOptions {
-  width?: number
-  margin?: number
+  width?: number;
+  margin?: number;
   color?: {
-    dark?: string
-    light?: string
-  }
+    dark?: string;
+    light?: string;
+  };
 }
 
 export class QRCodeGenerator {
@@ -16,29 +16,32 @@ export class QRCodeGenerator {
    * @param options - QR code generation options
    * @returns Promise<string> - Base64 encoded QR code image
    */
-  static async generateEventQR(eventUrl: string, options: QRCodeOptions = {}): Promise<string> {
+  static async generateEventQR(
+    eventUrl: string,
+    options: QRCodeOptions = {}
+  ): Promise<string> {
     const defaultOptions = {
       width: 256,
       margin: 2,
       color: {
         dark: '#000000',
-        light: '#FFFFFF'
+        light: '#FFFFFF',
       },
-      ...options
-    }
+      ...options,
+    };
 
     try {
       const qrCodeDataURL = await QRCode.toDataURL(eventUrl, {
         width: defaultOptions.width,
         margin: defaultOptions.margin,
         color: defaultOptions.color,
-        type: 'image/png'
-      })
+        type: 'image/png',
+      });
 
-      return qrCodeDataURL
+      return qrCodeDataURL;
     } catch (error) {
-      console.error('Error generating QR code:', error)
-      throw new Error('Failed to generate QR code')
+      console.error('Error generating QR code:', error);
+      throw new Error('Failed to generate QR code');
     }
   }
 
@@ -48,12 +51,15 @@ export class QRCodeGenerator {
    * @param eventTitle - The title of the event
    * @returns Promise<string> - Base64 encoded QR code image
    */
-  static async generateRegistrationQR(eventUrl: string, eventTitle: string): Promise<string> {
-    const registrationText = `Event: ${eventTitle}\nURL: ${eventUrl}\n\nScan to register or get more info!`
-    
+  static async generateRegistrationQR(
+    eventUrl: string,
+    eventTitle: string
+  ): Promise<string> {
+    const registrationText = `Event: ${eventTitle}\nURL: ${eventUrl}\n\nScan to register or get more info!`;
+
     return this.generateEventQR(registrationText, {
       width: 300,
-      margin: 3
-    })
+      margin: 3,
+    });
   }
 }

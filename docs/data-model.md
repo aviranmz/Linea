@@ -1,9 +1,11 @@
 # Data Model & Database Schema
 
 ## Overview
+
 This document describes the database schema, data models, and migration strategy for the Linea event management platform.
 
 ## Database Technology
+
 - **Database**: PostgreSQL 15+
 - **ORM**: Prisma 5.x
 - **Migrations**: Prisma Migrate
@@ -14,6 +16,7 @@ This document describes the database schema, data models, and migration strategy
 ### 1. User Management
 
 #### User
+
 ```prisma
 model User {
   id        String   @id @default(cuid())
@@ -36,12 +39,14 @@ model User {
 
 **Purpose**: Central user entity supporting multiple roles
 **Key Features**:
+
 - Soft deletion with `deletedAt`
 - Role-based access control
 - Email as unique identifier
 - Audit trail through relations
 
 #### User Roles
+
 ```prisma
 enum UserRole {
   VISITOR  // Anonymous users, can join waitlists
@@ -53,6 +58,7 @@ enum UserRole {
 ### 2. Event Management
 
 #### Event
+
 ```prisma
 model Event {
   id          String      @id @default(cuid())
@@ -87,6 +93,7 @@ model Event {
 
 **Purpose**: Core event entity with full lifecycle management
 **Key Features**:
+
 - SEO-friendly slugs
 - Flexible date handling (start/end)
 - Geographic coordinates for maps
@@ -95,6 +102,7 @@ model Event {
 - Soft deletion
 
 #### Event Status
+
 ```prisma
 enum EventStatus {
   DRAFT      // Being created/edited
@@ -107,6 +115,7 @@ enum EventStatus {
 ### 3. Venue Management
 
 #### Venue
+
 ```prisma
 model Venue {
   id          String   @id @default(cuid())
@@ -130,6 +139,7 @@ model Venue {
 
 **Purpose**: Venue information and location data
 **Key Features**:
+
 - Full address information
 - Geographic coordinates
 - Website links
@@ -138,6 +148,7 @@ model Venue {
 ### 4. Waitlist Management
 
 #### WaitlistEntry
+
 ```prisma
 model WaitlistEntry {
   id        String         @id @default(cuid())
@@ -162,12 +173,14 @@ model WaitlistEntry {
 
 **Purpose**: Waitlist management for events
 **Key Features**:
+
 - Email-based waitlist (no account required)
 - Optional user association
 - Status tracking
 - Duplicate prevention with unique constraint
 
 #### Waitlist Status
+
 ```prisma
 enum WaitlistStatus {
   PENDING    // On waitlist, waiting
@@ -179,6 +192,7 @@ enum WaitlistStatus {
 ### 5. Session Management
 
 #### Session
+
 ```prisma
 model Session {
   id        String   @id @default(cuid())
@@ -200,6 +214,7 @@ model Session {
 
 **Purpose**: User session management
 **Key Features**:
+
 - JWT token storage
 - Automatic expiration
 - User association
@@ -208,6 +223,7 @@ model Session {
 ### 6. Audit & Compliance
 
 #### AuditLog
+
 ```prisma
 model AuditLog {
   id         String   @id @default(cuid())
@@ -232,6 +248,7 @@ model AuditLog {
 
 **Purpose**: Comprehensive audit trail for compliance
 **Key Features**:
+
 - Action tracking (CRUD operations)
 - Resource identification
 - User context
@@ -242,6 +259,7 @@ model AuditLog {
 ## Database Indexes
 
 ### Performance Indexes
+
 ```sql
 -- User indexes
 CREATE INDEX idx_users_email ON users(email);
@@ -275,6 +293,7 @@ CREATE INDEX idx_audit_logs_created_at ON audit_logs(created_at);
 ## Migration Strategy
 
 ### Prisma Migrate
+
 - **Tool**: Prisma Migrate
 - **Location**: `apps/api/prisma/migrations/`
 - **Commands**:
@@ -285,6 +304,7 @@ CREATE INDEX idx_audit_logs_created_at ON audit_logs(created_at);
   ```
 
 ### Migration Workflow
+
 1. **Schema Changes**: Modify `schema.prisma`
 2. **Generate Migration**: `pnpm db:migrate dev --name description`
 3. **Review Migration**: Check generated SQL
@@ -292,6 +312,7 @@ CREATE INDEX idx_audit_logs_created_at ON audit_logs(created_at);
 5. **Update Client**: `pnpm db:generate`
 
 ### Rollback Strategy
+
 - **Development**: Use `pnpm db:reset` to reset to clean state
 - **Production**: Create rollback migration
 - **Backup**: Always backup before major migrations
@@ -299,12 +320,14 @@ CREATE INDEX idx_audit_logs_created_at ON audit_logs(created_at);
 ## Data Validation
 
 ### Prisma Validation
+
 - **Required Fields**: Enforced at database level
 - **Unique Constraints**: Email, slug uniqueness
 - **Foreign Keys**: Referential integrity
 - **Enums**: Type safety for status fields
 
 ### Application Validation
+
 - **Zod Schemas**: Runtime validation
 - **API Validation**: Request/response validation
 - **Business Rules**: Custom validation logic
@@ -312,12 +335,14 @@ CREATE INDEX idx_audit_logs_created_at ON audit_logs(created_at);
 ## Security Considerations
 
 ### Data Protection
+
 - **Soft Deletion**: No hard deletes for audit trail
 - **Encryption**: Sensitive data encryption at rest
 - **Access Control**: Role-based permissions
 - **Audit Trail**: Complete action logging
 
 ### GDPR Compliance
+
 - **Data Minimization**: Only collect necessary data
 - **Right to Erasure**: Soft delete with anonymization
 - **Data Portability**: Export user data
@@ -326,12 +351,14 @@ CREATE INDEX idx_audit_logs_created_at ON audit_logs(created_at);
 ## Performance Optimization
 
 ### Query Optimization
+
 - **Indexes**: Strategic indexing for common queries
 - **Connection Pooling**: Prisma connection pooling
 - **Query Caching**: Redis for frequently accessed data
 - **Pagination**: Cursor-based pagination
 
 ### Monitoring
+
 - **Query Performance**: Prisma query logging
 - **Database Metrics**: Connection pool monitoring
 - **Slow Queries**: Identify and optimize slow queries
@@ -340,6 +367,7 @@ CREATE INDEX idx_audit_logs_created_at ON audit_logs(created_at);
 ## Future Enhancements
 
 ### Planned Features
+
 - **Categories**: Event categorization
 - **Tags**: Flexible tagging system
 - **Notifications**: Email notification preferences
@@ -347,6 +375,7 @@ CREATE INDEX idx_audit_logs_created_at ON audit_logs(created_at);
 - **Multi-tenancy**: Organization support
 
 ### Schema Evolution
+
 - **Backward Compatibility**: Maintain API compatibility
 - **Gradual Migration**: Phased rollout of changes
 - **Feature Flags**: Toggle new features
@@ -355,6 +384,7 @@ CREATE INDEX idx_audit_logs_created_at ON audit_logs(created_at);
 ## Development Guidelines
 
 ### Schema Changes
+
 1. **Always Use Migrations**: Never modify database directly
 2. **Test Migrations**: Test on development database first
 3. **Backup Production**: Always backup before production migrations
@@ -362,6 +392,7 @@ CREATE INDEX idx_audit_logs_created_at ON audit_logs(created_at);
 5. **Document Changes**: Update this document with changes
 
 ### Naming Conventions
+
 - **Tables**: Plural, snake_case (`users`, `waitlist_entries`)
 - **Columns**: snake_case (`created_at`, `user_id`)
 - **Indexes**: `idx_` prefix (`idx_users_email`)
@@ -369,4 +400,4 @@ CREATE INDEX idx_audit_logs_created_at ON audit_logs(created_at);
 
 ---
 
-*This document should be updated whenever the database schema changes.*
+_This document should be updated whenever the database schema changes._

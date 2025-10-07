@@ -45,4 +45,3 @@ jobs:
           PKG_VER=$(node -p "require('./package.json').version")
           git tag "v$PKG_VER"
           git push origin "v$PKG_VER"
-

@@ -1,47 +1,48 @@
-import { useContext, useState, useEffect } from 'react'
-import { FavoritesContext } from '../contexts/FavoritesContext'
+import { useContext, useState, useEffect } from 'react';
+import { FavoritesContext } from '../contexts/FavoritesContext';
 
 export function useFavorites() {
-  const context = useContext(FavoritesContext)
+  const context = useContext(FavoritesContext);
   if (context === undefined) {
-    throw new Error('useFavorites must be used within a FavoritesProvider')
+    throw new Error('useFavorites must be used within a FavoritesProvider');
   }
-  return context
+  return context;
 }
 
 // Hook for optimistic UI updates
 export function useOptimisticFavorites() {
-  const { favorites, toggleFavorite } = useFavorites()
-  const [optimisticFavorites, setOptimisticFavorites] = useState<Set<string>>(favorites)
+  const { favorites, toggleFavorite } = useFavorites();
+  const [optimisticFavorites, setOptimisticFavorites] =
+    useState<Set<string>>(favorites);
 
   useEffect(() => {
-    setOptimisticFavorites(favorites)
-  }, [favorites])
+    setOptimisticFavorites(favorites);
+  }, [favorites]);
 
   const optimisticToggle = async (eventId: string) => {
     // Optimistically update UI
     setOptimisticFavorites(prev => {
-      const newSet = new Set(prev)
+      const newSet = new Set(prev);
       if (newSet.has(eventId)) {
-        newSet.delete(eventId)
+        newSet.delete(eventId);
       } else {
-        newSet.add(eventId)
+        newSet.add(eventId);
       }
-      return newSet
-    })
+      return newSet;
+    });
 
     try {
-      await toggleFavorite(eventId)
+      await toggleFavorite(eventId);
     } catch (error) {
       // Revert on error
-      setOptimisticFavorites(favorites)
-      throw error
+      setOptimisticFavorites(favorites);
+      throw error;
     }
-  }
+  };
 
   return {
     favorites: optimisticFavorites,
     toggleFavorite: optimisticToggle,
-    isFavorited: (eventId: string) => optimisticFavorites.has(eventId)
-  }
+    isFavorited: (eventId: string) => optimisticFavorites.has(eventId),
+  };
 }

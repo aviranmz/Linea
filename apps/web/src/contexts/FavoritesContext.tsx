@@ -1,95 +1,102 @@
-import { createContext, useState, useEffect, ReactNode } from 'react'
-import { getJson, postJson } from '../lib/api'
+import { createContext, useState, useEffect, ReactNode } from 'react';
+import { getJson, postJson } from '../lib/api';
 
 interface FavoritesContextType {
-  favorites: Set<string>
-  isLoading: boolean
-  addFavorite: (eventId: string) => Promise<boolean>
-  removeFavorite: (eventId: string) => Promise<boolean>
-  toggleFavorite: (eventId: string) => Promise<boolean>
-  isFavorited: (eventId: string) => boolean
-  loadFavorites: () => Promise<void>
+  favorites: Set<string>;
+  isLoading: boolean;
+  addFavorite: (eventId: string) => Promise<boolean>;
+  removeFavorite: (eventId: string) => Promise<boolean>;
+  toggleFavorite: (eventId: string) => Promise<boolean>;
+  isFavorited: (eventId: string) => boolean;
+  loadFavorites: () => Promise<void>;
 }
 
-const FavoritesContext = createContext<FavoritesContextType | undefined>(undefined)
+const FavoritesContext = createContext<FavoritesContextType | undefined>(
+  undefined
+);
 
 interface FavoritesProviderProps {
-  children: ReactNode
+  children: ReactNode;
 }
 
 export function FavoritesProvider({ children }: FavoritesProviderProps) {
-  const [favorites, setFavorites] = useState<Set<string>>(new Set())
-  const [isLoading, setIsLoading] = useState(false)
+  const [favorites, setFavorites] = useState<Set<string>>(new Set());
+  const [isLoading, setIsLoading] = useState(false);
 
   // Load user's favorites on mount
   useEffect(() => {
-    loadFavorites()
-  }, [])
+    loadFavorites();
+  }, []);
 
   const loadFavorites = async () => {
     try {
-      setIsLoading(true)
-      const response = await getJson<{ favorites: Array<{ event: { id: string } }> }>('/api/favorites?limit=1000')
-      const favoriteIds = new Set(response.favorites.map(fav => fav.event.id))
-      setFavorites(favoriteIds)
+      setIsLoading(true);
+      const response = await getJson<{
+        favorites: Array<{ event: { id: string } }>;
+      }>('/api/favorites?limit=1000');
+      const favoriteIds = new Set(response.favorites.map(fav => fav.event.id));
+      setFavorites(favoriteIds);
     } catch (error) {
-      console.error('Failed to load favorites:', error)
+      console.error('Failed to load favorites:', error);
       // Don't show error to user, just fail silently
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const addFavorite = async (eventId: string): Promise<boolean> => {
     try {
-      await postJson(`/api/favorites`, { eventId })
-      setFavorites(prev => new Set([...prev, eventId]))
-      return true
+      await postJson(`/api/favorites`, { eventId });
+      setFavorites(prev => new Set([...prev, eventId]));
+      return true;
     } catch (error) {
-      console.error('Failed to add favorite:', error)
-      return false
+      console.error('Failed to add favorite:', error);
+      return false;
     }
-  }
+  };
 
   const removeFavorite = async (eventId: string): Promise<boolean> => {
     try {
-      await postJson(`/api/favorites/${eventId}/toggle`, {})
+      await postJson(`/api/favorites/${eventId}/toggle`, {});
       setFavorites(prev => {
-        const newSet = new Set(prev)
-        newSet.delete(eventId)
-        return newSet
-      })
-      return true
+        const newSet = new Set(prev);
+        newSet.delete(eventId);
+        return newSet;
+      });
+      return true;
     } catch (error) {
-      console.error('Failed to remove favorite:', error)
-      return false
+      console.error('Failed to remove favorite:', error);
+      return false;
     }
-  }
+  };
 
   const toggleFavorite = async (eventId: string): Promise<boolean> => {
     try {
-      const response = await postJson<{ isFavorited: boolean }>(`/api/favorites/${eventId}/toggle`, {})
-      
+      const response = await postJson<{ isFavorited: boolean }>(
+        `/api/favorites/${eventId}/toggle`,
+        {}
+      );
+
       setFavorites(prev => {
-        const newSet = new Set(prev)
+        const newSet = new Set(prev);
         if (response.isFavorited) {
-          newSet.add(eventId)
+          newSet.add(eventId);
         } else {
-          newSet.delete(eventId)
+          newSet.delete(eventId);
         }
-        return newSet
-      })
-      
-      return true
+        return newSet;
+      });
+
+      return true;
     } catch (error) {
-      console.error('Failed to toggle favorite:', error)
-      return false
+      console.error('Failed to toggle favorite:', error);
+      return false;
     }
-  }
+  };
 
   const isFavorited = (eventId: string): boolean => {
-    return favorites.has(eventId)
-  }
+    return favorites.has(eventId);
+  };
 
   const value: FavoritesContextType = {
     favorites,
@@ -98,15 +105,15 @@ export function FavoritesProvider({ children }: FavoritesProviderProps) {
     removeFavorite,
     toggleFavorite,
     isFavorited,
-    loadFavorites
-  }
+    loadFavorites,
+  };
 
   return (
     <FavoritesContext.Provider value={value}>
       {children}
     </FavoritesContext.Provider>
-  )
+  );
 }
 
 // Export the context for use in hooks
-export { FavoritesContext }
+export { FavoritesContext };

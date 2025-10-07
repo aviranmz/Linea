@@ -1,9 +1,9 @@
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient } from '@prisma/client';
 
-const prisma = new PrismaClient()
+const prisma = new PrismaClient();
 
 async function main() {
-  console.log('🔧 Fixing database schema issues...')
+  console.log('🔧 Fixing database schema issues...');
 
   try {
     // First, let's check what tables exist
@@ -12,8 +12,8 @@ async function main() {
       FROM information_schema.tables 
       WHERE table_schema = 'public' 
       AND table_type = 'BASE TABLE'
-    `
-    console.log('📋 Existing tables:', tables)
+    `;
+    console.log('📋 Existing tables:', tables);
 
     // Check if WaitlistEntry table exists
     const waitlistTableExists = await prisma.$queryRaw`
@@ -22,13 +22,13 @@ async function main() {
         WHERE table_schema = 'public' 
         AND table_name = 'waitlist_entries'
       )
-    `
-    console.log('🔍 WaitlistEntry table exists:', waitlistTableExists)
+    `;
+    console.log('🔍 WaitlistEntry table exists:', waitlistTableExists);
 
     // If WaitlistEntry table doesn't exist, create it
     if (!waitlistTableExists[0]?.exists) {
-      console.log('🏗️  Creating WaitlistEntry table...')
-      
+      console.log('🏗️  Creating WaitlistEntry table...');
+
       await prisma.$executeRaw`
         CREATE TABLE "waitlist_entries" (
           "id" TEXT NOT NULL,
@@ -41,30 +41,30 @@ async function main() {
           "deletedAt" TIMESTAMP(3),
           CONSTRAINT "waitlist_entries_pkey" PRIMARY KEY ("id")
         )
-      `
+      `;
 
       // Create indexes
       await prisma.$executeRaw`
         CREATE UNIQUE INDEX "waitlist_entries_email_eventId_key" ON "waitlist_entries"("email", "eventId")
-      `
+      `;
       await prisma.$executeRaw`
         CREATE INDEX "waitlist_entries_eventId_idx" ON "waitlist_entries"("eventId")
-      `
+      `;
       await prisma.$executeRaw`
         CREATE INDEX "waitlist_entries_email_idx" ON "waitlist_entries"("email")
-      `
+      `;
 
       // Create foreign key constraints
       await prisma.$executeRaw`
         ALTER TABLE "waitlist_entries" ADD CONSTRAINT "waitlist_entries_eventId_fkey" 
         FOREIGN KEY ("eventId") REFERENCES "events"("id") ON DELETE RESTRICT ON UPDATE CASCADE
-      `
+      `;
       await prisma.$executeRaw`
         ALTER TABLE "waitlist_entries" ADD CONSTRAINT "waitlist_entries_userId_fkey" 
         FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE
-      `
+      `;
 
-      console.log('✅ WaitlistEntry table created successfully')
+      console.log('✅ WaitlistEntry table created successfully');
     }
 
     // Check if we need to create the WaitlistStatus enum
@@ -73,19 +73,19 @@ async function main() {
         SELECT FROM pg_type 
         WHERE typname = 'WaitlistStatus'
       )
-    `
-    
+    `;
+
     if (!enumExists[0]?.exists) {
-      console.log('🏗️  Creating WaitlistStatus enum...')
+      console.log('🏗️  Creating WaitlistStatus enum...');
       await prisma.$executeRaw`
         CREATE TYPE "WaitlistStatus" AS ENUM ('PENDING', 'CONFIRMED', 'CANCELLED', 'APPROVED', 'REJECTED', 'ARRIVED')
-      `
-      console.log('✅ WaitlistStatus enum created successfully')
+      `;
+      console.log('✅ WaitlistStatus enum created successfully');
     }
 
     // Update the Prisma migration history to mark this as applied
-    console.log('📝 Updating Prisma migration history...')
-    
+    console.log('📝 Updating Prisma migration history...');
+
     // Check if _prisma_migrations table exists
     const migrationsTableExists = await prisma.$queryRaw`
       SELECT EXISTS (
@@ -93,10 +93,10 @@ async function main() {
         WHERE table_schema = 'public' 
         AND table_name = '_prisma_migrations'
       )
-    `
+    `;
 
     if (!migrationsTableExists[0]?.exists) {
-      console.log('🏗️  Creating Prisma migrations table...')
+      console.log('🏗️  Creating Prisma migrations table...');
       await prisma.$executeRaw`
         CREATE TABLE "_prisma_migrations" (
           "id" VARCHAR(36) NOT NULL,
@@ -109,7 +109,7 @@ async function main() {
           "applied_steps_count" INTEGER NOT NULL DEFAULT 0,
           CONSTRAINT "_prisma_migrations_pkey" PRIMARY KEY ("id")
         )
-      `
+      `;
     }
 
     // Insert a baseline migration record
@@ -120,8 +120,8 @@ async function main() {
       migration_name: 'baseline',
       logs: 'Database baseline - existing schema',
       started_at: new Date(),
-      applied_steps_count: 1
-    }
+      applied_steps_count: 1,
+    };
 
     await prisma.$executeRaw`
       INSERT INTO "_prisma_migrations" (
@@ -135,21 +135,19 @@ async function main() {
         ${baselineMigration.started_at},
         ${baselineMigration.applied_steps_count}
       ) ON CONFLICT (id) DO NOTHING
-    `
+    `;
 
-    console.log('✅ Database schema fixed successfully!')
-    console.log('🎉 You can now run migrations without issues')
-
+    console.log('✅ Database schema fixed successfully!');
+    console.log('🎉 You can now run migrations without issues');
   } catch (error) {
-    console.error('❌ Error fixing database schema:', error)
-    throw error
+    console.error('❌ Error fixing database schema:', error);
+    throw error;
   } finally {
-    await prisma.$disconnect()
+    await prisma.$disconnect();
   }
 }
 
-main()
-  .catch((e) => {
-    console.error('❌ Error:', e)
-    process.exit(1)
-  })
+main().catch(e => {
+  console.error('❌ Error:', e);
+  process.exit(1);
+});

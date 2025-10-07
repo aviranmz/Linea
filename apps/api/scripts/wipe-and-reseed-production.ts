@@ -1,30 +1,30 @@
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient } from '@prisma/client';
 
-const prisma = new PrismaClient()
+const prisma = new PrismaClient();
 
 async function main() {
-  console.log('🗑️  Wiping production database...')
+  console.log('🗑️  Wiping production database...');
 
   try {
     // Use raw SQL to disable foreign key checks and truncate all tables
-    await prisma.$executeRaw`SET session_replication_role = replica;`
-    
+    await prisma.$executeRaw`SET session_replication_role = replica;`;
+
     // Truncate all tables in the correct order to avoid foreign key constraints
-    await prisma.$executeRaw`TRUNCATE TABLE "waitlist_entries" CASCADE;`
-    await prisma.$executeRaw`TRUNCATE TABLE "sessions" CASCADE;`
-    await prisma.$executeRaw`TRUNCATE TABLE "events" CASCADE;`
-    await prisma.$executeRaw`TRUNCATE TABLE "venues" CASCADE;`
-    await prisma.$executeRaw`TRUNCATE TABLE "categories" CASCADE;`
-    await prisma.$executeRaw`TRUNCATE TABLE "areas" CASCADE;`
-    await prisma.$executeRaw`TRUNCATE TABLE "products" CASCADE;`
-    await prisma.$executeRaw`TRUNCATE TABLE "users" CASCADE;`
+    await prisma.$executeRaw`TRUNCATE TABLE "waitlist_entries" CASCADE;`;
+    await prisma.$executeRaw`TRUNCATE TABLE "sessions" CASCADE;`;
+    await prisma.$executeRaw`TRUNCATE TABLE "events" CASCADE;`;
+    await prisma.$executeRaw`TRUNCATE TABLE "venues" CASCADE;`;
+    await prisma.$executeRaw`TRUNCATE TABLE "categories" CASCADE;`;
+    await prisma.$executeRaw`TRUNCATE TABLE "areas" CASCADE;`;
+    await prisma.$executeRaw`TRUNCATE TABLE "products" CASCADE;`;
+    await prisma.$executeRaw`TRUNCATE TABLE "users" CASCADE;`;
 
     // Re-enable foreign key checks
-    await prisma.$executeRaw`SET session_replication_role = DEFAULT;`
+    await prisma.$executeRaw`SET session_replication_role = DEFAULT;`;
 
-    console.log('✅ Production database wiped')
+    console.log('✅ Production database wiped');
 
-    console.log('🌱 Seeding production database with comprehensive data...')
+    console.log('🌱 Seeding production database with comprehensive data...');
 
     // Create users
     const adminUser = await prisma.user.create({
@@ -35,8 +35,8 @@ async function main() {
         isActive: true,
         lastLoginAt: new Date(),
       },
-    })
-    console.log(`✅ Created admin user: ${adminUser.email}`)
+    });
+    console.log(`✅ Created admin user: ${adminUser.email}`);
 
     const owner1 = await prisma.user.create({
       data: {
@@ -46,7 +46,8 @@ async function main() {
         isActive: true,
         lastLoginAt: new Date(),
         businessName: 'Design Studio One',
-        businessIntro: 'Leading design studio specializing in sustainable architecture',
+        businessIntro:
+          'Leading design studio specializing in sustainable architecture',
         city: 'Milano',
         country: 'Italy',
         phone: '+39 02 1234 5678',
@@ -54,8 +55,8 @@ async function main() {
         instagramUrl: '@designstudio1',
         facebookUrl: 'https://facebook.com/designstudio1',
       },
-    })
-    console.log(`✅ Created owner 1: ${owner1.email}`)
+    });
+    console.log(`✅ Created owner 1: ${owner1.email}`);
 
     const owner2 = await prisma.user.create({
       data: {
@@ -65,7 +66,8 @@ async function main() {
         isActive: true,
         lastLoginAt: new Date(),
         businessName: 'Creative Arts Collective',
-        businessIntro: 'Innovative arts collective pushing boundaries in contemporary design',
+        businessIntro:
+          'Innovative arts collective pushing boundaries in contemporary design',
         city: 'Milano',
         country: 'Italy',
         phone: '+39 02 8765 4321',
@@ -73,8 +75,8 @@ async function main() {
         instagramUrl: '@creativearts',
         facebookUrl: 'https://facebook.com/creativearts',
       },
-    })
-    console.log(`✅ Created owner 2: ${owner2.email}`)
+    });
+    console.log(`✅ Created owner 2: ${owner2.email}`);
 
     // Create areas
     const milanoArea = await prisma.area.create({
@@ -85,8 +87,8 @@ async function main() {
         color: '#8B4513',
         icon: '🏛️',
       },
-    })
-    console.log(`✅ Created area: ${milanoArea.name}`)
+    });
+    console.log(`✅ Created area: ${milanoArea.name}`);
 
     // Create categories
     const designCategory = await prisma.category.create({
@@ -97,8 +99,8 @@ async function main() {
         color: '#c4b69e',
         icon: '🎨',
       },
-    })
-    console.log(`✅ Created category: ${designCategory.name}`)
+    });
+    console.log(`✅ Created category: ${designCategory.name}`);
 
     const techCategory = await prisma.category.create({
       data: {
@@ -108,8 +110,8 @@ async function main() {
         color: '#3b82f6',
         icon: '💻',
       },
-    })
-    console.log(`✅ Created category: ${techCategory.name}`)
+    });
+    console.log(`✅ Created category: ${techCategory.name}`);
 
     const artCategory = await prisma.category.create({
       data: {
@@ -119,8 +121,8 @@ async function main() {
         color: '#f59e0b',
         icon: '🎭',
       },
-    })
-    console.log(`✅ Created category: ${artCategory.name}`)
+    });
+    console.log(`✅ Created category: ${artCategory.name}`);
 
     const sustainabilityCategory = await prisma.category.create({
       data: {
@@ -130,8 +132,8 @@ async function main() {
         color: '#10b981',
         icon: '🌱',
       },
-    })
-    console.log(`✅ Created category: ${sustainabilityCategory.name}`)
+    });
+    console.log(`✅ Created category: ${sustainabilityCategory.name}`);
 
     // Create venues
     const milanoDesignCenter = await prisma.venue.create({
@@ -141,11 +143,11 @@ async function main() {
         city: 'Milano',
         country: 'Italy',
         latitude: 45.4642,
-        longitude: 9.1900,
+        longitude: 9.19,
         website: 'https://milanodesigncenter.com',
       },
-    })
-    console.log(`✅ Created venue: ${milanoDesignCenter.name}`)
+    });
+    console.log(`✅ Created venue: ${milanoDesignCenter.name}`);
 
     const creativeHub = await prisma.venue.create({
       data: {
@@ -153,20 +155,22 @@ async function main() {
         address: 'Corso di Porta Ticinese, 87, 20123 Milano MI, Italy',
         city: 'Milano',
         country: 'Italy',
-        latitude: 45.4500,
-        longitude: 9.1800,
+        latitude: 45.45,
+        longitude: 9.18,
         website: 'https://creativehubmilano.com',
       },
-    })
-    console.log(`✅ Created venue: ${creativeHub.name}`)
+    });
+    console.log(`✅ Created venue: ${creativeHub.name}`);
 
     // Create events
     const events = [
       {
         title: 'Sustainable Design Revolution',
         slug: 'sustainable-design-revolution',
-        description: 'Explore the future of sustainable design with leading architects, designers, and environmental experts. Discover innovative materials, circular design principles, and eco-friendly solutions that are reshaping the industry.',
-        shortDescription: 'Leading the charge in sustainable design innovation.',
+        description:
+          'Explore the future of sustainable design with leading architects, designers, and environmental experts. Discover innovative materials, circular design principles, and eco-friendly solutions that are reshaping the industry.',
+        shortDescription:
+          'Leading the charge in sustainable design innovation.',
         status: 'PUBLISHED' as const,
         startDate: new Date('2024-06-15T09:00:00Z'),
         endDate: new Date('2024-06-15T18:00:00Z'),
@@ -181,14 +185,15 @@ async function main() {
           tags: ['#sustainability', '#design', '#innovation'],
           social: {
             instagram: '@linea_events',
-            twitter: '@linea_events'
-          }
-        }
+            twitter: '@linea_events',
+          },
+        },
       },
       {
         title: 'Contemporary Art Exhibition',
         slug: 'contemporary-art-exhibition',
-        description: 'A showcase of cutting-edge contemporary art from emerging and established artists. Experience innovative installations, digital art, and interactive exhibits that push the boundaries of artistic expression.',
+        description:
+          'A showcase of cutting-edge contemporary art from emerging and established artists. Experience innovative installations, digital art, and interactive exhibits that push the boundaries of artistic expression.',
         shortDescription: 'Contemporary voices in modern art.',
         status: 'PUBLISHED' as const,
         startDate: new Date('2024-06-18T10:00:00Z'),
@@ -204,14 +209,15 @@ async function main() {
           tags: ['#contemporary art', '#exhibition', '#culture'],
           social: {
             instagram: '@linea_events',
-            twitter: '@linea_events'
-          }
-        }
+            twitter: '@linea_events',
+          },
+        },
       },
       {
         title: 'AI in Creative Industries',
         slug: 'ai-creative-industries',
-        description: 'Discover how artificial intelligence is transforming creative industries. From AI-generated art to intelligent design tools, explore the intersection of technology and creativity.',
+        description:
+          'Discover how artificial intelligence is transforming creative industries. From AI-generated art to intelligent design tools, explore the intersection of technology and creativity.',
         shortDescription: 'AI meets creativity.',
         status: 'PUBLISHED' as const,
         startDate: new Date('2024-06-28T09:00:00Z'),
@@ -227,14 +233,15 @@ async function main() {
           tags: ['#AI', '#creativity', '#technology'],
           social: {
             instagram: '@linea_events',
-            twitter: '@linea_events'
-          }
-        }
+            twitter: '@linea_events',
+          },
+        },
       },
       {
         title: 'Furniture Design Masterclass',
         slug: 'furniture-design-masterclass',
-        description: 'Learn from master furniture designers about the art and craft of creating beautiful, functional pieces. Hands-on workshop with expert guidance.',
+        description:
+          'Learn from master furniture designers about the art and craft of creating beautiful, functional pieces. Hands-on workshop with expert guidance.',
         shortDescription: 'Master the art of furniture design.',
         status: 'PUBLISHED' as const,
         startDate: new Date('2024-07-05T10:00:00Z'),
@@ -250,14 +257,15 @@ async function main() {
           tags: ['#furniture', '#workshop', '#design'],
           social: {
             instagram: '@linea_events',
-            twitter: '@linea_events'
-          }
-        }
+            twitter: '@linea_events',
+          },
+        },
       },
       {
         title: 'Green Architecture Workshop',
         slug: 'green-architecture-workshop',
-        description: 'Explore sustainable architecture principles and green building techniques. Learn from leading architects about eco-friendly design solutions.',
+        description:
+          'Explore sustainable architecture principles and green building techniques. Learn from leading architects about eco-friendly design solutions.',
         shortDescription: 'Building a sustainable future.',
         status: 'PUBLISHED' as const,
         startDate: new Date('2024-07-12T09:00:00Z'),
@@ -273,37 +281,49 @@ async function main() {
           tags: ['#architecture', '#sustainability', '#green building'],
           social: {
             instagram: '@linea_events',
-            twitter: '@linea_events'
-          }
-        }
-      }
-    ]
+            twitter: '@linea_events',
+          },
+        },
+      },
+    ];
 
     for (const eventData of events) {
       const event = await prisma.event.create({
         data: eventData,
-      })
-      console.log(`✅ Created event: ${event.title}`)
+      });
+      console.log(`✅ Created event: ${event.title}`);
     }
 
     // Create some waitlist entries
     const waitlistEntries = [
       {
         email: 'john.doe@example.com',
-        eventId: (await prisma.event.findFirst({ where: { slug: 'sustainable-design-revolution' } }))?.id,
+        eventId: (
+          await prisma.event.findFirst({
+            where: { slug: 'sustainable-design-revolution' },
+          })
+        )?.id,
         status: 'PENDING' as const,
       },
       {
         email: 'jane.smith@example.com',
-        eventId: (await prisma.event.findFirst({ where: { slug: 'contemporary-art-exhibition' } }))?.id,
+        eventId: (
+          await prisma.event.findFirst({
+            where: { slug: 'contemporary-art-exhibition' },
+          })
+        )?.id,
         status: 'PENDING' as const,
       },
       {
         email: 'mario.rossi@example.com',
-        eventId: (await prisma.event.findFirst({ where: { slug: 'ai-creative-industries' } }))?.id,
+        eventId: (
+          await prisma.event.findFirst({
+            where: { slug: 'ai-creative-industries' },
+          })
+        )?.id,
         status: 'PENDING' as const,
       },
-    ]
+    ];
 
     for (const entryData of waitlistEntries) {
       if (entryData.eventId) {
@@ -313,30 +333,28 @@ async function main() {
             eventId: entryData.eventId,
             status: entryData.status,
           },
-        })
-        console.log(`✅ Created waitlist entry for: ${entryData.email}`)
+        });
+        console.log(`✅ Created waitlist entry for: ${entryData.email}`);
       }
     }
 
-    console.log('\n🎉 Production database successfully seeded!')
-    console.log(`📊 Summary:`)
-    console.log(`  - Users: 3 (1 admin, 2 owners)`)
-    console.log(`  - Categories: 4`)
-    console.log(`  - Areas: 1`)
-    console.log(`  - Venues: 2`)
-    console.log(`  - Events: ${events.length}`)
-    console.log(`  - Waitlist Entries: ${waitlistEntries.length}`)
-
+    console.log('\n🎉 Production database successfully seeded!');
+    console.log(`📊 Summary:`);
+    console.log(`  - Users: 3 (1 admin, 2 owners)`);
+    console.log(`  - Categories: 4`);
+    console.log(`  - Areas: 1`);
+    console.log(`  - Venues: 2`);
+    console.log(`  - Events: ${events.length}`);
+    console.log(`  - Waitlist Entries: ${waitlistEntries.length}`);
   } catch (error) {
-    console.error('❌ Error during wipe and reseed:', error)
-    throw error
+    console.error('❌ Error during wipe and reseed:', error);
+    throw error;
   } finally {
-    await prisma.$disconnect()
+    await prisma.$disconnect();
   }
 }
 
-main()
-  .catch((e) => {
-    console.error('❌ Error:', e)
-    process.exit(1)
-  })
+main().catch(e => {
+  console.error('❌ Error:', e);
+  process.exit(1);
+});

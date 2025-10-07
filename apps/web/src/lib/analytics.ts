@@ -2,13 +2,13 @@
 // TODO: Redesign analytics system to prevent singleton issues
 
 interface AnalyticsData {
-  eventId: string
-  sessionId?: string
-  userAgent?: string
-  referrer?: string
-  deviceType?: string
-  browser?: string
-  os?: string
+  eventId: string;
+  sessionId?: string;
+  userAgent?: string;
+  referrer?: string;
+  deviceType?: string;
+  browser?: string;
+  os?: string;
 }
 
 // InteractionData interface removed - not needed for disabled analytics
@@ -23,59 +23,67 @@ class AnalyticsTracker {
   }
 
   // All methods are no-ops to prevent infinite loops
-  async trackEventView(_eventId: string, _additionalData?: Partial<AnalyticsData>) {
+  async trackEventView(
+    _eventId: string,
+    _additionalData?: Partial<AnalyticsData>
+  ) {
     // DISABLED
-    return
+    return;
   }
 
-  async trackInteraction(_eventId: string, _action: string, _element?: string, _metadata?: Record<string, unknown>) {
+  async trackInteraction(
+    _eventId: string,
+    _action: string,
+    _element?: string,
+    _metadata?: Record<string, unknown>
+  ) {
     // DISABLED
-    return
+    return;
   }
 
   trackButtonClick(_eventId: string, _buttonName: string) {
     // DISABLED
-    return
+    return;
   }
 
   trackLinkClick(_eventId: string, _linkText: string, _linkUrl: string) {
     // DISABLED
-    return
+    return;
   }
 
   trackWaitlistJoin(_eventId: string) {
     // DISABLED
-    return
+    return;
   }
 
   trackShare(_eventId: string, _platform: string) {
     // DISABLED
-    return
+    return;
   }
 
   trackScroll(_eventId: string, _scrollPercentage: number) {
     // DISABLED
-    return
+    return;
   }
 
   trackVideoPlay(_eventId: string, _videoUrl: string) {
     // DISABLED
-    return
+    return;
   }
 
   trackImageClick(_eventId: string, _imageAlt: string) {
     // DISABLED
-    return
+    return;
   }
 
   reset() {
     // DISABLED
-    return
+    return;
   }
 }
 
 // Create singleton instance
-export const analytics = new AnalyticsTracker()
+export const analytics = new AnalyticsTracker();
 
 // React hook for easy integration
 export function useAnalytics() {
@@ -89,6 +97,6 @@ export function useAnalytics() {
     trackScroll: analytics.trackScroll.bind(analytics),
     trackVideoPlay: analytics.trackVideoPlay.bind(analytics),
     trackImageClick: analytics.trackImageClick.bind(analytics),
-    reset: analytics.reset.bind(analytics)
-  }
+    reset: analytics.reset.bind(analytics),
+  };
 }
