@@ -1,5 +1,18 @@
 // User preferences service with merge-update functionality
-type PrismaClientType = import('@prisma/client').PrismaClient;
+// Resolve PrismaClient type for both ESM and CJS module shapes
+type PrismaModule = typeof import('@prisma/client');
+type PrismaCtorDirect = PrismaModule extends { PrismaClient: infer C }
+  ? C
+  : never;
+type PrismaCtorFromDefault = PrismaModule extends { default: infer D }
+  ? D extends { PrismaClient: infer C }
+    ? C
+    : never
+  : never;
+type PrismaCtor = PrismaCtorDirect | PrismaCtorFromDefault;
+type PrismaClientType = PrismaCtor extends new (...args: any[]) => infer I
+  ? I
+  : never;
 
 export interface UserPreferences {
   // Theme preferences
