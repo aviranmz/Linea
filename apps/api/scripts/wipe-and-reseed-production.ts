@@ -10,14 +10,14 @@ async function main() {
     await prisma.$executeRaw`SET session_replication_role = replica;`
     
     // Truncate all tables in the correct order to avoid foreign key constraints
-    await prisma.$executeRaw`TRUNCATE TABLE "WaitlistEntry" CASCADE;`
-    await prisma.$executeRaw`TRUNCATE TABLE "Session" CASCADE;`
-    await prisma.$executeRaw`TRUNCATE TABLE "Event" CASCADE;`
-    await prisma.$executeRaw`TRUNCATE TABLE "Venue" CASCADE;`
-    await prisma.$executeRaw`TRUNCATE TABLE "Category" CASCADE;`
-    await prisma.$executeRaw`TRUNCATE TABLE "Area" CASCADE;`
-    await prisma.$executeRaw`TRUNCATE TABLE "Product" CASCADE;`
-    await prisma.$executeRaw`TRUNCATE TABLE "User" CASCADE;`
+    await prisma.$executeRaw`TRUNCATE TABLE "waitlist_entries" CASCADE;`
+    await prisma.$executeRaw`TRUNCATE TABLE "sessions" CASCADE;`
+    await prisma.$executeRaw`TRUNCATE TABLE "events" CASCADE;`
+    await prisma.$executeRaw`TRUNCATE TABLE "venues" CASCADE;`
+    await prisma.$executeRaw`TRUNCATE TABLE "categories" CASCADE;`
+    await prisma.$executeRaw`TRUNCATE TABLE "areas" CASCADE;`
+    await prisma.$executeRaw`TRUNCATE TABLE "products" CASCADE;`
+    await prisma.$executeRaw`TRUNCATE TABLE "users" CASCADE;`
 
     // Re-enable foreign key checks
     await prisma.$executeRaw`SET session_replication_role = DEFAULT;`
@@ -82,8 +82,8 @@ async function main() {
         name: 'Milano',
         slug: 'milano',
         description: 'Design capital of Italy and global fashion hub',
-        country: 'Italy',
-        coordinates: { lat: 45.4642, lng: 9.1900 },
+        color: '#8B4513',
+        icon: '🏛️',
       },
     })
     console.log(`✅ Created area: ${milanoArea.name}`)
@@ -140,9 +140,9 @@ async function main() {
         address: 'Via Tortona, 37, 20144 Milano MI, Italy',
         city: 'Milano',
         country: 'Italy',
-        coordinates: { lat: 45.4642, lng: 9.1900 },
-        capacity: 500,
-        amenities: ['WiFi', 'Parking', 'Accessibility', 'Catering', 'AV Equipment'],
+        latitude: 45.4642,
+        longitude: 9.1900,
+        website: 'https://milanodesigncenter.com',
       },
     })
     console.log(`✅ Created venue: ${milanoDesignCenter.name}`)
@@ -153,9 +153,9 @@ async function main() {
         address: 'Corso di Porta Ticinese, 87, 20123 Milano MI, Italy',
         city: 'Milano',
         country: 'Italy',
-        coordinates: { lat: 45.4500, lng: 9.1800 },
-        capacity: 200,
-        amenities: ['WiFi', 'Parking', 'Accessibility', 'Gallery Space'],
+        latitude: 45.4500,
+        longitude: 9.1800,
+        website: 'https://creativehubmilano.com',
       },
     })
     console.log(`✅ Created venue: ${creativeHub.name}`)
@@ -167,12 +167,12 @@ async function main() {
         slug: 'sustainable-design-revolution',
         description: 'Explore the future of sustainable design with leading architects, designers, and environmental experts. Discover innovative materials, circular design principles, and eco-friendly solutions that are reshaping the industry.',
         shortDescription: 'Leading the charge in sustainable design innovation.',
-        status: 'PUBLISHED',
+        status: 'PUBLISHED' as const,
         startDate: new Date('2024-06-15T09:00:00Z'),
         endDate: new Date('2024-06-15T18:00:00Z'),
         capacity: 300,
         isPublic: true,
-        isFeatured: true,
+        featured: true,
         ownerId: owner1.id,
         categoryId: sustainabilityCategory.id,
         venueId: milanoDesignCenter.id,
@@ -190,12 +190,12 @@ async function main() {
         slug: 'contemporary-art-exhibition',
         description: 'A showcase of cutting-edge contemporary art from emerging and established artists. Experience innovative installations, digital art, and interactive exhibits that push the boundaries of artistic expression.',
         shortDescription: 'Contemporary voices in modern art.',
-        status: 'PUBLISHED',
+        status: 'PUBLISHED' as const,
         startDate: new Date('2024-06-18T10:00:00Z'),
         endDate: new Date('2024-06-18T20:00:00Z'),
         capacity: 200,
         isPublic: true,
-        isFeatured: true,
+        featured: true,
         ownerId: owner2.id,
         categoryId: artCategory.id,
         venueId: creativeHub.id,
@@ -213,12 +213,12 @@ async function main() {
         slug: 'ai-creative-industries',
         description: 'Discover how artificial intelligence is transforming creative industries. From AI-generated art to intelligent design tools, explore the intersection of technology and creativity.',
         shortDescription: 'AI meets creativity.',
-        status: 'PUBLISHED',
+        status: 'PUBLISHED' as const,
         startDate: new Date('2024-06-28T09:00:00Z'),
         endDate: new Date('2024-06-28T17:00:00Z'),
         capacity: 150,
         isPublic: true,
-        isFeatured: true,
+        featured: true,
         ownerId: owner2.id,
         categoryId: techCategory.id,
         venueId: milanoDesignCenter.id,
@@ -236,12 +236,12 @@ async function main() {
         slug: 'furniture-design-masterclass',
         description: 'Learn from master furniture designers about the art and craft of creating beautiful, functional pieces. Hands-on workshop with expert guidance.',
         shortDescription: 'Master the art of furniture design.',
-        status: 'PUBLISHED',
+        status: 'PUBLISHED' as const,
         startDate: new Date('2024-07-05T10:00:00Z'),
         endDate: new Date('2024-07-05T16:00:00Z'),
         capacity: 25,
         isPublic: true,
-        isFeatured: false,
+        featured: false,
         ownerId: owner1.id,
         categoryId: designCategory.id,
         venueId: creativeHub.id,
@@ -259,12 +259,12 @@ async function main() {
         slug: 'green-architecture-workshop',
         description: 'Explore sustainable architecture principles and green building techniques. Learn from leading architects about eco-friendly design solutions.',
         shortDescription: 'Building a sustainable future.',
-        status: 'PUBLISHED',
+        status: 'PUBLISHED' as const,
         startDate: new Date('2024-07-12T09:00:00Z'),
         endDate: new Date('2024-07-12T17:00:00Z'),
         capacity: 50,
         isPublic: true,
-        isFeatured: true,
+        featured: true,
         ownerId: owner1.id,
         categoryId: sustainabilityCategory.id,
         venueId: milanoDesignCenter.id,
@@ -290,31 +290,29 @@ async function main() {
     const waitlistEntries = [
       {
         email: 'john.doe@example.com',
-        name: 'John Doe',
         eventId: (await prisma.event.findFirst({ where: { slug: 'sustainable-design-revolution' } }))?.id,
-        status: 'PENDING',
-        joinedAt: new Date(),
+        status: 'PENDING' as const,
       },
       {
         email: 'jane.smith@example.com',
-        name: 'Jane Smith',
         eventId: (await prisma.event.findFirst({ where: { slug: 'contemporary-art-exhibition' } }))?.id,
-        status: 'PENDING',
-        joinedAt: new Date(),
+        status: 'PENDING' as const,
       },
       {
         email: 'mario.rossi@example.com',
-        name: 'Mario Rossi',
         eventId: (await prisma.event.findFirst({ where: { slug: 'ai-creative-industries' } }))?.id,
-        status: 'PENDING',
-        joinedAt: new Date(),
+        status: 'PENDING' as const,
       },
     ]
 
     for (const entryData of waitlistEntries) {
       if (entryData.eventId) {
         await prisma.waitlistEntry.create({
-          data: entryData,
+          data: {
+            email: entryData.email,
+            eventId: entryData.eventId,
+            status: entryData.status,
+          },
         })
         console.log(`✅ Created waitlist entry for: ${entryData.email}`)
       }

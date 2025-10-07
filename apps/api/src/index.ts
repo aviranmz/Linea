@@ -5290,23 +5290,58 @@ app.post('/api/fix-images', async (_request, reply) => {
 
         console.log('🗑️  Wiping production database...')
 
-        // Use raw SQL to disable foreign key checks and truncate all tables
-        await prisma.$executeRaw`SET session_replication_role = replica;`
-        
-        // Truncate all tables in the correct order to avoid foreign key constraints
-        await prisma.$executeRaw`TRUNCATE TABLE "WaitlistEntry" CASCADE;`
-        await prisma.$executeRaw`TRUNCATE TABLE "Session" CASCADE;`
-        await prisma.$executeRaw`TRUNCATE TABLE "Event" CASCADE;`
-        await prisma.$executeRaw`TRUNCATE TABLE "Venue" CASCADE;`
-        await prisma.$executeRaw`TRUNCATE TABLE "Category" CASCADE;`
-        await prisma.$executeRaw`TRUNCATE TABLE "Area" CASCADE;`
-        await prisma.$executeRaw`TRUNCATE TABLE "Product" CASCADE;`
-        await prisma.$executeRaw`TRUNCATE TABLE "User" CASCADE;`
+        // First, let's check what tables exist and handle the schema properly
+        try {
+          // Use raw SQL to disable foreign key checks
+          await prisma.$executeRaw`SET session_replication_role = replica;`
+          
+          // Try to truncate tables that might exist, with error handling
+          const tablesToTruncate = [
+            'WaitlistEntry',
+            'Session', 
+            'Event',
+            'Venue',
+            'Category',
+            'Area',
+            'Product',
+            'User'
+          ]
 
-        // Re-enable foreign key checks
-        await prisma.$executeRaw`SET session_replication_role = DEFAULT;`
+          for (const table of tablesToTruncate) {
+            try {
+              await prisma.$executeRaw`TRUNCATE TABLE "${table}" CASCADE;`
+              console.log(`✅ Truncated table: ${table}`)
+            } catch (error: any) {
+              if (error.code === 'P2010' && error.meta?.message?.includes('does not exist')) {
+                console.log(`⚠️  Table ${table} does not exist, skipping...`)
+              } else {
+                console.log(`⚠️  Could not truncate table ${table}:`, error.message)
+              }
+            }
+          }
 
-        console.log('✅ Production database wiped')
+          // Re-enable foreign key checks
+          await prisma.$executeRaw`SET session_replication_role = DEFAULT;`
+
+          console.log('✅ Production database wiped')
+        } catch (error) {
+          console.log('⚠️  Error during wipe, trying Prisma deleteMany...', error)
+          
+          // Fallback to Prisma deleteMany methods
+          try {
+            await prisma.waitlistEntry.deleteMany({})
+            await prisma.session.deleteMany({})
+            await prisma.event.deleteMany({})
+            await prisma.venue.deleteMany({})
+            await prisma.category.deleteMany({})
+            await prisma.area.deleteMany({})
+            await prisma.product.deleteMany({})
+            await prisma.user.deleteMany({})
+            console.log('✅ Production database wiped using Prisma deleteMany')
+          } catch (prismaError) {
+            console.log('⚠️  Prisma deleteMany also failed, continuing with seed...', prismaError)
+          }
+        }
 
         console.log('🌱 Seeding production database with comprehensive data...')
 

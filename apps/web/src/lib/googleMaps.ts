@@ -24,8 +24,8 @@ export function loadGoogleMaps(libraries: string[] = []): Promise<typeof google>
     const shim: any = {
       maps: {
         Map: class { fitBounds() {} },
-        Marker: class { setMap() {}; addListener() {} },
-        LatLngBounds: class { extend() {}; isEmpty() { return true } },
+        Marker: class { setMap() {} addListener() {} },
+        LatLngBounds: class { extend() {} isEmpty() { return true } },
         InfoWindow: class { open() {} }
       }
     }
@@ -42,6 +42,7 @@ export function loadGoogleMaps(libraries: string[] = []): Promise<typeof google>
   // Prefer runtime-injected key if available (window.__ENV__), then Vite build-time env
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const runtimeEnv = (window as any).__ENV__
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const apiKey = (runtimeEnv?.VITE_GOOGLE_MAPS_API_KEY) || (import.meta as any).env?.VITE_GOOGLE_MAPS_API_KEY || ''
   const params = new URLSearchParams()
   if (apiKey) params.set('key', apiKey)
