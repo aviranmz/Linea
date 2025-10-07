@@ -37,13 +37,25 @@ export function InteractiveMapView({ events }: InteractiveMapViewProps) {
         const bounds = new (window as any).google.maps.LatLngBounds()
 
         const addMarker = (evt: Event, position: { lat: number; lng: number }) => {
-          const marker = new (window as any).google.maps.Marker({ position, map, title: evt.title })
+          // Apply tiny jitter when multiple events share identical coordinates
+          // to avoid exact marker overlap on the map
+          const jitterSeed = Math.abs([...evt.id].reduce((a, c) => a + c.charCodeAt(0), 0)) % 360
+          const radians = (jitterSeed / 360) * Math.PI * 2
+          const radiusMeters = 12 // ~12m fan-out
+          const metersToDegLat = 1 / 111320 // ~ meters per degree latitude
+          const metersToDegLng = 1 / (111320 * Math.cos(position.lat * Math.PI / 180))
+          const jitter = {
+            lat: position.lat + Math.sin(radians) * radiusMeters * metersToDegLat,
+            lng: position.lng + Math.cos(radians) * radiusMeters * metersToDegLng
+          }
+          const jittered = { lat: jitter.lat, lng: jitter.lng }
+          const marker = new (window as any).google.maps.Marker({ position: jittered, map, title: evt.title })
           const info = new (window as any).google.maps.InfoWindow({
             content: `<div style="max-width:220px">\n              <div style="font-weight:600;margin-bottom:4px">${evt.title}</div>\n              ${evt.venue ? `<div style="color:#4b5563">${evt.venue.city}, ${evt.venue.country}</div>` : ''}\n              <div style="margin-top:6px"><a href="/events/${evt.id}" style="color:#4f46e5;text-decoration:underline">View</a></div>\n            </div>`
           })
           marker.addListener('click', () => info.open({ map, anchor: marker }))
           markers.push(marker)
-          bounds.extend(position)
+          bounds.extend(jittered)
         }
 
         const tasks = events.map(async (evt) => {
