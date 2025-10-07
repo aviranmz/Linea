@@ -1,5 +1,5 @@
 // User preferences service with merge-update functionality
-import type { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 
 export interface UserPreferences {
   // Theme preferences
