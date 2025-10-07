@@ -113,6 +113,7 @@ export function NearbyEvents({ eventSlug, limit = 5, showTitle = true }: NearbyE
             to={`/events/${event.id}`}
             className="block border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow focus:outline-none focus:ring-2 focus:ring-accent-500"
             aria-label={`View event ${event.title}`}
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
           >
             <div className="flex items-start justify-between mb-2">
               <h4 className="font-semibold text-gray-900 text-sm hover:text-accent-600 transition-colors">
