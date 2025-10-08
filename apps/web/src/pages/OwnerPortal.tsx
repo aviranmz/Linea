@@ -98,6 +98,7 @@ export function OwnerPortal() {
     subject: '',
     message: '',
   });
+  const [generatingQR, setGeneratingQR] = useState<string | null>(null);
 
   const [newEvent, setNewEvent] = useState({
     title: '',
@@ -401,6 +402,41 @@ export function OwnerPortal() {
       setEvents(prev => prev.filter(e => e.id !== id));
     } catch {
       alert('Failed to delete event');
+    }
+  };
+
+  const handleGenerateQR = async (eventId: string) => {
+    setGeneratingQR(eventId);
+    try {
+      const response = await fetch(`/api/owner/events/${eventId}/generate-qr`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        // Update the event in the events list
+        setEvents(prev => prev.map(event => 
+          event.id === eventId 
+            ? {
+                ...event,
+                metadata: {
+                  ...event.metadata,
+                  qrUrl: result.qrUrl
+                }
+              }
+            : event
+        ));
+        alert('QR code generated successfully!');
+      } else {
+        const error = await response.json();
+        alert(error.error || 'Failed to generate QR code');
+      }
+    } catch (error) {
+      console.error('QR generation error:', error);
+      alert('Failed to generate QR code');
+    } finally {
+      setGeneratingQR(null);
     }
   };
 
@@ -1134,6 +1170,9 @@ export function OwnerPortal() {
                             {event.currentWaitlist && (
                               <span>• Waitlist: {event.currentWaitlist}</span>
                             )}
+                            {event.metadata?.qrUrl && (
+                              <span className='text-green-600'>• QR Code Available</span>
+                            )}
                           </div>
                         </div>
 
@@ -1163,6 +1202,15 @@ export function OwnerPortal() {
                           >
                             Analytics
                           </Link>
+                          {!event.metadata?.qrUrl && (
+                            <button
+                              onClick={() => handleGenerateQR(event.id)}
+                              disabled={generatingQR === event.id}
+                              className='btn btn-ghost btn-sm text-blue-600 hover:text-blue-700 hover:bg-blue-50 disabled:opacity-50'
+                            >
+                              {generatingQR === event.id ? 'Generating...' : 'Generate QR'}
+                            </button>
+                          )}
                           <button
                             onClick={() => handleDelete(event.id)}
                             className='btn btn-ghost btn-sm text-red-600 hover:text-red-700 hover:bg-red-50'

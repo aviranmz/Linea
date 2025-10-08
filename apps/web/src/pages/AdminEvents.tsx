@@ -228,92 +228,138 @@ export default function AdminEvents() {
 
   return (
     <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10'>
-      <div className='flex items-end justify-between mb-6 gap-4 flex-wrap'>
-        <div>
-          <h1 className='text-2xl font-bold'>{t('admin.events.title')}</h1>
-          <p className='text-sm text-gray-600'>{t('admin.events.subtitle')}</p>
-        </div>
-        <div className='flex flex-wrap gap-2'>
-          <input
-            className='input'
-            placeholder={t('admin.events.searchPlaceholder')}
-            value={search}
-            onChange={e => {
-              setPage(1);
-              setSearch(e.target.value);
-            }}
-          />
-          <select
-            className='input'
-            value={status}
-            onChange={e => {
-              setPage(1);
-              setStatus(
-                e.target.value as
-                  | ''
-                  | 'DRAFT'
-                  | 'PUBLISHED'
-                  | 'CANCELLED'
-                  | 'COMPLETED'
-              );
-            }}
-          >
-            <option value=''>{t('admin.events.all')}</option>
-            <option value='DRAFT'>{t('admin.events.draft')}</option>
-            <option value='PUBLISHED'>{t('admin.events.published')}</option>
-            <option value='CANCELLED'>{t('admin.events.cancelled')}</option>
-            <option value='COMPLETED'>{t('admin.events.completed')}</option>
-          </select>
-          <select
-            className='input'
-            value={category}
-            onChange={e => {
-              setPage(1);
-              setCategory(e.target.value);
-            }}
-          >
-            <option value=''>All Categories</option>
-            {categories.map(cat => (
-              <option key={cat.id} value={cat.id}>
-                {cat.name}
-              </option>
-            ))}
-          </select>
-          <select
-            className='input'
-            value={featured}
-            onChange={e => {
-              setPage(1);
-              setFeatured(e.target.value as '' | 'true' | 'false');
-            }}
-          >
-            <option value=''>All Events</option>
-            <option value='true'>Featured Only</option>
-            <option value='false'>Non-Featured</option>
-          </select>
-          <input
-            type='date'
-            className='input'
-            placeholder='From Date'
-            value={dateFrom}
-            onChange={e => {
-              setPage(1);
-              setDateFrom(e.target.value);
-            }}
-          />
-          <input
-            type='date'
-            className='input'
-            placeholder='To Date'
-            value={dateTo}
-            onChange={e => {
-              setPage(1);
-              setDateTo(e.target.value);
-            }}
-          />
-          <button className='btn btn-outline' onClick={exportCsv}>
-            {t('admin.events.exportCsv')}
-          </button>
+      {/* Header */}
+      <div className='mb-8'>
+        <h1 className='text-2xl font-bold'>{t('admin.events.title')}</h1>
+        <p className='text-sm text-gray-600'>{t('admin.events.subtitle')}</p>
+      </div>
+
+      {/* Filters Section */}
+      <div className='bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6'>
+        <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4'>
+          {/* Search */}
+          <div className='space-y-2'>
+            <label className='block text-sm font-medium text-gray-700'>
+              Search
+            </label>
+            <input
+              className='input w-full'
+              placeholder={t('admin.events.searchPlaceholder')}
+              value={search}
+              onChange={e => {
+                setPage(1);
+                setSearch(e.target.value);
+              }}
+            />
+          </div>
+
+          {/* Status Filter */}
+          <div className='space-y-2'>
+            <label className='block text-sm font-medium text-gray-700'>
+              Status
+            </label>
+            <select
+              className='input w-full'
+              value={status}
+              onChange={e => {
+                setPage(1);
+                setStatus(
+                  e.target.value as
+                    | ''
+                    | 'DRAFT'
+                    | 'PUBLISHED'
+                    | 'CANCELLED'
+                    | 'COMPLETED'
+                );
+              }}
+            >
+              <option value=''>{t('admin.events.all')}</option>
+              <option value='DRAFT'>{t('admin.events.draft')}</option>
+              <option value='PUBLISHED'>{t('admin.events.published')}</option>
+              <option value='CANCELLED'>{t('admin.events.cancelled')}</option>
+              <option value='COMPLETED'>{t('admin.events.completed')}</option>
+            </select>
+          </div>
+
+          {/* Category Filter */}
+          <div className='space-y-2'>
+            <label className='block text-sm font-medium text-gray-700'>
+              Category
+            </label>
+            <select
+              className='input w-full'
+              value={category}
+              onChange={e => {
+                setPage(1);
+                setCategory(e.target.value);
+              }}
+            >
+              <option value=''>All Categories</option>
+              {categories.map(cat => (
+                <option key={cat.id} value={cat.id}>
+                  {cat.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Featured Filter */}
+          <div className='space-y-2'>
+            <label className='block text-sm font-medium text-gray-700'>
+              Type
+            </label>
+            <select
+              className='input w-full'
+              value={featured}
+              onChange={e => {
+                setPage(1);
+                setFeatured(e.target.value as '' | 'true' | 'false');
+              }}
+            >
+              <option value=''>All Events</option>
+              <option value='true'>Featured Only</option>
+              <option value='false'>Non-Featured</option>
+            </select>
+          </div>
+
+          {/* Date From */}
+          <div className='space-y-2'>
+            <label className='block text-sm font-medium text-gray-700'>
+              From Date
+            </label>
+            <input
+              type='date'
+              className='input w-full'
+              value={dateFrom}
+              onChange={e => {
+                setPage(1);
+                setDateFrom(e.target.value);
+              }}
+            />
+          </div>
+
+          {/* Date To */}
+          <div className='space-y-2'>
+            <label className='block text-sm font-medium text-gray-700'>
+              To Date
+            </label>
+            <input
+              type='date'
+              className='input w-full'
+              value={dateTo}
+              onChange={e => {
+                setPage(1);
+                setDateTo(e.target.value);
+              }}
+            />
+          </div>
+
+          {/* Export Button */}
+          <div className='space-y-2 flex items-end'>
+            <button className='btn btn-outline w-full' onClick={exportCsv}>
+              {t('admin.events.exportCsv')}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -372,7 +418,14 @@ export default function AdminEvents() {
                 <tr key={ev.id} className='hover:bg-gray-50'>
                   <td className='px-4 py-2'>
                     <div className='text-sm font-medium text-gray-900'>
-                      {ev.title}
+                      <a 
+                        href={`/events/${ev.slug}`}
+                        target='_blank'
+                        rel='noopener noreferrer'
+                        className='text-blue-600 hover:text-blue-800 hover:underline'
+                      >
+                        {ev.title}
+                      </a>
                     </div>
                     <div className='text-xs text-gray-500'>/{ev.slug}</div>
                     {ev.featured && (
@@ -388,7 +441,7 @@ export default function AdminEvents() {
                     {ev._count?.waitlist || 0}
                   </td>
                   <td className='px-4 py-2 text-sm text-gray-500'>
-                    {new Date(ev.startDate).toLocaleDateString()}
+                    {ev.startDate ? new Date(ev.startDate).toLocaleDateString() : 'N/A'}
                   </td>
                   <td className='px-4 py-2'>
                     <span
