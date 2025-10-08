@@ -930,11 +930,11 @@ app.post('/api/owner/events/:id/generate-qr', async (request, reply) => {
 
     const { id } = request.params as { id: string };
     
-    // Check if event exists and user owns it
+    // Check if event exists and user owns it (or is admin)
     const event = await prisma.event.findFirst({
       where: {
         id,
-        ownerId: user.id,
+        ...(user.role === 'ADMIN' ? {} : { ownerId: user.id }),
         deletedAt: null,
       },
       select: { id: true, title: true, metadata: true },
