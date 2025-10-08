@@ -1202,7 +1202,7 @@ export function OwnerPortal() {
                           >
                             Analytics
                           </Link>
-                          {!event.metadata?.qrUrl && (
+                          {(!event.metadata?.qrUrl || typeof event.metadata.qrUrl !== 'string') && (
                             <button
                               onClick={() => handleGenerateQR(event.id)}
                               disabled={generatingQR === event.id}
