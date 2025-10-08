@@ -1165,15 +1165,18 @@ export function OwnerPortal() {
                               {event.status.toLowerCase()}
                             </span>
                             {event.capacity && (
-                              <span>• Capacity: {event.capacity}</span>
+                              <span>- Capacity: {event.capacity}</span>
                             )}
                             {event.currentWaitlist && (
-                              <span>• Waitlist: {event.currentWaitlist}</span>
+                              <span>- Waitlist: {event.currentWaitlist}</span>
                             )}
-                            {/* QR Code status with proper type checking - Updated */}
-                            {event.metadata?.qrUrl && typeof event.metadata.qrUrl === 'string' && (
-                              <span className='text-green-600'>• QR Code Available</span>
-                            )}
+                            {(() => {
+                              const qrUrl = event.metadata?.qrUrl;
+                              if (qrUrl && typeof qrUrl === 'string') {
+                                return <span className='text-green-600'>- QR Code Available</span>;
+                              }
+                              return null;
+                            })()}
                           </div>
                         </div>
 
