@@ -912,8 +912,21 @@ app.get('/api/events/:id/qr', async (request, reply) => {
 // Generate and save QR code for an event (owner only)
 app.post('/api/owner/events/:id/generate-qr', async (request, reply) => {
   try {
+    // Debug: Log the request details
+    app.log.info({
+      cookies: request.cookies,
+      headers: request.headers,
+      url: request.url,
+      method: request.method
+    }, 'QR generation request debug');
+    
     const user = await requireOwnerOrAdmin(request, reply);
-    if (!user) return;
+    if (!user) {
+      app.log.warn('QR generation: No authenticated user found');
+      return;
+    }
+    
+    app.log.info({ userId: user.id, role: user.role }, 'QR generation: User authenticated');
 
     const { id } = request.params as { id: string };
     
@@ -1055,7 +1068,12 @@ const getSessionUser = async (request: FastifyRequest) => {
   const token = (request.cookies as Record<string, string | undefined>)?.[
     cookieName
   ];
-  if (!token) return null;
+  if (!token) {
+    app.log.warn({ cookies: request.cookies, cookieName }, 'No session token found');
+    return null;
+  }
+  
+  app.log.info({ token: token.substring(0, 8) + '...' }, 'Session token found');
 
   // Get session from Redis
   const sessionData = await sessionService.getSession(token);
