@@ -1,6 +1,5 @@
 import crypto from 'crypto';
-import { QRCodeGenerator } from '../utils/qrGenerator';
-import config from '@linea/config';
+import { QRCodeGenerator } from '../utils/qrGenerator.js';
 
 export interface EmailTemplate {
   subject: string;
