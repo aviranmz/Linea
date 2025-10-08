@@ -2600,7 +2600,6 @@ app.post('/api/waitlist', async (request, reply) => {
         select: {
           title: true,
           startDate: true,
-          location: true,
         },
       });
 
@@ -2615,7 +2614,7 @@ app.post('/api/waitlist', async (request, reply) => {
           eventId,
           eventTitle: eventDetails.title,
           eventDate: eventDetails.startDate?.toLocaleDateString() || 'TBD',
-          eventLocation: eventDetails.location || 'TBD',
+          eventLocation: 'TBD', // TODO: Get location from venue
           qrCodeData,
           arrivalUrl: `${config.server.API_URL}/api/events/${eventId}/arrival/${arrivalHash}`,
         });
