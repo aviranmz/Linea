@@ -28,7 +28,7 @@ export class ArrivalTracker {
   /**
    * Verify and process an arrival hash
    */
-  static async processArrival(hash: string): Promise<{
+  static async processArrival(_hash: string): Promise<{
     success: boolean;
     message: string;
     eventTitle?: string;
@@ -113,7 +113,7 @@ export class ArrivalTracker {
   /**
    * Process arrival using stored hash
    */
-  static async processArrivalByHash(hash: string): Promise<{
+  static async processArrivalByHash(_hash: string): Promise<{
     success: boolean;
     message: string;
     eventTitle?: string;

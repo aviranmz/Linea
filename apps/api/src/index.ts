@@ -2691,7 +2691,7 @@ app.post('/api/waitlist', async (request, reply) => {
 // Event arrival scanning endpoint
 app.get('/api/events/:eventId/arrival/:hash', async (request, reply) => {
   try {
-    const { eventId: _eventId, hash } = request.params as {
+    const { hash } = request.params as {
       eventId: string;
       hash: string;
     };
