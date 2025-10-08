@@ -31,6 +31,10 @@ export function EventForm({
     isPublic: false,
     featured: false,
     tags: [],
+    streetAddress: '',
+    city: '',
+    country: '',
+    postalCode: '',
     productName: '',
     heroImageUrl: '',
     longDescription: '',
@@ -66,6 +70,10 @@ export function EventForm({
         isPublic: event.isPublic,
         featured: event.featured,
         tags: event.tags || [],
+        streetAddress: event.streetAddress || '',
+        city: event.city || '',
+        country: event.country || '',
+        postalCode: event.postalCode || '',
         productName: event.metadata?.productName || '',
         heroImageUrl: event.metadata?.heroImageUrl || '',
         longDescription: event.metadata?.longDescription || '',
@@ -303,6 +311,73 @@ export function EventForm({
               {getFieldError('shortDescription')}
             </p>
           )}
+        </div>
+      </div>
+
+      {/* Location Information */}
+      <div className='bg-white p-6 rounded-lg border'>
+        <h2 className='text-xl font-semibold mb-4'>
+          {t('form.locationInformation')}
+        </h2>
+
+        <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+          <div className='md:col-span-2'>
+            <label className='block text-sm font-medium text-gray-700 mb-2'>
+              {t('form.streetAddress')}
+            </label>
+            <input
+              type='text'
+              value={formData.streetAddress || ''}
+              onChange={e => handleInputChange('streetAddress', e.target.value)}
+              className='input w-full'
+              placeholder={t('form.streetAddressPlaceholder')}
+            />
+          </div>
+
+          <div>
+            <label className='block text-sm font-medium text-gray-700 mb-2'>
+              {t('form.city')}
+            </label>
+            <input
+              type='text'
+              value={formData.city || ''}
+              onChange={e => handleInputChange('city', e.target.value)}
+              className='input w-full'
+              placeholder={t('form.cityPlaceholder')}
+            />
+          </div>
+
+          <div>
+            <label className='block text-sm font-medium text-gray-700 mb-2'>
+              {t('form.country')}
+            </label>
+            <input
+              type='text'
+              value={formData.country || ''}
+              onChange={e => handleInputChange('country', e.target.value)}
+              className='input w-full'
+              placeholder={t('form.countryPlaceholder')}
+            />
+          </div>
+
+          <div>
+            <label className='block text-sm font-medium text-gray-700 mb-2'>
+              {t('form.postalCode')}
+            </label>
+            <input
+              type='text'
+              value={formData.postalCode || ''}
+              onChange={e => handleInputChange('postalCode', e.target.value)}
+              className='input w-full'
+              placeholder={t('form.postalCodePlaceholder')}
+            />
+          </div>
+        </div>
+
+        <div className='mt-4 p-4 bg-blue-50 rounded-lg'>
+          <p className='text-sm text-blue-800'>
+            <strong>Note:</strong> {t('form.locationNote')}
+          </p>
         </div>
       </div>
 

@@ -399,34 +399,6 @@ export function AdminPortal() {
                 </div>
               </a>
 
-              <a
-                href='/admin/owners'
-                className='group flex items-center p-6 bg-gradient-to-br from-milano-terracotta/5 to-milano-terracotta/10 rounded-xl border border-milano-terracotta/20 hover:shadow-milano-lg hover:scale-[1.02] transition-all duration-200'
-              >
-                <div className='w-12 h-12 bg-gradient-to-br from-milano-terracotta to-milano-terracotta/80 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-200 shadow-milano'>
-                  <svg
-                    className='w-6 h-6 text-white'
-                    fill='none'
-                    stroke='currentColor'
-                    viewBox='0 0 24 24'
-                  >
-                    <path
-                      strokeLinecap='round'
-                      strokeLinejoin='round'
-                      strokeWidth={2}
-                      d='M12 6v6m0 0v6m0-6h6m-6 0H6'
-                    />
-                  </svg>
-                </div>
-                <div className='ml-4'>
-                  <h3 className='text-sm font-semibold text-neutral-900 group-hover:text-milano-terracotta transition-colors'>
-                    {t('admin.manageOwners')}
-                  </h3>
-                  <p className='text-xs text-neutral-600'>
-                    Owner accounts and profiles
-                  </p>
-                </div>
-              </a>
 
               <a
                 href='/admin/events'

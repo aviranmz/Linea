@@ -765,7 +765,7 @@ export default function OwnerProfile() {
                   !profile.city ||
                   !profile.country
                 }
-                className='px-4 py-2 bg-gradient-to-r from-accent-500 to-terracotta-500 text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm'
+                className='px-4 py-2 bg-gradient-to-r from-accent-600 to-accent-700 text-white font-semibold rounded-lg shadow-md hover:shadow-lg hover:from-accent-700 hover:to-accent-800 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm'
               >
                 {geocoding ? 'Geocoding...' : t('owner.getCoordinates')}
               </button>
@@ -853,7 +853,7 @@ export default function OwnerProfile() {
             </Link>
             <button
               type='submit'
-              className='w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-accent-500 to-terracotta-500 text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed'
+              className='w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-accent-600 to-accent-700 text-white font-semibold rounded-lg shadow-md hover:shadow-lg hover:from-accent-700 hover:to-accent-800 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed'
               disabled={saving}
             >
               {saving ? 'Saving...' : 'Save Profile'}

@@ -10,7 +10,6 @@ import EventAnalytics from './pages/EventAnalytics';
 import DesignersPage from './pages/DesignersPage';
 import FavoritesPage from './pages/FavoritesPage';
 import { AdminPortal } from './pages/AdminPortal';
-import AdminOwners from './pages/AdminOwners';
 import AdminUsers from './pages/AdminUsers';
 import AdminEvents from './pages/AdminEvents';
 import AdminCategories from './pages/AdminCategories';
@@ -57,7 +56,6 @@ function App() {
             />
             <Route path='/admin/*' element={<AdminPortal />} />
             <Route path='/admin/users' element={<AdminUsers />} />
-            <Route path='/admin/owners' element={<AdminOwners />} />
             <Route path='/admin/events' element={<AdminEvents />} />
             <Route path='/admin/categories' element={<AdminCategories />} />
             <Route path='/admin/areas' element={<AdminAreas />} />

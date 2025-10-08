@@ -461,23 +461,23 @@ export default function AdminOwners() {
                   <td className='px-4 py-2'>
                     <div className='flex gap-2'>
                       <button
-                        className='px-3 py-1 text-xs bg-blue-100 text-blue-800 rounded hover:bg-blue-200 transition-colors'
+                        className='btn btn-ghost btn-sm'
                         onClick={() => openEditModal(o)}
                       >
                         Edit
                       </button>
                       <button
-                        className={`px-3 py-1 text-xs rounded transition-colors ${
+                        className={`btn btn-sm ${
                           o.status === 'ACTIVE'
-                            ? 'bg-red-100 text-red-800 hover:bg-red-200'
-                            : 'bg-green-100 text-green-800 hover:bg-green-200'
+                            ? 'btn-outline text-red-600 border-red-300 hover:bg-red-50'
+                            : 'btn-outline text-green-600 border-green-300 hover:bg-green-50'
                         }`}
                         onClick={() => toggleOwnerStatus(o)}
                       >
                         {o.status === 'ACTIVE' ? 'Suspend' : 'Activate'}
                       </button>
                       <button
-                        className='px-3 py-1 text-xs bg-red-100 text-red-800 rounded hover:bg-red-200 transition-colors'
+                        className='btn btn-outline btn-sm text-red-600 border-red-300 hover:bg-red-50'
                         onClick={() => deleteOwner(o)}
                       >
                         Delete

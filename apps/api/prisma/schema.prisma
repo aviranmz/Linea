@@ -85,6 +85,11 @@ model Event {
   metadata          Json?
   shortDescription  String?
   tags              String[]
+  // New location fields for user-friendly address input
+  streetAddress     String?
+  city              String?
+  country           String?
+  postalCode        String?
   eventInteractions EventInteraction[]
   eventViews        EventView[]
   category          Category?          @relation(fields: [categoryId], references: [id])

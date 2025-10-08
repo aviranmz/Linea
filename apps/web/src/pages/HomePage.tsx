@@ -41,7 +41,7 @@ export function HomePage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [showFilters, setShowFilters] = useState(false);
-  const [showMap, setShowMap] = useState(false);
+  const [showMap, setShowMap] = useState(true);
   const [filters, setFilters] = useState({
     search: '',
     category: '',
@@ -317,14 +317,14 @@ export function HomePage() {
                   onClick={() => setShowFilters(!showFilters)}
                   className='btn btn-outline btn-sm'
                 >
-                  {showFilters ? 'Hide Filters' : 'Show Filters'}
+                  {showFilters ? t('common.hideFilters') : t('common.showFilters')}
                 </button>
                 {getActiveFiltersCount() > 0 && (
                   <button
                     onClick={handleClearFilters}
                     className='btn btn-outline btn-sm text-red-600 hover:text-red-800'
                   >
-                    Clear All
+                    {t('common.clearAll')}
                   </button>
                 )}
               </div>
@@ -521,7 +521,7 @@ export function HomePage() {
                 onClick={() => setShowMap(!showMap)}
                 className='btn btn-outline btn-sm'
               >
-                {showMap ? 'List View' : 'Map View'}
+                {showMap ? t('common.listView') : t('common.mapView')}
               </button>
             </div>
           </div>
@@ -539,25 +539,28 @@ export function HomePage() {
                 </div>
               ))}
             </div>
-          ) : showMap ? (
-            <div className='mt-12'>
+          ) : (
+            <div className='mt-12 space-y-8'>
+              {/* Map View */}
               <div className='bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden'>
                 <InteractiveMapView events={filteredEvents} />
               </div>
-            </div>
-          ) : (
-            <div className='mt-12'>
+              
+              {/* Events Grid Below Map */}
               {filteredEvents.length > 0 ? (
-                <EventList
-                  events={filteredEvents}
-                  variant='grid'
-                  showOwner={true}
-                  showCategory={true}
-                  showWaitlist={true}
-                  onEventClick={event => {
-                    window.location.href = `/events/${event.id}`;
-                  }}
-                />
+                <div>
+                  <h2 className='text-2xl font-semibold text-gray-900 mb-6'>All Events</h2>
+                  <EventList
+                    events={filteredEvents}
+                    variant='grid'
+                    showOwner={true}
+                    showCategory={true}
+                    showWaitlist={true}
+                    onEventClick={event => {
+                      window.location.href = `/events/${event.id}`;
+                    }}
+                  />
+                </div>
               ) : (
                 <div className='col-span-full text-center py-12'>
                   <div className='text-neutral-400 mb-4'>
@@ -577,20 +580,20 @@ export function HomePage() {
                   </div>
                   <h3 className='heading-4 mb-2'>
                     {getActiveFiltersCount() > 0
-                      ? 'No events match your filters'
-                      : 'No events yet'}
+                      ? t('common.noEventsMatch')
+                      : t('common.noEventsYet')}
                   </h3>
                   <p className='text-body mb-4'>
                     {getActiveFiltersCount() > 0
-                      ? 'Try adjusting your filters or clear them to see all events.'
-                      : 'Check back soon for exciting events!'}
+                      ? t('common.tryAdjustingFilters')
+                      : t('common.checkBackSoon')}
                   </p>
                   {getActiveFiltersCount() > 0 && (
                     <button
                       onClick={handleClearFilters}
                       className='btn btn-outline'
                     >
-                      Clear Filters
+                      {t('common.clearFilters')}
                     </button>
                   )}
                 </div>

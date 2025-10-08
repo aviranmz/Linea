@@ -1,7 +1,7 @@
 import crypto from 'crypto';
-import { PrismaClient } from '@prisma/client';
+import * as Prisma from '@prisma/client';
 
-const prisma = new PrismaClient();
+const prisma = new Prisma.PrismaClient();
 
 export interface ArrivalData {
   eventId: string;
@@ -65,7 +65,7 @@ export class ArrivalTracker {
       }
 
       // Check if already arrived
-      if (waitlistEntry.status === 'ARRIVED') {
+      if (waitlistEntry.status === Prisma.WaitlistStatus.ARRIVED) {
         return {
           success: false,
           message: 'User has already checked in for this event',
@@ -76,7 +76,7 @@ export class ArrivalTracker {
       await prisma.waitlistEntry.update({
         where: { id: waitlistEntry.id },
         data: { 
-          status: 'ARRIVED',
+          status: Prisma.WaitlistStatus.ARRIVED,
           updatedAt: new Date(),
         },
       });
@@ -119,19 +119,11 @@ export class ArrivalTracker {
     eventTitle?: string;
     userEmail?: string;
   }> {
-    try {
-      // Since we don't have metadata field, we'll need to implement a different approach
-      // For now, return an error indicating this feature needs to be implemented
-      return {
-        success: false,
-        message: 'Arrival processing by hash is not yet implemented. The database schema needs to be updated to support metadata storage.',
-      };
-    } catch (error) {
-      console.error('Error processing arrival:', error);
-      return {
-        success: false,
-        message: 'Failed to process arrival',
-      };
-    }
+    // Since we don't have metadata field, we'll need to implement a different approach
+    // For now, return an error indicating this feature needs to be implemented
+    return {
+      success: false,
+      message: 'Arrival processing by hash is not yet implemented. The database schema needs to be updated to support metadata storage.',
+    };
   }
 }

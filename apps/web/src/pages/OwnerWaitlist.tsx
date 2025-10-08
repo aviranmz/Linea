@@ -207,9 +207,7 @@ export default function OwnerWaitlist() {
                     <td className='px-3 sm:px-4 py-4 whitespace-nowrap'>
                       <div className='flex items-center'>
                         <span className='text-sm font-medium text-gray-900'>
-                          {event.capacity
-                            ? Math.floor(event.capacity * 0.1)
-                            : 0}
+                          {event.currentWaitlist || 0}
                         </span>
                         <span className='text-sm text-gray-500 ml-1'>
                           people

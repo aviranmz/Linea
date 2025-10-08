@@ -1,4 +1,5 @@
 import { Event } from '../types/Event';
+import { useLanguage } from '../hooks/useLanguage';
 
 interface EventListProps {
   events: Event[];
@@ -21,6 +22,8 @@ export function EventList({
   className = '',
   onEventClick,
 }: EventListProps) {
+  const { t } = useLanguage();
+  
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
@@ -52,15 +55,15 @@ export function EventList({
   const getStatusText = (status: string) => {
     switch (status) {
       case 'PUBLISHED':
-        return 'Published';
+        return t('common.published');
       case 'DRAFT':
-        return 'Draft';
+        return t('common.draft');
       case 'CANCELLED':
-        return 'Cancelled';
+        return t('common.cancelled');
       case 'COMPLETED':
-        return 'Completed';
+        return t('common.completed');
       case 'PENDING_REVIEW':
-        return 'Pending Review';
+        return t('common.pendingReview');
       default:
         return status;
     }
@@ -133,7 +136,7 @@ export function EventList({
                           {event.title}
                         </div>
                         <div className='text-sm text-gray-500'>
-                          {event.shortDescription || 'No description'}
+                          {event.shortDescription || t('common.noDescription')}
                         </div>
                       </div>
                     </div>
@@ -280,7 +283,7 @@ export function EventList({
                   </div>
 
                   <p className='text-gray-600 mt-1'>
-                    {event.shortDescription || 'No description available'}
+                    {event.shortDescription || t('common.noDescriptionAvailable')}
                   </p>
 
                   <div className='mt-2 flex items-center space-x-4 text-sm text-gray-500'>
@@ -292,7 +295,7 @@ export function EventList({
                       <span className='mr-1'>📍</span>
                       {event.venue
                         ? `${event.venue.city}, ${event.venue.country}`
-                        : 'Location TBA'}
+                        : t('common.locationTBA')}
                     </div>
                     {showOwner && event.owner && (
                       <div className='flex items-center'>
@@ -330,7 +333,7 @@ export function EventList({
   // Grid variant (default)
   return (
     <div
-      className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 ${className}`}
+      className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 ${className}`}
     >
       {events.map(event => (
         <div
@@ -344,7 +347,7 @@ export function EventList({
                 event.metadata?.heroImageUrl || '/images/event-placeholder.jpg'
               }
               alt={event.title}
-              className='w-full h-48 object-cover'
+              className='w-full h-32 object-cover'
             />
             {event.featured && (
               <div className='absolute top-2 right-2'>
@@ -365,29 +368,29 @@ export function EventList({
             )}
           </div>
 
-          <div className='p-4'>
-            <h3 className='text-lg font-semibold text-gray-900 mb-2'>
+          <div className='p-3'>
+            <h3 className='text-base font-semibold text-gray-900 mb-1'>
               {event.title}
             </h3>
 
-            <p className='text-gray-600 text-sm mb-3'>
-              {event.shortDescription || 'No description available'}
+            <p className='text-gray-600 text-xs mb-2 line-clamp-2'>
+              {event.shortDescription || t('common.noDescriptionAvailable')}
             </p>
 
-            <div className='space-y-2 mb-4'>
-              <div className='flex items-center text-sm text-gray-500'>
-                <span className='mr-2'>📅</span>
+            <div className='space-y-1 mb-3'>
+              <div className='flex items-center text-xs text-gray-500'>
+                <span className='mr-1'>📅</span>
                 {formatDate(event.startDate)}
               </div>
-              <div className='flex items-center text-sm text-gray-500'>
-                <span className='mr-2'>📍</span>
+              <div className='flex items-center text-xs text-gray-500'>
+                <span className='mr-1'>📍</span>
                 {event.venue
                   ? `${event.venue.city}, ${event.venue.country}`
-                  : 'Location TBA'}
+                  : t('common.locationTBA')}
               </div>
               {showOwner && event.owner && (
-                <div className='flex items-center text-sm text-gray-500'>
-                  <span className='mr-2'>👤</span>
+                <div className='flex items-center text-xs text-gray-500'>
+                  <span className='mr-1'>👤</span>
                   {event.owner.businessName || event.owner.name}
                 </div>
               )}

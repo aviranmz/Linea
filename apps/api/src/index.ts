@@ -1873,6 +1873,10 @@ type CreateEventBody = {
   isPublic?: boolean;
   featured?: boolean;
   tags?: string[];
+  streetAddress?: string | null;
+  city?: string | null;
+  country?: string | null;
+  postalCode?: string | null;
   productName?: string | null;
   heroImageUrl?: string | null;
   longDescription?: string | null;
@@ -1965,6 +1969,10 @@ app.post('/api/owner/events', async (request, reply) => {
       isPublic,
       featured,
       tags,
+      streetAddress,
+      city,
+      country,
+      postalCode,
       productName,
       heroImageUrl,
       longDescription,
@@ -2004,6 +2012,10 @@ app.post('/api/owner/events', async (request, reply) => {
         isPublic: !!isPublic,
         featured: !!featured,
         tags: Array.isArray(tags) ? tags : [],
+        streetAddress: streetAddress ?? null,
+        city: city ?? null,
+        country: country ?? null,
+        postalCode: postalCode ?? null,
         metadata: {
           productName: productName ?? null,
           heroImageUrl: heroImageUrl ?? null,
@@ -2095,6 +2107,14 @@ app.put('/api/owner/events/:id', async (request, reply) => {
     if (typeof body.isPublic === 'boolean') data.isPublic = body.isPublic;
     if (typeof body.featured === 'boolean') data.featured = body.featured;
     if (Array.isArray(body.tags)) data.tags = body.tags;
+    if (typeof body.streetAddress !== 'undefined')
+      data.streetAddress = body.streetAddress ?? null;
+    if (typeof body.city !== 'undefined')
+      data.city = body.city ?? null;
+    if (typeof body.country !== 'undefined')
+      data.country = body.country ?? null;
+    if (typeof body.postalCode !== 'undefined')
+      data.postalCode = body.postalCode ?? null;
     // Merge metadata updates if provided
     const meta: Record<string, unknown> = {};
     if (typeof body.productName !== 'undefined')

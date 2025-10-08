@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { getJson, putJson } from '../lib/api';
+import { useLanguage } from '../hooks/useLanguage';
 
 interface SystemSettings {
   // Platform Configuration
@@ -49,6 +50,7 @@ interface SystemSettings {
 }
 
 export default function AdminSystemSettings() {
+  const { t } = useLanguage();
   const [authLoading, setAuthLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -516,7 +518,7 @@ export default function AdminSystemSettings() {
             </div>
             <div>
               <label className='block text-sm font-medium text-gray-700 mb-1'>
-                LinkedIn URL
+                {t('common.linkedinUrl')}
               </label>
               <input
                 type='url'
@@ -530,7 +532,7 @@ export default function AdminSystemSettings() {
 
         {/* Maintenance */}
         <div className='bg-white rounded-lg shadow-sm p-6'>
-          <h2 className='text-lg font-semibold mb-4'>Maintenance</h2>
+          <h2 className='text-lg font-semibold mb-4'>{t('common.maintenance')}</h2>
           <div className='space-y-4'>
             <div className='flex items-center'>
               <input
@@ -546,12 +548,12 @@ export default function AdminSystemSettings() {
                 htmlFor='maintenanceMode'
                 className='ml-2 text-sm text-gray-700'
               >
-                Enable Maintenance Mode
+                {t('common.enableMaintenanceMode')}
               </label>
             </div>
             <div>
               <label className='block text-sm font-medium text-gray-700 mb-1'>
-                Maintenance Message
+                {t('common.maintenanceMessage')}
               </label>
               <textarea
                 className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
@@ -560,7 +562,7 @@ export default function AdminSystemSettings() {
                 onChange={e =>
                   handleInputChange('maintenanceMessage', e.target.value)
                 }
-                placeholder='We are currently performing maintenance. Please check back later.'
+                placeholder={t('common.maintenancePlaceholder')}
               />
             </div>
           </div>

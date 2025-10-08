@@ -248,23 +248,23 @@ export default function AdminAreas() {
                       <div className='flex space-x-2'>
                         <button
                           onClick={() => setEditingArea(area)}
-                          className='text-indigo-600 hover:text-indigo-900'
+                          className='btn btn-ghost btn-sm'
                         >
                           Edit
                         </button>
                         <button
                           onClick={() => toggleActive(area)}
-                          className={
+                          className={`btn btn-sm ${
                             area.isActive
-                              ? 'text-red-600 hover:text-red-900'
-                              : 'text-green-600 hover:text-green-900'
-                          }
+                              ? 'btn-outline text-red-600 border-red-300 hover:bg-red-50'
+                              : 'btn-outline text-green-600 border-green-300 hover:bg-green-50'
+                          }`}
                         >
                           {area.isActive ? 'Deactivate' : 'Activate'}
                         </button>
                         <button
                           onClick={() => handleDelete(area.id)}
-                          className='text-red-600 hover:text-red-900'
+                          className='btn btn-outline btn-sm text-red-600 border-red-300 hover:bg-red-50'
                         >
                           Delete
                         </button>

@@ -432,10 +432,10 @@ export default function AdminUsers() {
                         <div className='flex space-x-2'>
                           <button
                             onClick={() => toggleUserStatus(user)}
-                            className={`${
+                            className={`btn btn-sm ${
                               user.isActive
-                                ? 'text-red-600 hover:text-red-900'
-                                : 'text-green-600 hover:text-green-900'
+                                ? 'btn-outline text-red-600 border-red-300 hover:bg-red-50'
+                                : 'btn-outline text-green-600 border-green-300 hover:bg-green-50'
                             }`}
                           >
                             {user.isActive
@@ -445,7 +445,7 @@ export default function AdminUsers() {
                           {user.role === 'OWNER' && (
                             <button
                               onClick={() => sendMagicLink(user)}
-                              className='text-blue-600 hover:text-blue-900'
+                              className='btn btn-ghost btn-sm text-blue-600 hover:text-blue-700'
                             >
                               Send Magic Link
                             </button>

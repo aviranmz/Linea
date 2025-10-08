@@ -1,536 +1,245 @@
 import * as Prisma from '@prisma/client';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const { PrismaClient } = Prisma as any;
-// import { hash } from 'bcryptjs'
 
 const prisma = new PrismaClient();
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars, no-unused-vars
+// Comprehensive seed data with all fields populated
 async function main() {
-  console.log('🌱 Starting database seed...');
+  console.log('🌱 Starting comprehensive database seed...');
 
-  // Create admin user
+  // STEP 1: Clean all existing data (owners and their related events)
+  console.log('🧹 Cleaning existing data...');
+  
+  // Delete all events first (due to foreign key constraints)
+  await prisma.event.deleteMany({});
+  console.log('✅ Deleted all existing events');
+  
+  // Delete all waitlist entries
+  await prisma.waitlistEntry.deleteMany({});
+  console.log('✅ Deleted all waitlist entries');
+  
+  // Delete all owners (users with role 'OWNER')
+  await prisma.user.deleteMany({
+    where: { role: 'OWNER' }
+  });
+  console.log('✅ Deleted all existing owners');
+  
+  // Delete all venues
+  await prisma.venue.deleteMany({});
+  console.log('✅ Deleted all existing venues');
+  
+  // Delete all areas
+  await prisma.area.deleteMany({});
+  console.log('✅ Deleted all existing areas');
+  
+  // Delete all products
+  await prisma.product.deleteMany({});
+  console.log('✅ Deleted all existing products');
+  
+  // Delete all categories
+  await prisma.category.deleteMany({});
+  console.log('✅ Deleted all existing categories');
+
+  // STEP 2: Create comprehensive admin user
+  console.log('👤 Creating admin user...');
   const adminUser = await prisma.user.upsert({
     where: { email: 'admin@linea.app' },
     update: {},
     create: {
       email: 'admin@linea.app',
-      name: 'Admin User',
+      name: 'Marco Rossi',
       role: 'ADMIN',
       isActive: true,
       lastLoginAt: new Date(),
+      businessName: 'Linea Platform Administration',
+      businessIntro: 'Leading the Linea platform administration team, ensuring smooth operations and user experience across all design and technology events in Milano.',
+      phone: '+39 02 1234 5678',
+      website: 'https://linea.app',
+      facebookUrl: 'https://facebook.com/lineaapp',
+      instagramUrl: 'https://instagram.com/lineaapp',
+      address: 'Via Montenapoleone 1',
+      city: 'Milano',
+      country: 'Italy',
+      latitude: 45.4692,
+      longitude: 9.1903,
     },
   });
-
   console.log('✅ Created admin user:', adminUser.email);
 
-  // Create sample owner
-  const ownerUser = await prisma.user.upsert({
-    where: { email: 'owner@linea.app' },
-    update: {},
-    create: {
-      email: 'owner@linea.app',
-      name: 'Event Owner',
-      role: 'OWNER',
-      isActive: true,
-      lastLoginAt: new Date(),
-    },
-  });
-
-  console.log('✅ Created owner user:', ownerUser.email);
-
-  // Create categories
+  // STEP 3: Create comprehensive categories
+  console.log('📂 Creating categories...');
   const categories = await Promise.all([
-    prisma.category.upsert({
-      where: { slug: 'design' },
-      update: {},
-      create: {
-        name: 'Design',
-        slug: 'design',
-        description: 'Design events, workshops, and exhibitions',
-        color: '#c4b69e',
-        icon: 'Design',
-        isActive: true,
-      },
-    }),
-    prisma.category.upsert({
-      where: { slug: 'technology' },
-      update: {},
-      create: {
-        name: 'Technology',
-        slug: 'technology',
-        description: 'Tech meetups, conferences, and hackathons',
-        color: '#b8a78b',
-        icon: 'Tech',
-        isActive: true,
-      },
-    }),
-    prisma.category.upsert({
-      where: { slug: 'art' },
-      update: {},
-      create: {
-        name: 'Art & Culture',
-        slug: 'art',
-        description: 'Art exhibitions, cultural events, and performances',
-        color: '#a08965',
-        icon: 'Art',
-        isActive: true,
-      },
-    }),
-    prisma.category.upsert({
-      where: { slug: 'business' },
-      update: {},
-      create: {
-        name: 'Business',
-        slug: 'business',
-        description: 'Networking events, conferences, and workshops',
-        color: '#947a52',
-        icon: 'Business',
-        isActive: true,
-      },
-    }),
-    // Kitchen Design Categories
-    prisma.category.upsert({
-      where: { slug: 'kitchens' },
-      update: {},
-      create: {
-        name: 'Kitchens',
-        slug: 'kitchens',
-        description: 'Kitchen design, appliances, and cabinetry',
-        color: '#886b3f',
-        icon: 'Kitchen',
-        isActive: true,
-      },
-    }),
-    prisma.category.upsert({
-      where: { slug: 'kitchen-appliances' },
-      update: {},
-      create: {
-        name: 'Kitchen Appliances',
-        slug: 'kitchen-appliances',
-        description:
-          'Kitchen appliances, cooking equipment, and smart home solutions',
-        color: '#d0c5b1',
-        icon: 'Appliances',
-        isActive: true,
-      },
-    }),
-    prisma.category.upsert({
-      where: { slug: 'kitchen-cabinetry' },
-      update: {},
-      create: {
-        name: 'Kitchen Cabinetry',
-        slug: 'kitchen-cabinetry',
-        description:
-          'Kitchen cabinets, storage solutions, and organization systems',
-        color: '#ddd4c4',
-        icon: 'Storage',
-        isActive: true,
-      },
-    }),
-    prisma.category.upsert({
-      where: { slug: 'kitchen-countertops' },
-      update: {},
-      create: {
-        name: 'Kitchen Countertops',
-        slug: 'kitchen-countertops',
-        description: 'Countertop materials, surfaces, and finishes',
-        color: '#eae3d7',
-        icon: 'Build',
-        isActive: true,
-      },
-    }),
-    // Furniture Categories
-    prisma.category.upsert({
-      where: { slug: 'furniture' },
-      update: {},
-      create: {
-        name: 'Furniture',
-        slug: 'furniture',
-        description: 'Furniture design, seating, and home decor',
-        color: '#0891b2',
-        icon: '🪑',
-        isActive: true,
-      },
-    }),
-    prisma.category.upsert({
-      where: { slug: 'seating' },
-      update: {},
-      create: {
-        name: 'Seating',
-        slug: 'seating',
-        description: 'Chairs, sofas, and seating solutions',
-        color: '#be185d',
-        icon: '🛋️',
-        isActive: true,
-      },
-    }),
-    prisma.category.upsert({
-      where: { slug: 'tables' },
-      update: {},
-      create: {
-        name: 'Tables',
-        slug: 'tables',
-        description: 'Dining tables, coffee tables, and work surfaces',
-        color: '#7c2d12',
-        icon: '🪵',
-        isActive: true,
-      },
-    }),
-    prisma.category.upsert({
-      where: { slug: 'storage' },
-      update: {},
-      create: {
-        name: 'Storage',
-        slug: 'storage',
-        description: 'Storage solutions, wardrobes, and organization systems',
-        color: '#4338ca',
-        icon: '📦',
-        isActive: true,
-      },
-    }),
-    prisma.category.upsert({
-      where: { slug: 'lighting' },
-      update: {},
-      create: {
-        name: 'Lighting',
-        slug: 'lighting',
-        description: 'Lighting fixtures, lamps, and illumination systems',
-        color: '#fbbf24',
-        icon: '💡',
-        isActive: true,
-      },
-    }),
-    prisma.category.upsert({
-      where: { slug: 'textiles' },
-      update: {},
-      create: {
-        name: 'Textiles',
-        slug: 'textiles',
-        description: 'Fabrics, upholstery, and textile design',
-        color: '#ec4899',
-        icon: '🧵',
-        isActive: true,
-      },
-    }),
-    prisma.category.upsert({
-      where: { slug: 'flooring' },
-      update: {},
-      create: {
-        name: 'Flooring',
-        slug: 'flooring',
-        description: 'Flooring materials, tiles, and surface treatments',
-        color: '#6b7280',
-        icon: '🏠',
-        isActive: true,
-      },
-    }),
-    prisma.category.upsert({
-      where: { slug: 'bathroom' },
-      update: {},
-      create: {
-        name: 'Bathroom',
-        slug: 'bathroom',
-        description: 'Bathroom fixtures, fittings, and design solutions',
-        color: '#0ea5e9',
-        icon: '🛁',
-        isActive: true,
-      },
-    }),
-  ]);
-
-  console.log(
-    '✅ Created categories:',
-    categories.map((c: any) => c.name).join(', ')
-  );
-
-  // Create areas
-  const areas = await Promise.all([
-    prisma.area.upsert({
-      where: { slug: 'brera' },
-      update: {},
-      create: {
-        name: 'Brera',
-        slug: 'brera',
-        description:
-          'Historic artistic district with galleries, boutiques, and design studios',
-        color: '#8b5cf6',
-        icon: 'Design',
-        isActive: true,
-      },
-    }),
-    prisma.area.upsert({
-      where: { slug: '5vie' },
-      update: {},
-      create: {
-        name: '5vie',
-        slug: '5vie',
-        description:
-          'Design district with contemporary furniture showrooms and design studios',
-        color: '#06b6d4',
+    prisma.category.create({
+      data: {
+        name: 'Design & Architecture',
+        slug: 'design-architecture',
+        description: 'Contemporary design, architecture exhibitions, and innovative spatial solutions',
+        color: '#8B4513',
         icon: '🏛️',
         isActive: true,
       },
     }),
-    prisma.area.upsert({
-      where: { slug: 'porta-nuova' },
-      update: {},
-      create: {
-        name: 'Porta Nuova',
-        slug: 'porta-nuova',
-        description:
-          'Modern business district with contemporary architecture and design',
-        color: '#10b981',
-        icon: '🏢',
+    prisma.category.create({
+      data: {
+        name: 'Technology & Innovation',
+        slug: 'technology-innovation',
+        description: 'Cutting-edge technology, AI, blockchain, and digital transformation',
+        color: '#2E8B57',
+        icon: '💻',
         isActive: true,
       },
     }),
-    prisma.area.upsert({
-      where: { slug: 'navigli' },
-      update: {},
-      create: {
-        name: 'Navigli',
-        slug: 'navigli',
-        description:
-          'Historic canal district with trendy bars, restaurants, and creative spaces',
-        color: '#f59e0b',
-        icon: '🚤',
-        isActive: true,
-      },
-    }),
-    prisma.area.upsert({
-      where: { slug: 'quadrilatero-della-moda' },
-      update: {},
-      create: {
-        name: 'Quadrilatero della Moda',
-        slug: 'quadrilatero-della-moda',
-        description:
-          'Fashion district with luxury boutiques and high-end design',
-        color: '#ec4899',
+    prisma.category.create({
+      data: {
+        name: 'Fashion & Style',
+        slug: 'fashion-style',
+        description: 'Fashion shows, style workshops, and trend presentations',
+        color: '#FF69B4',
         icon: '👗',
         isActive: true,
       },
     }),
-    prisma.area.upsert({
-      where: { slug: 'garibaldi' },
-      update: {},
-      create: {
-        name: 'Garibaldi',
-        slug: 'garibaldi',
-        description:
-          'Modern district with contemporary design and architecture',
-        color: '#3b82f6',
-        icon: 'Build',
+    prisma.category.create({
+      data: {
+        name: 'Art & Culture',
+        slug: 'art-culture',
+        description: 'Contemporary art, cultural events, and creative expressions',
+        color: '#9370DB',
+        icon: '🎨',
         isActive: true,
       },
     }),
-    prisma.area.upsert({
-      where: { slug: 'tortona' },
-      update: {},
-      create: {
-        name: 'Tortona',
-        slug: 'tortona',
-        description:
-          'Design district with showrooms, studios, and creative spaces',
-        color: '#ef4444',
-        icon: 'Art',
-        isActive: true,
-      },
-    }),
-    prisma.area.upsert({
-      where: { slug: 'isola' },
-      update: {},
-      create: {
-        name: 'Isola',
-        slug: 'isola',
-        description:
-          'Emerging design district with contemporary architecture and creative spaces',
-        color: '#84cc16',
-        icon: '🏝️',
+    prisma.category.create({
+      data: {
+        name: 'Food & Lifestyle',
+        slug: 'food-lifestyle',
+        description: 'Culinary experiences, lifestyle workshops, and wellness events',
+        color: '#FF6347',
+        icon: '🍽️',
         isActive: true,
       },
     }),
   ]);
+  console.log('✅ Created categories:', categories.map(c => c.name).join(', '));
 
-  console.log('✅ Created areas:', areas.map((a: any) => a.name).join(', '));
+  // STEP 4: Create comprehensive areas
+  console.log('📍 Creating areas...');
+  const areas = await Promise.all([
+    prisma.area.create({
+      data: {
+        name: 'Brera',
+        slug: 'brera',
+        description: 'Historic artistic district with galleries, design studios, and cultural venues',
+        color: '#8B4513',
+        icon: '🎨',
+        isActive: true,
+      },
+    }),
+    prisma.area.create({
+      data: {
+        name: 'Tortona',
+        slug: 'tortona',
+        description: 'Design district with showrooms, studios, and creative spaces',
+        color: '#2E8B57',
+        icon: '🏗️',
+        isActive: true,
+      },
+    }),
+    prisma.area.create({
+      data: {
+        name: 'Porta Nuova',
+        slug: 'porta-nuova',
+        description: 'Modern business district with contemporary architecture and tech companies',
+        color: '#4169E1',
+        icon: '🏢',
+        isActive: true,
+      },
+    }),
+    prisma.area.create({
+      data: {
+        name: 'Navigli',
+        slug: 'navigli',
+        description: 'Historic canal district with restaurants, bars, and cultural venues',
+        color: '#9370DB',
+        icon: '🚤',
+        isActive: true,
+      },
+    }),
+    prisma.area.create({
+      data: {
+        name: 'Garibaldi',
+        slug: 'garibaldi',
+        description: 'Fashion and shopping district with luxury boutiques and showrooms',
+        color: '#FF69B4',
+        icon: '🛍️',
+        isActive: true,
+      },
+    }),
+  ]);
+  console.log('✅ Created areas:', areas.map(a => a.name).join(', '));
 
-  // Create products
+  // STEP 5: Create comprehensive products
+  console.log('🏷️ Creating products...');
   const products = await Promise.all([
-    prisma.product.upsert({
-      where: { slug: 'recessed-lights' },
-      update: {},
-      create: {
-        name: 'Recessed Lights',
-        slug: 'recessed-lights',
-        description: 'Built-in ceiling and wall lighting solutions',
-        color: '#fbbf24',
+    prisma.product.create({
+      data: {
+        name: 'Recessed Lighting',
+        slug: 'recessed-lighting',
+        description: 'Modern recessed lighting solutions for contemporary spaces',
+        color: '#FFD700',
         icon: '💡',
         isActive: true,
       },
     }),
-    prisma.product.upsert({
-      where: { slug: 'spotlights' },
-      update: {},
-      create: {
-        name: 'Spotlights',
-        slug: 'spotlights',
-        description:
-          'Directional lighting fixtures for accent and task lighting',
-        color: '#3b82f6',
-        icon: '🔦',
+    prisma.product.create({
+      data: {
+        name: 'Kitchen Appliances',
+        slug: 'kitchen-appliances',
+        description: 'High-end kitchen appliances and cooking equipment',
+        color: '#FF6347',
+        icon: '🍳',
         isActive: true,
       },
     }),
-    prisma.product.upsert({
-      where: { slug: 'pendant-lights' },
-      update: {},
-      create: {
+    prisma.product.create({
+      data: {
         name: 'Pendant Lights',
         slug: 'pendant-lights',
-        description:
-          'Hanging light fixtures for ambient and decorative lighting',
-        color: '#8b5cf6',
-        icon: '🕯️',
+        description: 'Designer pendant lighting for residential and commercial spaces',
+        color: '#32CD32',
+        icon: '🔮',
         isActive: true,
       },
     }),
-    prisma.product.upsert({
-      where: { slug: 'chandeliers' },
-      update: {},
-      create: {
-        name: 'Chandeliers',
-        slug: 'chandeliers',
-        description: 'Decorative multi-light fixtures for grand spaces',
-        color: '#ec4899',
-        icon: '✨',
+    prisma.product.create({
+      data: {
+        name: 'Furniture',
+        slug: 'furniture',
+        description: 'Contemporary furniture and seating solutions',
+        color: '#8B4513',
+        icon: '🪑',
         isActive: true,
       },
     }),
-    prisma.product.upsert({
-      where: { slug: 'wall-sconces' },
-      update: {},
-      create: {
-        name: 'Wall Sconces',
-        slug: 'wall-sconces',
-        description:
-          'Wall-mounted lighting fixtures for ambient and accent lighting',
-        color: '#10b981',
-        icon: '🕯️',
-        isActive: true,
-      },
-    }),
-    prisma.product.upsert({
-      where: { slug: 'table-lamps' },
-      update: {},
-      create: {
-        name: 'Table Lamps',
-        slug: 'table-lamps',
-        description: 'Portable lighting solutions for desks and side tables',
-        color: '#f59e0b',
-        icon: '🪔',
-        isActive: true,
-      },
-    }),
-    prisma.product.upsert({
-      where: { slug: 'floor-lamps' },
-      update: {},
-      create: {
-        name: 'Floor Lamps',
-        slug: 'floor-lamps',
-        description: 'Standing lighting fixtures for ambient and task lighting',
-        color: '#ef4444',
-        icon: '🏮',
-        isActive: true,
-      },
-    }),
-    prisma.product.upsert({
-      where: { slug: 'track-lighting' },
-      update: {},
-      create: {
-        name: 'Track Lighting',
-        slug: 'track-lighting',
-        description: 'Flexible lighting systems with adjustable fixtures',
-        color: '#06b6d4',
-        icon: '⚡',
-        isActive: true,
-      },
-    }),
-    prisma.product.upsert({
-      where: { slug: 'led-strips' },
-      update: {},
-      create: {
-        name: 'LED Strips',
-        slug: 'led-strips',
-        description:
-          'Flexible LED lighting strips for accent and decorative lighting',
-        color: '#84cc16',
-        icon: '🌈',
-        isActive: true,
-      },
-    }),
-    prisma.product.upsert({
-      where: { slug: 'outdoor-lighting' },
-      update: {},
-      create: {
-        name: 'Outdoor Lighting',
-        slug: 'outdoor-lighting',
-        description: 'Weather-resistant lighting for exterior spaces',
-        color: '#6b7280',
-        icon: '🌙',
-        isActive: true,
-      },
-    }),
-    prisma.product.upsert({
-      where: { slug: 'smart-lighting' },
-      update: {},
-      create: {
-        name: 'Smart Lighting',
-        slug: 'smart-lighting',
-        description:
-          'Connected lighting systems with app control and automation',
-        color: '#8b5cf6',
-        icon: '🤖',
-        isActive: true,
-      },
-    }),
-    prisma.product.upsert({
-      where: { slug: 'emergency-lighting' },
-      update: {},
-      create: {
-        name: 'Emergency Lighting',
-        slug: 'emergency-lighting',
-        description: 'Safety lighting systems for emergency situations',
-        color: '#dc2626',
-        icon: '🚨',
+    prisma.product.create({
+      data: {
+        name: 'Textiles',
+        slug: 'textiles',
+        description: 'Luxury fabrics, upholstery, and textile solutions',
+        color: '#9370DB',
+        icon: '🧵',
         isActive: true,
       },
     }),
   ]);
+  console.log('✅ Created products:', products.map(p => p.name).join(', '));
 
-  console.log(
-    '✅ Created products:',
-    products.map((p: any) => p.name).join(', ')
-  );
-
-  // Create venues
+  // STEP 6: Create comprehensive venues
+  console.log('🏢 Creating venues...');
   const venues = await Promise.all([
-    prisma.venue.upsert({
-      where: { name: 'Milano Design Center' },
-      update: {},
-      create: {
-        name: 'Milano Design Center',
-        address: 'Via Tortona, 37, 20144 Milano MI, Italy',
-        city: 'Milano',
-        country: 'Italy',
-        latitude: 45.4508,
-        longitude: 9.1734,
-        website: 'https://milanodesigncenter.com',
-      },
-    }),
-    prisma.venue.upsert({
-      where: { name: 'Triennale di Milano' },
-      update: {},
-      create: {
+    prisma.venue.create({
+      data: {
         name: 'Triennale di Milano',
         address: 'Viale Emilio Alemagna, 6, 20121 Milano MI, Italy',
         city: 'Milano',
@@ -538,12 +247,14 @@ async function main() {
         latitude: 45.4722,
         longitude: 9.1708,
         website: 'https://triennale.org',
+        phone: '+39 02 7243 4200',
+        email: 'info@triennale.org',
+        capacity: 500,
+        description: 'Premier design museum and exhibition space in the heart of Milano',
       },
     }),
-    prisma.venue.upsert({
-      where: { name: 'Fondazione Prada' },
-      update: {},
-      create: {
+    prisma.venue.create({
+      data: {
         name: 'Fondazione Prada',
         address: 'Largo Isarco, 2, 20139 Milano MI, Italy',
         city: 'Milano',
@@ -551,515 +262,488 @@ async function main() {
         latitude: 45.4444,
         longitude: 9.2,
         website: 'https://fondazioneprada.org',
+        phone: '+39 02 5666 2611',
+        email: 'info@fondazioneprada.org',
+        capacity: 300,
+        description: 'Contemporary art foundation with cutting-edge exhibitions',
+      },
+    }),
+    prisma.venue.create({
+      data: {
+        name: 'Palazzo Clerici',
+        address: 'Via Clerici, 5, 20121 Milano MI, Italy',
+        city: 'Milano',
+        country: 'Italy',
+        latitude: 45.4681,
+        longitude: 9.1903,
+        website: 'https://palazzoclerici.it',
+        phone: '+39 02 7200 1234',
+        email: 'events@palazzoclerici.it',
+        capacity: 200,
+        description: 'Historic palace with elegant event spaces',
+      },
+    }),
+    prisma.venue.create({
+      data: {
+        name: 'Spazio Rossana Orlandi',
+        address: 'Via Matteo Bandello, 14/16, 20123 Milano MI, Italy',
+        city: 'Milano',
+        country: 'Italy',
+        latitude: 45.4719,
+        longitude: 9.1881,
+        website: 'https://rossanaorlandi.com',
+        phone: '+39 02 4674 4691',
+        email: 'info@rossanaorlandi.com',
+        capacity: 150,
+        description: 'Iconic design gallery and showroom',
+      },
+    }),
+    prisma.venue.create({
+      data: {
+        name: 'Museo del Novecento',
+        address: 'Piazza del Duomo, 8, 20122 Milano MI, Italy',
+        city: 'Milano',
+        country: 'Italy',
+        latitude: 45.4642,
+        longitude: 9.1903,
+        website: 'https://museodelnovecento.org',
+        phone: '+39 02 8844 4061',
+        email: 'info@museodelnovecento.org',
+        capacity: 400,
+        description: 'Modern art museum with contemporary exhibitions',
       },
     }),
   ]);
+  console.log('✅ Created venues:', venues.map(v => v.name).join(', '));
 
-  console.log('✅ Created venues:', venues.map((v: any) => v.name).join(', '));
+  // STEP 7: Create comprehensive owner users with all fields
+  console.log('👥 Creating comprehensive owner users...');
+  const owners = await Promise.all([
+    // Owner 1 - Design Studio
+    prisma.user.create({
+      data: {
+        email: 'alessandro.rossi@studiorossi.it',
+        name: 'Alessandro Rossi',
+        role: 'OWNER',
+        isActive: true,
+        lastLoginAt: new Date(),
+        businessName: 'Studio Rossi Design',
+        businessIntro: 'Leading design studio specializing in sustainable architecture and contemporary furniture. We create innovative spaces that blend functionality with aesthetic excellence, focusing on eco-friendly materials and cutting-edge design solutions. Our team of architects and designers works closely with clients to deliver bespoke solutions that reflect their vision while maintaining the highest standards of sustainability and craftsmanship.',
+        phone: '+39 02 1234 5678',
+        website: 'https://studiorossi.it',
+        facebookUrl: 'https://facebook.com/studiorossi',
+        instagramUrl: 'https://instagram.com/studiorossi',
+        linkedinUrl: 'https://linkedin.com/company/studio-rossi-design',
+        twitterUrl: 'https://twitter.com/studiorossi',
+        address: 'Via Brera 15',
+        city: 'Milano',
+        country: 'Italy',
+        postalCode: '20121',
+        latitude: 45.4719,
+        longitude: 9.1881,
+        areaId: areas.find(a => a.slug === 'brera')?.id,
+        productId: products.find(p => p.slug === 'recessed-lighting')?.id,
+      },
+    }),
+    
+    // Owner 2 - Kitchen Specialist
+    prisma.user.create({
+      data: {
+        email: 'maria.bianchi@cucinemodernemilano.it',
+        name: 'Maria Bianchi',
+        role: 'OWNER',
+        isActive: true,
+        lastLoginAt: new Date(),
+        businessName: 'Cucine Moderne Milano',
+        businessIntro: 'Premier kitchen design studio offering bespoke culinary spaces that combine Italian craftsmanship with modern functionality. We specialize in luxury kitchen solutions, from concept to completion, using the finest materials and state-of-the-art appliances. Our team of expert designers creates personalized kitchens that reflect each client\'s lifestyle and culinary aspirations.',
+        phone: '+39 02 8765 4321',
+        website: 'https://cucinemodernemilano.it',
+        facebookUrl: 'https://facebook.com/cucinemodernemilano',
+        instagramUrl: 'https://instagram.com/cucinemodernemilano',
+        linkedinUrl: 'https://linkedin.com/company/cucine-moderne-milano',
+        twitterUrl: 'https://twitter.com/cucinemodernemilano',
+        address: 'Via Tortona 37',
+        city: 'Milano',
+        country: 'Italy',
+        postalCode: '20144',
+        latitude: 45.4444,
+        longitude: 9.1734,
+        areaId: areas.find(a => a.slug === 'tortona')?.id,
+        productId: products.find(p => p.slug === 'kitchen-appliances')?.id,
+      },
+    }),
+    
+    // Owner 3 - Lighting Design
+    prisma.user.create({
+      data: {
+        email: 'giuseppe.verdi@lucedesign.it',
+        name: 'Giuseppe Verdi',
+        role: 'OWNER',
+        isActive: true,
+        lastLoginAt: new Date(),
+        businessName: 'Luce & Design',
+        businessIntro: 'Innovative lighting design studio creating atmospheric and functional lighting solutions for residential and commercial spaces. We combine artistic vision with technical expertise to deliver lighting designs that enhance architecture and create memorable experiences. Our portfolio includes luxury hotels, restaurants, private residences, and corporate headquarters.',
+        phone: '+39 02 9876 5432',
+        website: 'https://lucedesign.it',
+        facebookUrl: 'https://facebook.com/lucedesign',
+        instagramUrl: 'https://instagram.com/lucedesign',
+        linkedinUrl: 'https://linkedin.com/company/luce-design',
+        twitterUrl: 'https://twitter.com/lucedesign',
+        address: 'Via Porta Nuova 8',
+        city: 'Milano',
+        country: 'Italy',
+        postalCode: '20121',
+        latitude: 45.4808,
+        longitude: 9.1881,
+        areaId: areas.find(a => a.slug === 'porta-nuova')?.id,
+        productId: products.find(p => p.slug === 'pendant-lights')?.id,
+      },
+    }),
+    
+    // Owner 4 - Furniture Design
+    prisma.user.create({
+      data: {
+        email: 'francesca.conti@atelierconti.it',
+        name: 'Francesca Conti',
+        role: 'OWNER',
+        isActive: true,
+        lastLoginAt: new Date(),
+        businessName: 'Atelier Conti',
+        businessIntro: 'Bespoke furniture atelier creating unique pieces that blend traditional Italian craftsmanship with contemporary design. Each piece is handcrafted using sustainable materials and traditional techniques, resulting in furniture that tells a story. We work with interior designers, architects, and private clients to create custom solutions that reflect their vision and lifestyle.',
+        phone: '+39 02 5555 1234',
+        website: 'https://atelierconti.it',
+        facebookUrl: 'https://facebook.com/atelierconti',
+        instagramUrl: 'https://instagram.com/atelierconti',
+        linkedinUrl: 'https://linkedin.com/company/atelier-conti',
+        twitterUrl: 'https://twitter.com/atelierconti',
+        address: 'Via Navigli 25',
+        city: 'Milano',
+        country: 'Italy',
+        postalCode: '20123',
+        latitude: 45.4444,
+        longitude: 9.1734,
+        areaId: areas.find(a => a.slug === 'navigli')?.id,
+        productId: products.find(p => p.slug === 'furniture')?.id,
+      },
+    }),
+    
+    // Owner 5 - Textile Design
+    prisma.user.create({
+      data: {
+        email: 'elena.ferrari@tessutiferrari.it',
+        name: 'Elena Ferrari',
+        role: 'OWNER',
+        isActive: true,
+        lastLoginAt: new Date(),
+        businessName: 'Tessuti Ferrari',
+        businessIntro: 'Luxury textile house specializing in high-end fabrics for interior design and fashion. We create exclusive textile collections using traditional Italian weaving techniques combined with innovative materials and contemporary patterns. Our fabrics grace the most prestigious homes, hotels, and fashion houses worldwide, representing the pinnacle of Italian textile excellence.',
+        phone: '+39 02 3333 9876',
+        website: 'https://tessutiferrari.it',
+        facebookUrl: 'https://facebook.com/tessutiferrari',
+        instagramUrl: 'https://instagram.com/tessutiferrari',
+        linkedinUrl: 'https://linkedin.com/company/tessuti-ferrari',
+        twitterUrl: 'https://twitter.com/tessutiferrari',
+        address: 'Via Garibaldi 12',
+        city: 'Milano',
+        country: 'Italy',
+        postalCode: '20121',
+        latitude: 45.4681,
+        longitude: 9.1903,
+        areaId: areas.find(a => a.slug === 'garibaldi')?.id,
+        productId: products.find(p => p.slug === 'textiles')?.id,
+      },
+    }),
+  ]);
+  console.log('✅ Created owners:', owners.map(o => o.name).join(', '));
 
-  // Check if events already exist - if so, skip event creation entirely
-  const existingEvents = await prisma.event.findMany({
-    select: { slug: true },
-  });
-
-  if (existingEvents.length > 0) {
-    console.log(
-      '✅ Events already exist, skipping event creation to prevent duplicates'
-    );
-  } else {
-    console.log('🌱 No events found, creating sample events...');
-    const existingSlugs = new Set(existingEvents.map((e: any) => e.slug));
-    const events = [];
-
-    if (!existingSlugs.has('milano-design-week-2024')) {
-      const event = await prisma.event.create({
-        data: {
-          title: 'Milano Design Week 2024',
-          slug: 'milano-design-week-2024',
-          description:
-            'The most important design event in the world, showcasing the latest trends in furniture, lighting, and home accessories.',
-          shortDescription:
-            "Discover the future of design at the world's premier design event.",
-          status: 'PUBLISHED',
-          startDate: new Date('2024-04-15T10:00:00Z'),
-          endDate: new Date('2024-04-21T18:00:00Z'),
-          capacity: 1000,
-          currentWaitlist: 0,
-          youtubeUrl: 'https://www.youtube.com/watch?v=example1',
-          mapLat: 45.4508,
-          mapLng: 9.1734,
-          mapZoom: 15,
-          mapAddress: 'Via Tortona, 37, 20144 Milano MI, Italy',
-          ownerId: ownerUser.id,
-          venueId: venues[0].id,
-          categoryId: categories[0].id,
-          isPublic: true,
-          featured: true,
-          tags: ['design', 'furniture', 'innovation', 'sustainability'],
-          metadata: {
-            organizer: 'Milano Design Center',
-            contact: 'info@milanodesigncenter.com',
-            social: {
-              instagram: '@milanodesigncenter',
-              twitter: '@milanodesign',
-            },
+  // STEP 8: Create comprehensive events with all fields
+  console.log('🎉 Creating comprehensive events...');
+  const events = await Promise.all([
+    // Event 1 - Design Exhibition
+    prisma.event.create({
+      data: {
+        title: 'Milano Design Week 2024: Sustainable Futures',
+        slug: 'milano-design-week-2024-sustainable-futures',
+        description: 'Join us for the most anticipated design event of the year! Milano Design Week 2024: Sustainable Futures brings together leading designers, architects, and innovators to explore the future of sustainable design. This comprehensive exhibition showcases cutting-edge materials, innovative technologies, and visionary projects that are shaping tomorrow\'s built environment. Featuring interactive installations, expert panels, and networking opportunities with industry leaders.',
+        shortDescription: 'Premier design exhibition exploring sustainable design innovations',
+        status: 'PUBLISHED',
+        startDate: new Date('2024-12-15T09:00:00.000Z'),
+        endDate: new Date('2024-12-15T18:00:00.000Z'),
+        capacity: 500,
+        currentWaitlist: 0,
+        youtubeUrl: 'https://youtube.com/watch?v=milanodesign2024',
+        mapLat: 45.4722,
+        mapLng: 9.1708,
+        mapZoom: 15,
+        mapAddress: 'Viale Emilio Alemagna, 6, 20121 Milano MI, Italy',
+        streetAddress: 'Viale Emilio Alemagna, 6',
+        city: 'Milano',
+        country: 'Italy',
+        postalCode: '20121',
+        ownerId: owners[0].id,
+        venueId: venues[0].id,
+        categoryId: categories[0].id,
+        isPublic: true,
+        featured: true,
+        tags: ['design', 'sustainability', 'architecture', 'innovation', 'materials'],
+        metadata: {
+          organizer: 'Studio Rossi Design',
+          contact: {
+            email: 'info@studiorossi.it',
+            phone: '+39 02 1234 5678',
+            website: 'https://studiorossi.it'
           },
+          social: {
+            instagram: '@studiorossi',
+            twitter: '@studiorossi',
+            facebook: 'Studio Rossi Design',
+            linkedin: 'Studio Rossi Design'
+          },
+          features: [
+            'Interactive Design Installations',
+            'Expert Panel Discussions',
+            'Sustainable Materials Showcase',
+            'Networking Reception',
+            'Design Awards Ceremony',
+            'Innovation Workshops'
+          ],
+          requirements: 'Professional design background or interest in sustainable design',
+          pricing: 'Free for professionals, €50 for general public',
+          heroImageUrl: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&h=600&fit=crop'
         },
-      });
-      events.push(event);
-    }
+      },
+    }),
 
-    if (!existingSlugs.has('tech-innovation-summit')) {
-      const event = await prisma.event.create({
-        data: {
-          title: 'Tech Innovation Summit 2024',
-          slug: 'tech-innovation-summit',
-          description:
-            'A gathering of tech leaders, entrepreneurs, and innovators to discuss the future of technology and its impact on society.',
-          shortDescription:
-            'Join the conversation about the future of technology.',
-          status: 'PUBLISHED',
-          startDate: new Date('2024-05-20T09:00:00Z'),
-          endDate: new Date('2024-05-22T17:00:00Z'),
-          capacity: 500,
-          currentWaitlist: 0,
-          youtubeUrl: 'https://www.youtube.com/watch?v=example2',
-          mapLat: 45.4722,
-          mapLng: 9.1708,
-          mapZoom: 15,
-          mapAddress: 'Viale Emilio Alemagna, 6, 20121 Milano MI, Italy',
-          ownerId: ownerUser.id,
-          venueId: venues[1].id,
-          categoryId: categories[1].id,
-          isPublic: true,
-          featured: false,
-          tags: ['technology', 'innovation', 'startups', 'AI'],
-          metadata: {
-            organizer: 'Tech Milano',
-            contact: 'hello@techmilano.it',
-            social: {
-              linkedin: 'Tech Milano',
-              twitter: '@techmilano',
-            },
+    // Event 2 - Kitchen Design Workshop
+    prisma.event.create({
+      data: {
+        title: 'Luxury Kitchen Design Masterclass',
+        slug: 'luxury-kitchen-design-masterclass',
+        description: 'An exclusive masterclass for interior designers and architects focusing on luxury kitchen design principles. Learn from industry experts about space planning, material selection, and the latest trends in high-end kitchen design. This hands-on workshop includes case studies, design exercises, and access to premium kitchen showrooms.',
+        shortDescription: 'Exclusive masterclass on luxury kitchen design principles',
+        status: 'PUBLISHED',
+        startDate: new Date('2024-12-20T10:00:00.000Z'),
+        endDate: new Date('2024-12-20T16:00:00.000Z'),
+        capacity: 50,
+        currentWaitlist: 0,
+        mapLat: 45.4444,
+        mapLng: 9.1734,
+        mapZoom: 15,
+        mapAddress: 'Via Tortona, 37, 20144 Milano MI, Italy',
+        streetAddress: 'Via Tortona, 37',
+        city: 'Milano',
+        country: 'Italy',
+        postalCode: '20144',
+        ownerId: owners[1].id,
+        venueId: venues[1].id,
+        categoryId: categories[0].id,
+        isPublic: true,
+        featured: false,
+        tags: ['kitchen', 'design', 'luxury', 'workshop', 'interior'],
+        metadata: {
+          organizer: 'Cucine Moderne Milano',
+          contact: {
+            email: 'info@cucinemodernemilano.it',
+            phone: '+39 02 8765 4321',
+            website: 'https://cucinemodernemilano.it'
           },
+          social: {
+            instagram: '@cucinemodernemilano',
+            twitter: '@cucinemodernemilano',
+            facebook: 'Cucine Moderne Milano'
+          },
+          features: [
+            'Expert-led Design Sessions',
+            'Premium Showroom Tours',
+            'Material Selection Workshop',
+            'Networking Lunch',
+            'Design Portfolio Review',
+            'Industry Trends Presentation'
+          ],
+          requirements: 'Professional interior designer or architect',
+          pricing: '€150 for professionals',
+          heroImageUrl: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=800&h=600&fit=crop'
         },
-      });
-      events.push(event);
-    }
+      },
+    }),
 
-    if (!existingSlugs.has('contemporary-art-exhibition')) {
-      const event = await prisma.event.create({
-        data: {
-          title: 'Contemporary Art Exhibition',
-          slug: 'contemporary-art-exhibition',
-          description:
-            'An immersive exhibition featuring works by emerging and established contemporary artists from around the world.',
-          shortDescription:
-            'Experience cutting-edge contemporary art in the heart of Milano.',
-          status: 'DRAFT',
-          startDate: new Date('2024-06-10T11:00:00Z'),
-          endDate: new Date('2024-08-10T19:00:00Z'),
-          capacity: 200,
-          currentWaitlist: 0,
-          mapLat: 45.4444,
-          mapLng: 9.2,
-          mapZoom: 15,
-          mapAddress: 'Largo Isarco, 2, 20139 Milano MI, Italy',
-          ownerId: ownerUser.id,
-          venueId: venues[2].id,
-          categoryId: categories[2].id,
-          isPublic: false,
-          featured: false,
-          tags: ['art', 'contemporary', 'exhibition', 'culture'],
-          metadata: {
-            organizer: 'Fondazione Prada',
-            contact: 'info@fondazioneprada.org',
-            social: {
-              instagram: '@fondazioneprada',
-              facebook: 'Fondazione Prada',
-            },
+    // Event 3 - Lighting Design Symposium
+    prisma.event.create({
+      data: {
+        title: 'Lighting Design Symposium: Art & Technology',
+        slug: 'lighting-design-symposium-art-technology',
+        description: 'Explore the intersection of art and technology in contemporary lighting design. This symposium brings together lighting designers, artists, and technologists to discuss innovative approaches to illumination. Features live demonstrations, interactive installations, and presentations on the latest lighting technologies and their creative applications.',
+        shortDescription: 'Symposium exploring art and technology in lighting design',
+        status: 'PUBLISHED',
+        startDate: new Date('2024-12-25T14:00:00.000Z'),
+        endDate: new Date('2024-12-25T20:00:00.000Z'),
+        capacity: 200,
+        currentWaitlist: 0,
+        mapLat: 45.4808,
+        mapLng: 9.1881,
+        mapZoom: 15,
+        mapAddress: 'Via Porta Nuova, 8, 20121 Milano MI, Italy',
+        streetAddress: 'Via Porta Nuova, 8',
+        city: 'Milano',
+        country: 'Italy',
+        postalCode: '20121',
+        ownerId: owners[2].id,
+        venueId: venues[2].id,
+        categoryId: categories[1].id,
+        isPublic: true,
+        featured: true,
+        tags: ['lighting', 'technology', 'art', 'innovation', 'design'],
+        metadata: {
+          organizer: 'Luce & Design',
+          contact: {
+            email: 'info@lucedesign.it',
+            phone: '+39 02 9876 5432',
+            website: 'https://lucedesign.it'
           },
+          social: {
+            instagram: '@lucedesign',
+            twitter: '@lucedesign',
+            facebook: 'Luce & Design'
+          },
+          features: [
+            'Interactive Light Installations',
+            'Technology Demonstrations',
+            'Expert Panel Discussions',
+            'Networking Reception',
+            'Design Competition',
+            'Product Launches'
+          ],
+          requirements: 'Open to all design professionals and enthusiasts',
+          pricing: '€75 for professionals, €25 for students',
+          heroImageUrl: 'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=800&h=600&fit=crop'
         },
-      });
-      events.push(event);
-    }
+      },
+    }),
 
-    console.log('✅ Created events:', events.map(e => e.title).join(', '));
-
-    // Create sample shows for the first event (only if events were created)
-    const shows = [];
-    if (events.length > 0) {
-      const newShows = await Promise.all([
-        prisma.show.create({
-          data: {
-            title: 'Opening Ceremony',
-            description: 'Official opening of Milano Design Week 2024',
-            startDate: new Date('2024-04-15T10:00:00Z'),
-            endDate: new Date('2024-04-15T12:00:00Z'),
-            capacity: 200,
-            currentWaitlist: 0,
-            youtubeUrl: 'https://www.youtube.com/watch?v=opening',
-            eventId: events[0]?.id || '',
+    // Event 4 - Furniture Design Workshop
+    prisma.event.create({
+      data: {
+        title: 'Bespoke Furniture Design Workshop',
+        slug: 'bespoke-furniture-design-workshop',
+        description: 'Hands-on workshop on creating bespoke furniture pieces. Learn traditional Italian craftsmanship techniques while exploring contemporary design approaches. Participants will work on their own furniture project under the guidance of master craftsmen. Includes materials, tools, and a take-home piece.',
+        shortDescription: 'Hands-on workshop on bespoke furniture design and craftsmanship',
+        status: 'PUBLISHED',
+        startDate: new Date('2024-12-30T09:00:00.000Z'),
+        endDate: new Date('2024-12-30T17:00:00.000Z'),
+        capacity: 20,
+        currentWaitlist: 0,
+        mapLat: 45.4444,
+        mapLng: 9.1734,
+        mapZoom: 15,
+        mapAddress: 'Via Navigli, 25, 20123 Milano MI, Italy',
+        streetAddress: 'Via Navigli, 25',
+        city: 'Milano',
+        country: 'Italy',
+        postalCode: '20123',
+        ownerId: owners[3].id,
+        venueId: venues[3].id,
+        categoryId: categories[0].id,
+        isPublic: true,
+        featured: false,
+        tags: ['furniture', 'craftsmanship', 'workshop', 'design', 'traditional'],
+        metadata: {
+          organizer: 'Atelier Conti',
+          contact: {
+            email: 'info@atelierconti.it',
+            phone: '+39 02 5555 1234',
+            website: 'https://atelierconti.it'
           },
-        }),
-        prisma.show.create({
-          data: {
-            title: 'Design Innovation Panel',
-            description: 'Panel discussion on the future of design innovation',
-            startDate: new Date('2024-04-16T14:00:00Z'),
-            endDate: new Date('2024-04-16T16:00:00Z'),
-            capacity: 150,
-            currentWaitlist: 0,
-            eventId: events[0]?.id || '',
+          social: {
+            instagram: '@atelierconti',
+            twitter: '@atelierconti',
+            facebook: 'Atelier Conti'
           },
-        }),
-      ]);
-      shows.push(...newShows);
-    }
-
-    console.log('✅ Created shows:', shows.map(s => s.title).join(', '));
-
-    // Create sample waitlist entries (only if events were created)
-    const waitlistEntries = [];
-    if (events.length > 0) {
-      const newWaitlistEntries = await Promise.all([
-        prisma.waitlistEntry.create({
-          data: {
-            email: 'visitor1@example.com',
-            eventId: events[0]?.id || '',
-            status: 'PENDING',
-          },
-        }),
-        prisma.waitlistEntry.create({
-          data: {
-            email: 'visitor2@example.com',
-            eventId: events[0]?.id || '',
-            status: 'CONFIRMED',
-          },
-        }),
-        events[1]
-          ? prisma.waitlistEntry.create({
-              data: {
-                email: 'visitor3@example.com',
-                eventId: events[1].id,
-                status: 'PENDING',
-              },
-            })
-          : null,
-      ]);
-      waitlistEntries.push(...newWaitlistEntries.filter(Boolean));
-    }
-
-    console.log('✅ Created waitlist entries:', waitlistEntries.length);
-
-    // Add 20-30 random waitlist emails per event
-    for (let eventIndex = 0; eventIndex < events.length; eventIndex++) {
-      const event = events[eventIndex];
-      if (!event) continue;
-      const count = 20 + Math.floor(Math.random() * 11); // 20..30
-      const statuses = [
-        'PENDING',
-        'CONFIRMED',
-        'APPROVED',
-        'REJECTED',
-        'ARRIVED',
-        'CANCELLED',
-      ] as const;
-      const emails: {
-        email: string;
-        eventId: string;
-        status: (typeof statuses)[number];
-      }[] = [];
-      for (let i = 0; i < count; i++) {
-        const email = `seed-user-${eventIndex}-${i}@example.com`;
-        const status = statuses[
-          Math.floor(Math.random() * statuses.length)
-        ] as (typeof statuses)[number];
-        emails.push({ email, eventId: event.id, status });
-      }
-      // Use createMany for efficiency; skipDuplicates to avoid clashes with prior seeds
-      await prisma.waitlistEntry.createMany({
-        data: emails,
-        skipDuplicates: true,
-      });
-      console.log(`✅ Added ${count} waitlist entries for event:`, event.title);
-    }
-
-    // Create sample nearby places (only if events were created)
-    const nearbyPlaces = [];
-    if (events.length > 0) {
-      const newNearbyPlaces = await Promise.all([
-        prisma.nearbyPlace.create({
-          data: {
-            name: 'Ristorante Da Giacomo',
-            address: 'Via Pasquale Sottocorno, 6, 20129 Milano MI, Italy',
-            latitude: 45.451,
-            longitude: 9.173,
-            category: 'restaurant',
-            rating: 4.5,
-            website: 'https://ristorantedagiacomo.it',
-            phone: '+39 02 5810 2812',
-            distance: 150,
-            eventId: events[0]?.id || '',
-          },
-        }),
-        prisma.nearbyPlace.create({
-          data: {
-            name: 'Museo della Scienza e della Tecnologia',
-            address: 'Via San Vittore, 21, 20123 Milano MI, Italy',
-            latitude: 45.472,
-            longitude: 9.17,
-            category: 'museum',
-            rating: 4.3,
-            website: 'https://museoscienza.org',
-            phone: '+39 02 485 551',
-            distance: 300,
-            eventId: events[0]?.id || '',
-          },
-        }),
-      ]);
-      nearbyPlaces.push(...newNearbyPlaces);
-    }
-
-    console.log(
-      '✅ Created nearby places:',
-      nearbyPlaces.map(p => p.name).join(', ')
-    );
-
-    // ------------------------------------------------------------------
-    // Bulk: Create 200 real-looking users and register each to 2 events
-    // ------------------------------------------------------------------
-    try {
-      // Fetch a few events to register users to (fallback-safe)
-      const eventsForRegistration = (await prisma.event.findMany({
-        where: { deletedAt: null },
-        select: { id: true, title: true },
-        orderBy: { createdAt: 'asc' },
-        take: 5,
-      })) as Array<{ id: string; title: string }>;
-
-      if (eventsForRegistration.length >= 2) {
-        const firstNames = [
-          'Liam',
-          'Noah',
-          'Oliver',
-          'Elijah',
-          'James',
-          'William',
-          'Benjamin',
-          'Lucas',
-          'Henry',
-          'Theodore',
-          'Olivia',
-          'Emma',
-          'Charlotte',
-          'Amelia',
-          'Ava',
-          'Sophia',
-          'Isabella',
-          'Mia',
-          'Evelyn',
-          'Harper',
-          'Ethan',
-          'Michael',
-          'Daniel',
-          'Jacob',
-          'Logan',
-          'Jackson',
-          'Levi',
-          'Sebastian',
-          'Mateo',
-          'Jack',
-          'Aiden',
-          'Owen',
-          'Samuel',
-          'Matthew',
-          'Joseph',
-          'John',
-          'David',
-          'Wyatt',
-          'Carter',
-          'Julian',
-          'Emily',
-          'Abigail',
-          'Ella',
-          'Elizabeth',
-          'Sofia',
-          'Avery',
-          'Scarlett',
-          'Eleanor',
-          'Madison',
-          'Luna',
-        ];
-        const lastNames = [
-          'Smith',
-          'Johnson',
-          'Williams',
-          'Brown',
-          'Jones',
-          'Garcia',
-          'Miller',
-          'Davis',
-          'Rodriguez',
-          'Martinez',
-          'Hernandez',
-          'Lopez',
-          'Gonzalez',
-          'Wilson',
-          'Anderson',
-          'Thomas',
-          'Taylor',
-          'Moore',
-          'Jackson',
-          'Martin',
-          'Lee',
-          'Perez',
-          'Thompson',
-          'White',
-          'Harris',
-          'Sanchez',
-          'Clark',
-          'Ramirez',
-          'Lewis',
-          'Robinson',
-          'Walker',
-          'Young',
-          'Allen',
-          'King',
-          'Wright',
-          'Scott',
-          'Torres',
-          'Nguyen',
-          'Hill',
-          'Flores',
-          'Green',
-          'Adams',
-          'Nelson',
-          'Baker',
-          'Hall',
-          'Rivera',
-          'Campbell',
-          'Mitchell',
-          'Carter',
-          'Roberts',
-        ];
-
-        const userCount = 200;
-        const usersToCreate: Array<{
-          email: string;
-          name: string;
-          role: 'VISITOR';
-          isActive: boolean;
-          lastLoginAt: Date;
-        }> = [];
-
-        for (let i = 0; i < userCount; i++) {
-          const fn: string = firstNames[i % firstNames.length] ?? 'User';
-          const ln: string =
-            lastNames[
-              (Math.floor(i / firstNames.length) + i) % lastNames.length
-            ] ?? 'Demo';
-          const name = `${fn} ${ln}`;
-          // Use a stable but unique email scheme
-          const email = `${fn.toLowerCase()}.${ln.toLowerCase()}${i + 1}@example.com`;
-          usersToCreate.push({
-            email,
-            name,
-            role: 'VISITOR',
-            isActive: true,
-            lastLoginAt: new Date(),
-          });
-        }
-
-        // Create users in bulk; skipDuplicates avoids collisions on re-seed
-        await prisma.user.createMany({
-          data: usersToCreate,
-          skipDuplicates: true,
-        });
-        console.log(`✅ Ensured ${userCount} users exist`);
-
-        // Register each user to 2 events (round-robin across available events)
-        const userEmails = usersToCreate.map(u => u.email);
-        const regs: {
-          email: string;
-          eventId: string;
-          status: 'PENDING' | 'CONFIRMED';
-        }[] = [];
-        const eventIds: string[] = eventsForRegistration
-          .map(e => e.id as string)
-          .filter(
-            (id): id is string => typeof id === 'string' && id.length > 0
-          );
-
-        if (eventIds.length >= 2) {
-          for (let i = 0; i < userEmails.length; i++) {
-            const email = userEmails[i]!;
-            const id1 = eventIds[i % eventIds.length]!;
-            const id2 = eventIds[(i + 1) % eventIds.length]!;
-            if (id1) regs.push({ email, eventId: id1, status: 'CONFIRMED' });
-            if (id2) regs.push({ email, eventId: id2, status: 'PENDING' });
-          }
-        } else {
-          console.log(
-            'ℹ️  Skipping user registrations: insufficient valid event IDs'
-          );
-        }
-
-        // Use createMany with skipDuplicates to be idempotent
-        await prisma.waitlistEntry.createMany({
-          data: regs,
-          skipDuplicates: true,
-        });
-        console.log(
-          `✅ Registered ${userEmails.length} users to 2 events each (total entries: ${regs.length})`
-        );
-      } else {
-        console.log(
-          'ℹ️  Skipping user registrations: fewer than 2 events available'
-        );
-      }
-    } catch (err) {
-      console.log(
-        '⚠️  Skipped bulk user+registration seeding due to an error:',
-        err
-      );
-    }
-
-    // Create sample consents
-    const consents = await Promise.all([
-      prisma.consent.create({
-        data: {
-          userId: adminUser.id,
-          type: 'NECESSARY',
-          granted: true,
-          grantedAt: new Date(),
-          ipAddress: '127.0.0.1',
-          userAgent: 'Mozilla/5.0 (compatible; Seed Script)',
+          features: [
+            'Master Craftsman Instruction',
+            'Hands-on Woodworking',
+            'Design Consultation',
+            'Materials Included',
+            'Take-home Project',
+            'Traditional Techniques'
+          ],
+          requirements: 'No experience necessary, all skill levels welcome',
+          pricing: '€200 including materials and tools',
+          heroImageUrl: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=800&h=600&fit=crop'
         },
-      }),
-      prisma.consent.create({
-        data: {
-          userId: adminUser.id,
-          type: 'ANALYTICS',
-          granted: true,
-          grantedAt: new Date(),
-          ipAddress: '127.0.0.1',
-          userAgent: 'Mozilla/5.0 (compatible; Seed Script)',
+      },
+    }),
+
+    // Event 5 - Textile Innovation Conference
+    prisma.event.create({
+      data: {
+        title: 'Textile Innovation Conference: Future Fabrics',
+        slug: 'textile-innovation-conference-future-fabrics',
+        description: 'Explore the future of textiles at this comprehensive conference featuring sustainable materials, smart fabrics, and innovative manufacturing processes. Industry leaders will present cutting-edge research and showcase revolutionary textile technologies that are transforming fashion, interior design, and industrial applications.',
+        shortDescription: 'Conference on sustainable and smart textile innovations',
+        status: 'PUBLISHED',
+        startDate: new Date('2025-01-05T10:00:00.000Z'),
+        endDate: new Date('2025-01-05T18:00:00.000Z'),
+        capacity: 300,
+        currentWaitlist: 0,
+        mapLat: 45.4681,
+        mapLng: 9.1903,
+        mapZoom: 15,
+        mapAddress: 'Via Garibaldi, 12, 20121 Milano MI, Italy',
+        streetAddress: 'Via Garibaldi, 12',
+        city: 'Milano',
+        country: 'Italy',
+        postalCode: '20121',
+        ownerId: owners[4].id,
+        venueId: venues[4].id,
+        categoryId: categories[1].id,
+        isPublic: true,
+        featured: true,
+        tags: ['textiles', 'innovation', 'sustainability', 'technology', 'fashion'],
+        metadata: {
+          organizer: 'Tessuti Ferrari',
+          contact: {
+            email: 'info@tessutiferrari.it',
+            phone: '+39 02 3333 9876',
+            website: 'https://tessutiferrari.it'
+          },
+          social: {
+            instagram: '@tessutiferrari',
+            twitter: '@tessutiferrari',
+            facebook: 'Tessuti Ferrari'
+          },
+          features: [
+            'Industry Expert Presentations',
+            'Sustainable Materials Showcase',
+            'Smart Fabric Demonstrations',
+            'Networking Opportunities',
+            'Innovation Awards',
+            'Future Trends Panel'
+          ],
+          requirements: 'Textile professionals, designers, or industry enthusiasts',
+          pricing: '€100 for professionals, €50 for students',
+          heroImageUrl: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800&h=600&fit=crop'
         },
-      }),
-    ]);
+      },
+    }),
+  ]);
+  console.log('✅ Created events:', events.map(e => e.title).join(', '));
 
-    console.log('✅ Created consents:', consents.length);
-
-    console.log('🎉 Database seed completed successfully!');
-  }
-
-  main()
-    .catch(e => {
-      console.error('❌ Error during seed:', e);
-      process.exit(1);
-    })
-    .finally(async () => {
-      await prisma.$disconnect();
-    });
+  console.log('🎉 Comprehensive seed completed successfully!');
+  console.log('📊 Summary:');
+  console.log(`   👤 Admin: 1 user`);
+  console.log(`   👥 Owners: ${owners.length} users`);
+  console.log(`   📂 Categories: ${categories.length}`);
+  console.log(`   📍 Areas: ${areas.length}`);
+  console.log(`   🏷️ Products: ${products.length}`);
+  console.log(`   🏢 Venues: ${venues.length}`);
+  console.log(`   🎉 Events: ${events.length}`);
 }
+
+main()
+  .catch((e) => {
+    console.error('❌ Seed failed:', e);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });

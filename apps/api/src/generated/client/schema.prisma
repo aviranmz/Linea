@@ -65,6 +65,11 @@ model Event {
   createdAt        DateTime    @default(now())
   updatedAt        DateTime    @updatedAt
   deletedAt        DateTime?
+  // New location fields for user-friendly address input
+  streetAddress    String?
+  city             String?
+  country          String?
+  postalCode       String?
 
   // Relations
   owner        User            @relation("EventOwner", fields: [ownerId], references: [id])

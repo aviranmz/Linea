@@ -117,6 +117,11 @@ export interface Event {
   mapLng?: number | null;
   mapZoom?: number | null;
   mapAddress?: string | null;
+  // New user-friendly location fields
+  streetAddress?: string | null;
+  city?: string | null;
+  country?: string | null;
+  postalCode?: string | null;
 
   // Visibility & Organization
   isPublic: boolean;
@@ -216,6 +221,12 @@ export interface EventFormData {
   isPublic?: boolean;
   featured?: boolean;
   tags?: string[];
+
+  // Location fields
+  streetAddress?: string;
+  city?: string;
+  country?: string;
+  postalCode?: string;
 
   // Metadata fields
   productName?: string;
