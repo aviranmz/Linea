@@ -6,7 +6,6 @@ import { Event } from '../types/Event';
 import { EventSEO } from '../components/SEO';
 import { useLanguage } from '../hooks/useLanguage';
 import { useAnalytics } from '../lib/analytics';
-import { getJson } from '../lib/api';
 
 export function EventPage() {
   const { id } = useParams<{ id: string }>();
