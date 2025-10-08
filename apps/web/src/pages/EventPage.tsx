@@ -414,7 +414,7 @@ export function EventPage() {
 
                   {/* Professional QR Code - Responsive */}
                   <div className='flex-shrink-0 w-full lg:w-auto'>
-                    {event.metadata?.qrUrl ? (
+                    {event.metadata?.qrUrl && typeof event.metadata.qrUrl === 'string' ? (
                       <div className='bg-white border border-gray-200/60 rounded-2xl p-4 shadow-sm hover:shadow-md transition-all duration-300 group'>
                         <div className='flex flex-col items-center'>
                           <div className='relative'>

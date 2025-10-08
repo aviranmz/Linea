@@ -1170,7 +1170,7 @@ export function OwnerPortal() {
                             {event.currentWaitlist && (
                               <span>• Waitlist: {event.currentWaitlist}</span>
                             )}
-                            {event.metadata?.qrUrl && (
+                            {event.metadata?.qrUrl && typeof event.metadata.qrUrl === 'string' && (
                               <span className='text-green-600'>• QR Code Available</span>
                             )}
                           </div>
