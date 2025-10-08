@@ -913,23 +913,29 @@ app.get('/api/events/:id/qr', async (request, reply) => {
 app.post('/api/owner/events/:id/generate-qr', async (request, reply) => {
   try {
     // Debug: Log the request details
-    app.log.info({
-      cookies: request.cookies,
-      headers: request.headers,
-      url: request.url,
-      method: request.method
-    }, 'QR generation request debug');
-    
+    app.log.info(
+      {
+        cookies: request.cookies,
+        headers: request.headers,
+        url: request.url,
+        method: request.method,
+      },
+      'QR generation request debug'
+    );
+
     const user = await requireOwnerOrAdmin(request, reply);
     if (!user) {
       app.log.warn('QR generation: No authenticated user found');
       return;
     }
-    
-    app.log.info({ userId: user.id, role: user.role }, 'QR generation: User authenticated');
+
+    app.log.info(
+      { userId: user.id, role: user.role },
+      'QR generation: User authenticated'
+    );
 
     const { id } = request.params as { id: string };
-    
+
     // Check if event exists and user owns it (or is admin)
     const event = await prisma.event.findFirst({
       where: {
@@ -961,10 +967,10 @@ app.post('/api/owner/events/:id/generate-qr', async (request, reply) => {
       },
     });
 
-    reply.send({ 
-      success: true, 
+    reply.send({
+      success: true,
       message: 'QR code generated successfully',
-      qrUrl: qrUrl 
+      qrUrl: qrUrl,
     });
   } catch (error) {
     app.log.error({ error }, 'Failed to generate QR code for event');
@@ -1069,10 +1075,13 @@ const getSessionUser = async (request: FastifyRequest) => {
     cookieName
   ];
   if (!token) {
-    app.log.warn({ cookies: request.cookies, cookieName }, 'No session token found');
+    app.log.warn(
+      { cookies: request.cookies, cookieName },
+      'No session token found'
+    );
     return null;
   }
-  
+
   app.log.info({ token: token.substring(0, 8) + '...' }, 'Session token found');
 
   // Get session from Redis
@@ -2038,7 +2047,7 @@ app.post('/api/owner/events', async (request, reply) => {
       const baseUrl = process.env.FRONTEND_URL || 'http://localhost:3050';
       const eventUrl = `${baseUrl.replace(/\/$/, '')}/events/${event.id}`;
       generatedQRUrl = await QRCodeGenerator.generateEventQR(eventUrl);
-      
+
       // Update the event with the QR code
       await prisma.event.update({
         where: { id: event.id },
@@ -2049,7 +2058,7 @@ app.post('/api/owner/events', async (request, reply) => {
           },
         },
       });
-      
+
       // Update the event object to include the QR code
       event.metadata = {
         ...((event.metadata as Record<string, unknown>) || {}),
@@ -2109,8 +2118,7 @@ app.put('/api/owner/events/:id', async (request, reply) => {
     if (Array.isArray(body.tags)) data.tags = body.tags;
     if (typeof body.streetAddress !== 'undefined')
       data.streetAddress = body.streetAddress ?? null;
-    if (typeof body.city !== 'undefined')
-      data.city = body.city ?? null;
+    if (typeof body.city !== 'undefined') data.city = body.city ?? null;
     if (typeof body.country !== 'undefined')
       data.country = body.country ?? null;
     if (typeof body.postalCode !== 'undefined')
@@ -2634,16 +2642,25 @@ app.post('/api/waitlist', async (request, reply) => {
 
       if (eventDetails) {
         // Generate arrival QR code
-        const arrivalHash = await ArrivalTracker.createArrivalRecord(eventId, waitlistEntry.id);
-        const qrCodeData = await emailService.generateArrivalQRCode(eventId, waitlistEntry.id);
-        
-        app.log.info({ 
-          eventId, 
-          waitlistEntryId: waitlistEntry.id, 
-          qrCodeLength: qrCodeData?.length,
-          qrCodePrefix: qrCodeData?.substring(0, 50) 
-        }, 'Generated QR code for email');
-        
+        const arrivalHash = await ArrivalTracker.createArrivalRecord(
+          eventId,
+          waitlistEntry.id
+        );
+        const qrCodeData = await emailService.generateArrivalQRCode(
+          eventId,
+          waitlistEntry.id
+        );
+
+        app.log.info(
+          {
+            eventId,
+            waitlistEntryId: waitlistEntry.id,
+            qrCodeLength: qrCodeData?.length,
+            qrCodePrefix: qrCodeData?.substring(0, 50),
+          },
+          'Generated QR code for email'
+        );
+
         // Build location string from venue or mapAddress
         let eventLocation = 'TBD';
         if (eventDetails.venue) {
@@ -2665,7 +2682,10 @@ app.post('/api/waitlist', async (request, reply) => {
         });
       }
     } catch (emailError) {
-      app.log.warn({ emailError, email, eventId }, 'Failed to send waitlist email');
+      app.log.warn(
+        { emailError, email, eventId },
+        'Failed to send waitlist email'
+      );
     }
 
     return {
@@ -2729,7 +2749,7 @@ app.get('/api/events/:eventId/arrival/:hash', async (request, reply) => {
     };
 
     const result = await ArrivalTracker.processArrivalByHash(hash);
-    
+
     if (result.success) {
       reply.send({
         success: true,
@@ -3266,7 +3286,11 @@ app.get('/api/admin/events', async (request, reply) => {
           }
         : {}),
       ...(category ? { categoryId: category } : {}),
-      ...(featured === 'true' ? { featured: true } : featured === 'false' ? { featured: false } : {}),
+      ...(featured === 'true'
+        ? { featured: true }
+        : featured === 'false'
+          ? { featured: false }
+          : {}),
       ...(dateFrom || dateTo
         ? {
             startDate: {
@@ -3839,7 +3863,9 @@ app.post('/api/admin/test-email', async (request, reply) => {
         name: 'Test User',
         adminListEmail: 'admin@linea.app',
       });
-      message = result ? 'Welcome email sent successfully' : 'Failed to send welcome email';
+      message = result
+        ? 'Welcome email sent successfully'
+        : 'Failed to send welcome email';
     } else if (type === 'waitlist') {
       result = await emailService.sendWaitlistEmail({
         email,
@@ -3847,10 +3873,14 @@ app.post('/api/admin/test-email', async (request, reply) => {
         eventTitle: 'Test Event',
         eventDate: new Date().toLocaleDateString(),
         eventLocation: 'Test Location',
-        qrCodeData: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
-        arrivalUrl: 'https://api.linea.app/api/events/test-event-123/arrival/test-hash',
+        qrCodeData:
+          'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
+        arrivalUrl:
+          'https://api.linea.app/api/events/test-event-123/arrival/test-hash',
       });
-      message = result ? 'Waitlist email sent successfully' : 'Failed to send waitlist email';
+      message = result
+        ? 'Waitlist email sent successfully'
+        : 'Failed to send waitlist email';
     }
 
     reply.send({
@@ -5389,7 +5419,10 @@ app.get('/auth/owner-callback', async (request, reply) => {
       });
       app.log.info({ email: user.email }, 'Welcome email sent to new owner');
     } catch (emailError) {
-      app.log.warn({ emailError, email: user.email }, 'Failed to send welcome email to owner');
+      app.log.warn(
+        { emailError, email: user.email },
+        'Failed to send welcome email to owner'
+      );
     }
   }
 
@@ -5535,7 +5568,10 @@ app.get('/auth/callback', async (request, reply) => {
         });
         app.log.info({ email: user.email }, 'Welcome email sent to new user');
       } catch (emailError) {
-        app.log.warn({ emailError, email: user.email }, 'Failed to send welcome email');
+        app.log.warn(
+          { emailError, email: user.email },
+          'Failed to send welcome email'
+        );
       }
     }
 

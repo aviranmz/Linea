@@ -19,8 +19,9 @@ export class ArrivalTracker {
       waitlistEntryId,
       timestamp: Date.now(),
     };
-    
-    return crypto.createHash('sha256')
+
+    return crypto
+      .createHash('sha256')
       .update(JSON.stringify(arrivalData))
       .digest('hex');
   }
@@ -38,7 +39,7 @@ export class ArrivalTracker {
       // Find the waitlist entry by checking all possible combinations
       // Since we can't reverse the hash, we need to check against stored hashes
       // or implement a different approach
-      
+
       // For now, let's implement a simpler approach using a lookup table
       // In production, you might want to store the hash in the database
       const waitlistEntry = await prisma.waitlistEntry.findFirst({
@@ -75,7 +76,7 @@ export class ArrivalTracker {
       // Mark as arrived
       await prisma.waitlistEntry.update({
         where: { id: waitlistEntry.id },
-        data: { 
+        data: {
           status: Prisma.WaitlistStatus.ARRIVED,
           updatedAt: new Date(),
         },
@@ -99,14 +100,17 @@ export class ArrivalTracker {
   /**
    * Alternative approach: Store arrival hash in database
    */
-  static async createArrivalRecord(eventId: string, waitlistEntryId: string): Promise<string> {
+  static async createArrivalRecord(
+    eventId: string,
+    waitlistEntryId: string
+  ): Promise<string> {
     const hash = this.generateArrivalHash(eventId, waitlistEntryId);
-    
+
     // Store the hash in the waitlist entry metadata or a separate table
     // Note: WaitlistEntry doesn't have metadata field, so we'll store it in a separate table
     // For now, we'll just return the hash without storing it
     // TODO: Create a separate table for arrival hashes if needed
-    
+
     return hash;
   }
 
@@ -123,7 +127,8 @@ export class ArrivalTracker {
     // For now, return an error indicating this feature needs to be implemented
     return {
       success: false,
-      message: 'Arrival processing by hash is not yet implemented. The database schema needs to be updated to support metadata storage.',
+      message:
+        'Arrival processing by hash is not yet implemented. The database schema needs to be updated to support metadata storage.',
     };
   }
 }

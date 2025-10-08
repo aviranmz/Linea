@@ -418,7 +418,7 @@ export default function AdminEvents() {
                 <tr key={ev.id} className='hover:bg-gray-50'>
                   <td className='px-4 py-2'>
                     <div className='text-sm font-medium text-gray-900'>
-                      <a 
+                      <a
                         href={`/events/${ev.slug}`}
                         target='_blank'
                         rel='noopener noreferrer'
@@ -441,7 +441,9 @@ export default function AdminEvents() {
                     {ev._count?.waitlist || 0}
                   </td>
                   <td className='px-4 py-2 text-sm text-gray-500'>
-                    {ev.startDate ? new Date(ev.startDate).toLocaleDateString() : 'N/A'}
+                    {ev.startDate
+                      ? new Date(ev.startDate).toLocaleDateString()
+                      : 'N/A'}
                   </td>
                   <td className='px-4 py-2'>
                     <span

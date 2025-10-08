@@ -317,7 +317,9 @@ export function HomePage() {
                   onClick={() => setShowFilters(!showFilters)}
                   className='btn btn-outline btn-sm'
                 >
-                  {showFilters ? t('common.hideFilters') : t('common.showFilters')}
+                  {showFilters
+                    ? t('common.hideFilters')
+                    : t('common.showFilters')}
                 </button>
                 {getActiveFiltersCount() > 0 && (
                   <button
@@ -545,11 +547,13 @@ export function HomePage() {
               <div className='bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden'>
                 <InteractiveMapView events={filteredEvents} />
               </div>
-              
+
               {/* Events Grid Below Map */}
               {filteredEvents.length > 0 ? (
                 <div>
-                  <h2 className='text-2xl font-semibold text-gray-900 mb-6'>All Events</h2>
+                  <h2 className='text-2xl font-semibold text-gray-900 mb-6'>
+                    All Events
+                  </h2>
                   <EventList
                     events={filteredEvents}
                     variant='grid'

@@ -61,7 +61,8 @@ const translations = {
     'common.clearFilters': 'Clear Filters',
     'common.noEventsMatch': 'No events match your filters',
     'common.noEventsYet': 'No events yet',
-    'common.tryAdjustingFilters': 'Try adjusting your filters or clear them to see all events.',
+    'common.tryAdjustingFilters':
+      'Try adjusting your filters or clear them to see all events.',
     'common.checkBackSoon': 'Check back soon for exciting events!',
     'common.published': 'Published',
     'common.draft': 'Draft',
@@ -75,7 +76,8 @@ const translations = {
     'common.maintenance': 'Maintenance',
     'common.enableMaintenanceMode': 'Enable Maintenance Mode',
     'common.maintenanceMessage': 'Maintenance Message',
-    'common.maintenancePlaceholder': 'We are currently performing maintenance. Please check back later.',
+    'common.maintenancePlaceholder':
+      'We are currently performing maintenance. Please check back later.',
     'common.readyToCreate': 'Ready to create your event?',
     'common.startBuilding': 'Start building your community today.',
     'owner.manageEvents': 'Manage your events and track waitlist performance',
@@ -715,7 +717,8 @@ const translations = {
     'common.clearFilters': 'Cancella Filtri',
     'common.noEventsMatch': 'Nessun evento corrisponde ai tuoi filtri',
     'common.noEventsYet': 'Nessun evento ancora',
-    'common.tryAdjustingFilters': 'Prova ad aggiustare i tuoi filtri o cancellali per vedere tutti gli eventi.',
+    'common.tryAdjustingFilters':
+      'Prova ad aggiustare i tuoi filtri o cancellali per vedere tutti gli eventi.',
     'common.checkBackSoon': 'Torna presto per eventi emozionanti!',
     'common.published': 'Pubblicato',
     'common.draft': 'Bozza',
@@ -729,7 +732,8 @@ const translations = {
     'common.maintenance': 'Manutenzione',
     'common.enableMaintenanceMode': 'Abilita Modalità Manutenzione',
     'common.maintenanceMessage': 'Messaggio di Manutenzione',
-    'common.maintenancePlaceholder': 'Stiamo attualmente eseguendo la manutenzione. Riprova più tardi.',
+    'common.maintenancePlaceholder':
+      'Stiamo attualmente eseguendo la manutenzione. Riprova più tardi.',
     'common.readyToCreate': 'Pronto a creare il tuo evento?',
     'common.startBuilding': 'Inizia a costruire la tua comunità oggi.',
     'owner.manageEvents':

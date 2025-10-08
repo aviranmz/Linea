@@ -23,7 +23,7 @@ export function EventList({
   onEventClick,
 }: EventListProps) {
   const { t } = useLanguage();
-  
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
@@ -283,7 +283,8 @@ export function EventList({
                   </div>
 
                   <p className='text-gray-600 mt-1'>
-                    {event.shortDescription || t('common.noDescriptionAvailable')}
+                    {event.shortDescription ||
+                      t('common.noDescriptionAvailable')}
                   </p>
 
                   <div className='mt-2 flex items-center space-x-4 text-sm text-gray-500'>

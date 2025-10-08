@@ -40,10 +40,15 @@ export class EmailService {
   async sendWelcomeEmail(data: WelcomeEmailData): Promise<boolean> {
     try {
       const template = this.generateWelcomeTemplate(data);
-      
+
       // Send welcome email to user
-      await this.sendEmail(data.email, template.subject, template.html, template.text);
-      
+      await this.sendEmail(
+        data.email,
+        template.subject,
+        template.html,
+        template.text
+      );
+
       // Add user to admin distribution list (send notification to admin)
       await this.sendEmail(
         data.adminListEmail,
@@ -51,7 +56,7 @@ export class EmailService {
         this.generateAdminNotificationTemplate(data),
         `New user registered: ${data.email}${data.name ? ` (${data.name})` : ''}`
       );
-      
+
       return true;
     } catch (error) {
       console.error('Failed to send welcome email:', error);
@@ -65,9 +70,14 @@ export class EmailService {
   async sendWaitlistEmail(data: WaitlistEmailData): Promise<boolean> {
     try {
       const template = this.generateWaitlistTemplate(data);
-      
-      await this.sendEmail(data.email, template.subject, template.html, template.text);
-      
+
+      await this.sendEmail(
+        data.email,
+        template.subject,
+        template.html,
+        template.text
+      );
+
       return true;
     } catch (error) {
       console.error('Failed to send waitlist email:', error);
@@ -78,31 +88,38 @@ export class EmailService {
   /**
    * Generate QR code for event arrival tracking
    */
-  async generateArrivalQRCode(eventId: string, waitlistEntryId: string): Promise<string> {
+  async generateArrivalQRCode(
+    eventId: string,
+    waitlistEntryId: string
+  ): Promise<string> {
     // Create a unique hash for this specific waitlist entry
     const arrivalData = {
       eventId,
       waitlistEntryId,
       timestamp: Date.now(),
     };
-    
-    const hash = crypto.createHash('sha256')
+
+    const hash = crypto
+      .createHash('sha256')
       .update(JSON.stringify(arrivalData))
       .digest('hex');
-    
+
     const arrivalUrl = `${process.env.API_URL || 'https://linea-production.up.railway.app'}/api/events/${eventId}/arrival/${hash}`;
-    
+
     console.log('Generating QR code for URL:', arrivalUrl);
-    
+
     try {
       const qrCodeData = await QRCodeGenerator.generateEventQR(arrivalUrl, {
         width: 300,
         margin: 3,
       });
-      
-      console.log('QR code generated successfully, length:', qrCodeData?.length);
+
+      console.log(
+        'QR code generated successfully, length:',
+        qrCodeData?.length
+      );
       console.log('QR code prefix:', qrCodeData?.substring(0, 50));
-      
+
       return qrCodeData;
     } catch (error) {
       console.error('Error generating QR code:', error);
@@ -112,7 +129,7 @@ export class EmailService {
 
   private generateWelcomeTemplate(data: WelcomeEmailData): EmailTemplate {
     const subject = 'Welcome to Linea! 🎉';
-    
+
     const html = `
       <!DOCTYPE html>
       <html>
@@ -161,7 +178,7 @@ export class EmailService {
       </body>
       </html>
     `;
-    
+
     const text = `
 Welcome to Linea! 🎉
 
@@ -186,13 +203,13 @@ The Linea Team
 
 This email was sent to ${data.email}
     `;
-    
+
     return { subject, html, text };
   }
 
   private generateWaitlistTemplate(data: WaitlistEmailData): EmailTemplate {
     const subject = `You're on the waitlist for ${data.eventTitle}! 🎫`;
-    
+
     const html = `
       <!DOCTYPE html>
       <html>
@@ -251,7 +268,7 @@ This email was sent to ${data.email}
       </body>
       </html>
     `;
-    
+
     const text = `
 You're on the waitlist for ${data.eventTitle}! 🎫
 
@@ -278,7 +295,7 @@ The Linea Team
 
 This email was sent to ${data.email}
     `;
-    
+
     return { subject, html, text };
   }
 
@@ -314,7 +331,12 @@ This email was sent to ${data.email}
     `;
   }
 
-  private async sendEmail(to: string, subject: string, html: string, text: string): Promise<void> {
+  private async sendEmail(
+    to: string,
+    subject: string,
+    html: string,
+    text: string
+  ): Promise<void> {
     if (!this.apiKey) {
       console.log('SendGrid API key not configured, logging email instead:');
       console.log(`To: ${to}`);

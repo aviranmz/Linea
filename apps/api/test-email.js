@@ -29,26 +29,38 @@ async function testEmailFunctionality() {
       eventTitle: 'Test Event',
       eventDate: new Date().toLocaleDateString(),
       eventLocation: 'Test Location',
-      qrCodeData: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
-      arrivalUrl: 'https://api.linea.app/api/events/test-event-123/arrival/test-hash',
+      qrCodeData:
+        'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
+      arrivalUrl:
+        'https://api.linea.app/api/events/test-event-123/arrival/test-hash',
     });
-    console.log('✅ Waitlist email test:', waitlistResult ? 'SUCCESS' : 'FAILED');
+    console.log(
+      '✅ Waitlist email test:',
+      waitlistResult ? 'SUCCESS' : 'FAILED'
+    );
 
     // Test 3: QR Code Generation
     console.log('\n3. Testing QR Code Generation...');
-    const qrCode = await emailService.generateArrivalQRCode('test-event-123', 'test-waitlist-456');
+    const qrCode = await emailService.generateArrivalQRCode(
+      'test-event-123',
+      'test-waitlist-456'
+    );
     console.log('✅ QR code generated:', qrCode ? 'SUCCESS' : 'FAILED');
     console.log('   QR Code length:', qrCode.length, 'characters');
 
     // Test 4: Arrival Hash Generation
     console.log('\n4. Testing Arrival Hash Generation...');
-    const hash = ArrivalTracker.generateArrivalHash('test-event-123', 'test-waitlist-456');
+    const hash = ArrivalTracker.generateArrivalHash(
+      'test-event-123',
+      'test-waitlist-456'
+    );
     console.log('✅ Arrival hash generated:', hash ? 'SUCCESS' : 'FAILED');
     console.log('   Hash:', hash);
 
     console.log('\n🎉 All email functionality tests completed!');
-    console.log('\nNote: If SendGrid is not configured, emails will be logged to console instead of sent.');
-
+    console.log(
+      '\nNote: If SendGrid is not configured, emails will be logged to console instead of sent.'
+    );
   } catch (error) {
     console.error('❌ Test failed:', error);
     process.exit(1);

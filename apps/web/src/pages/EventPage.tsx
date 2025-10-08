@@ -18,7 +18,6 @@ export function EventPage() {
   const { t } = useLanguage();
   const analytics = useAnalytics();
 
-
   useEffect(() => {
     let handleScroll: (() => void) | null = null;
 
@@ -108,21 +107,28 @@ export function EventPage() {
 
     setIsGeneratingQR(true);
     try {
-      const response = await fetch(`/api/owner/events/${event.id}/generate-qr`, {
-        method: 'POST',
-        credentials: 'include',
-      });
+      const response = await fetch(
+        `/api/owner/events/${event.id}/generate-qr`,
+        {
+          method: 'POST',
+          credentials: 'include',
+        }
+      );
 
       if (response.ok) {
         const result = await response.json();
         // Update the event state with the new QR code
-        setEvent(prev => prev ? {
-          ...prev,
-          metadata: {
-            ...prev.metadata,
-            qrUrl: result.qrUrl
-          }
-        } : null);
+        setEvent(prev =>
+          prev
+            ? {
+                ...prev,
+                metadata: {
+                  ...prev.metadata,
+                  qrUrl: result.qrUrl,
+                },
+              }
+            : null
+        );
         alert('QR code generated successfully!');
       } else {
         const error = await response.json();
@@ -415,7 +421,8 @@ export function EventPage() {
 
                   {/* Professional QR Code - Responsive */}
                   <div className='flex-shrink-0 w-full lg:w-auto'>
-                    {event.metadata?.qrUrl && typeof event.metadata.qrUrl === 'string' ? (
+                    {event.metadata?.qrUrl &&
+                    typeof event.metadata.qrUrl === 'string' ? (
                       <div className='bg-white border border-gray-200/60 rounded-2xl p-4 shadow-sm hover:shadow-md transition-all duration-300 group'>
                         <div className='flex flex-col items-center'>
                           <div className='relative'>
@@ -477,7 +484,9 @@ export function EventPage() {
                               disabled={isGeneratingQR}
                               className='px-3 py-1.5 bg-blue-600 text-white text-xs rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
                             >
-                              {isGeneratingQR ? 'Generating...' : 'Generate QR Code'}
+                              {isGeneratingQR
+                                ? 'Generating...'
+                                : 'Generate QR Code'}
                             </button>
                           </div>
                         </div>

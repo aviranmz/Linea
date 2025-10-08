@@ -416,17 +416,19 @@ export function OwnerPortal() {
       if (response.ok) {
         const result = await response.json();
         // Update the event in the events list
-        setEvents(prev => prev.map(event => 
-          event.id === eventId 
-            ? {
-                ...event,
-                metadata: {
-                  ...event.metadata,
-                  qrUrl: result.qrUrl
+        setEvents(prev =>
+          prev.map(event =>
+            event.id === eventId
+              ? {
+                  ...event,
+                  metadata: {
+                    ...event.metadata,
+                    qrUrl: result.qrUrl,
+                  },
                 }
-              }
-            : event
-        ));
+              : event
+          )
+        );
         alert('QR code generated successfully!');
       } else {
         const error = await response.json();
@@ -1173,7 +1175,11 @@ export function OwnerPortal() {
                             {(() => {
                               const qrUrl = event.metadata?.qrUrl;
                               if (qrUrl && typeof qrUrl === 'string') {
-                                return <span className='text-green-600'>- QR Code Available</span>;
+                                return (
+                                  <span className='text-green-600'>
+                                    - QR Code Available
+                                  </span>
+                                );
                               }
                               return null;
                             })()}
@@ -1207,13 +1213,16 @@ export function OwnerPortal() {
                             Analytics
                           </Link>
                           {/* Generate QR button with proper type checking - Updated */}
-                          {(!event.metadata?.qrUrl || typeof event.metadata.qrUrl !== 'string') && (
+                          {(!event.metadata?.qrUrl ||
+                            typeof event.metadata.qrUrl !== 'string') && (
                             <button
                               onClick={() => handleGenerateQR(event.id)}
                               disabled={generatingQR === event.id}
                               className='btn btn-ghost btn-sm text-blue-600 hover:text-blue-700 hover:bg-blue-50 disabled:opacity-50'
                             >
-                              {generatingQR === event.id ? 'Generating...' : 'Generate QR'}
+                              {generatingQR === event.id
+                                ? 'Generating...'
+                                : 'Generate QR'}
                             </button>
                           )}
                           <button

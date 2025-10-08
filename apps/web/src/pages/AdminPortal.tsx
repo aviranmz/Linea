@@ -399,7 +399,6 @@ export function AdminPortal() {
                 </div>
               </a>
 
-
               <a
                 href='/admin/events'
                 className='group flex items-center p-6 bg-gradient-to-br from-milano-sage/5 to-milano-sage/10 rounded-xl border border-milano-sage/20 hover:shadow-milano-lg hover:scale-[1.02] transition-all duration-200'

@@ -10,33 +10,33 @@ async function main() {
 
   // STEP 1: Clean all existing data (owners and their related events)
   console.log('🧹 Cleaning existing data...');
-  
+
   // Delete all events first (due to foreign key constraints)
   await prisma.event.deleteMany({});
   console.log('✅ Deleted all existing events');
-  
+
   // Delete all waitlist entries
   await prisma.waitlistEntry.deleteMany({});
   console.log('✅ Deleted all waitlist entries');
-  
+
   // Delete all owners (users with role 'OWNER')
   await prisma.user.deleteMany({
-    where: { role: 'OWNER' }
+    where: { role: 'OWNER' },
   });
   console.log('✅ Deleted all existing owners');
-  
+
   // Delete all venues
   await prisma.venue.deleteMany({});
   console.log('✅ Deleted all existing venues');
-  
+
   // Delete all areas
   await prisma.area.deleteMany({});
   console.log('✅ Deleted all existing areas');
-  
+
   // Delete all products
   await prisma.product.deleteMany({});
   console.log('✅ Deleted all existing products');
-  
+
   // Delete all categories
   await prisma.category.deleteMany({});
   console.log('✅ Deleted all existing categories');
@@ -53,7 +53,8 @@ async function main() {
       isActive: true,
       lastLoginAt: new Date(),
       businessName: 'Linea Platform Administration',
-      businessIntro: 'Leading the Linea platform administration team, ensuring smooth operations and user experience across all design and technology events in Milano.',
+      businessIntro:
+        'Leading the Linea platform administration team, ensuring smooth operations and user experience across all design and technology events in Milano.',
       phone: '+39 02 1234 5678',
       website: 'https://linea.app',
       facebookUrl: 'https://facebook.com/lineaapp',
@@ -74,7 +75,8 @@ async function main() {
       data: {
         name: 'Design & Architecture',
         slug: 'design-architecture',
-        description: 'Contemporary design, architecture exhibitions, and innovative spatial solutions',
+        description:
+          'Contemporary design, architecture exhibitions, and innovative spatial solutions',
         color: '#8B4513',
         icon: '🏛️',
         isActive: true,
@@ -84,7 +86,8 @@ async function main() {
       data: {
         name: 'Technology & Innovation',
         slug: 'technology-innovation',
-        description: 'Cutting-edge technology, AI, blockchain, and digital transformation',
+        description:
+          'Cutting-edge technology, AI, blockchain, and digital transformation',
         color: '#2E8B57',
         icon: '💻',
         isActive: true,
@@ -104,7 +107,8 @@ async function main() {
       data: {
         name: 'Art & Culture',
         slug: 'art-culture',
-        description: 'Contemporary art, cultural events, and creative expressions',
+        description:
+          'Contemporary art, cultural events, and creative expressions',
         color: '#9370DB',
         icon: '🎨',
         isActive: true,
@@ -114,7 +118,8 @@ async function main() {
       data: {
         name: 'Food & Lifestyle',
         slug: 'food-lifestyle',
-        description: 'Culinary experiences, lifestyle workshops, and wellness events',
+        description:
+          'Culinary experiences, lifestyle workshops, and wellness events',
         color: '#FF6347',
         icon: '🍽️',
         isActive: true,
@@ -130,7 +135,8 @@ async function main() {
       data: {
         name: 'Brera',
         slug: 'brera',
-        description: 'Historic artistic district with galleries, design studios, and cultural venues',
+        description:
+          'Historic artistic district with galleries, design studios, and cultural venues',
         color: '#8B4513',
         icon: '🎨',
         isActive: true,
@@ -140,7 +146,8 @@ async function main() {
       data: {
         name: 'Tortona',
         slug: 'tortona',
-        description: 'Design district with showrooms, studios, and creative spaces',
+        description:
+          'Design district with showrooms, studios, and creative spaces',
         color: '#2E8B57',
         icon: '🏗️',
         isActive: true,
@@ -150,7 +157,8 @@ async function main() {
       data: {
         name: 'Porta Nuova',
         slug: 'porta-nuova',
-        description: 'Modern business district with contemporary architecture and tech companies',
+        description:
+          'Modern business district with contemporary architecture and tech companies',
         color: '#4169E1',
         icon: '🏢',
         isActive: true,
@@ -160,7 +168,8 @@ async function main() {
       data: {
         name: 'Navigli',
         slug: 'navigli',
-        description: 'Historic canal district with restaurants, bars, and cultural venues',
+        description:
+          'Historic canal district with restaurants, bars, and cultural venues',
         color: '#9370DB',
         icon: '🚤',
         isActive: true,
@@ -170,7 +179,8 @@ async function main() {
       data: {
         name: 'Garibaldi',
         slug: 'garibaldi',
-        description: 'Fashion and shopping district with luxury boutiques and showrooms',
+        description:
+          'Fashion and shopping district with luxury boutiques and showrooms',
         color: '#FF69B4',
         icon: '🛍️',
         isActive: true,
@@ -186,7 +196,8 @@ async function main() {
       data: {
         name: 'Recessed Lighting',
         slug: 'recessed-lighting',
-        description: 'Modern recessed lighting solutions for contemporary spaces',
+        description:
+          'Modern recessed lighting solutions for contemporary spaces',
         color: '#FFD700',
         icon: '💡',
         isActive: true,
@@ -206,7 +217,8 @@ async function main() {
       data: {
         name: 'Pendant Lights',
         slug: 'pendant-lights',
-        description: 'Designer pendant lighting for residential and commercial spaces',
+        description:
+          'Designer pendant lighting for residential and commercial spaces',
         color: '#32CD32',
         icon: '🔮',
         isActive: true,
@@ -250,7 +262,8 @@ async function main() {
         phone: '+39 02 7243 4200',
         email: 'info@triennale.org',
         capacity: 500,
-        description: 'Premier design museum and exhibition space in the heart of Milano',
+        description:
+          'Premier design museum and exhibition space in the heart of Milano',
       },
     }),
     prisma.venue.create({
@@ -265,7 +278,8 @@ async function main() {
         phone: '+39 02 5666 2611',
         email: 'info@fondazioneprada.org',
         capacity: 300,
-        description: 'Contemporary art foundation with cutting-edge exhibitions',
+        description:
+          'Contemporary art foundation with cutting-edge exhibitions',
       },
     }),
     prisma.venue.create({
@@ -328,7 +342,8 @@ async function main() {
         isActive: true,
         lastLoginAt: new Date(),
         businessName: 'Studio Rossi Design',
-        businessIntro: 'Leading design studio specializing in sustainable architecture and contemporary furniture. We create innovative spaces that blend functionality with aesthetic excellence, focusing on eco-friendly materials and cutting-edge design solutions. Our team of architects and designers works closely with clients to deliver bespoke solutions that reflect their vision while maintaining the highest standards of sustainability and craftsmanship.',
+        businessIntro:
+          'Leading design studio specializing in sustainable architecture and contemporary furniture. We create innovative spaces that blend functionality with aesthetic excellence, focusing on eco-friendly materials and cutting-edge design solutions. Our team of architects and designers works closely with clients to deliver bespoke solutions that reflect their vision while maintaining the highest standards of sustainability and craftsmanship.',
         phone: '+39 02 1234 5678',
         website: 'https://studiorossi.it',
         facebookUrl: 'https://facebook.com/studiorossi',
@@ -345,7 +360,7 @@ async function main() {
         productId: products.find(p => p.slug === 'recessed-lighting')?.id,
       },
     }),
-    
+
     // Owner 2 - Kitchen Specialist
     prisma.user.create({
       data: {
@@ -355,7 +370,8 @@ async function main() {
         isActive: true,
         lastLoginAt: new Date(),
         businessName: 'Cucine Moderne Milano',
-        businessIntro: 'Premier kitchen design studio offering bespoke culinary spaces that combine Italian craftsmanship with modern functionality. We specialize in luxury kitchen solutions, from concept to completion, using the finest materials and state-of-the-art appliances. Our team of expert designers creates personalized kitchens that reflect each client\'s lifestyle and culinary aspirations.',
+        businessIntro:
+          "Premier kitchen design studio offering bespoke culinary spaces that combine Italian craftsmanship with modern functionality. We specialize in luxury kitchen solutions, from concept to completion, using the finest materials and state-of-the-art appliances. Our team of expert designers creates personalized kitchens that reflect each client's lifestyle and culinary aspirations.",
         phone: '+39 02 8765 4321',
         website: 'https://cucinemodernemilano.it',
         facebookUrl: 'https://facebook.com/cucinemodernemilano',
@@ -372,7 +388,7 @@ async function main() {
         productId: products.find(p => p.slug === 'kitchen-appliances')?.id,
       },
     }),
-    
+
     // Owner 3 - Lighting Design
     prisma.user.create({
       data: {
@@ -382,7 +398,8 @@ async function main() {
         isActive: true,
         lastLoginAt: new Date(),
         businessName: 'Luce & Design',
-        businessIntro: 'Innovative lighting design studio creating atmospheric and functional lighting solutions for residential and commercial spaces. We combine artistic vision with technical expertise to deliver lighting designs that enhance architecture and create memorable experiences. Our portfolio includes luxury hotels, restaurants, private residences, and corporate headquarters.',
+        businessIntro:
+          'Innovative lighting design studio creating atmospheric and functional lighting solutions for residential and commercial spaces. We combine artistic vision with technical expertise to deliver lighting designs that enhance architecture and create memorable experiences. Our portfolio includes luxury hotels, restaurants, private residences, and corporate headquarters.',
         phone: '+39 02 9876 5432',
         website: 'https://lucedesign.it',
         facebookUrl: 'https://facebook.com/lucedesign',
@@ -399,7 +416,7 @@ async function main() {
         productId: products.find(p => p.slug === 'pendant-lights')?.id,
       },
     }),
-    
+
     // Owner 4 - Furniture Design
     prisma.user.create({
       data: {
@@ -409,7 +426,8 @@ async function main() {
         isActive: true,
         lastLoginAt: new Date(),
         businessName: 'Atelier Conti',
-        businessIntro: 'Bespoke furniture atelier creating unique pieces that blend traditional Italian craftsmanship with contemporary design. Each piece is handcrafted using sustainable materials and traditional techniques, resulting in furniture that tells a story. We work with interior designers, architects, and private clients to create custom solutions that reflect their vision and lifestyle.',
+        businessIntro:
+          'Bespoke furniture atelier creating unique pieces that blend traditional Italian craftsmanship with contemporary design. Each piece is handcrafted using sustainable materials and traditional techniques, resulting in furniture that tells a story. We work with interior designers, architects, and private clients to create custom solutions that reflect their vision and lifestyle.',
         phone: '+39 02 5555 1234',
         website: 'https://atelierconti.it',
         facebookUrl: 'https://facebook.com/atelierconti',
@@ -426,7 +444,7 @@ async function main() {
         productId: products.find(p => p.slug === 'furniture')?.id,
       },
     }),
-    
+
     // Owner 5 - Textile Design
     prisma.user.create({
       data: {
@@ -436,7 +454,8 @@ async function main() {
         isActive: true,
         lastLoginAt: new Date(),
         businessName: 'Tessuti Ferrari',
-        businessIntro: 'Luxury textile house specializing in high-end fabrics for interior design and fashion. We create exclusive textile collections using traditional Italian weaving techniques combined with innovative materials and contemporary patterns. Our fabrics grace the most prestigious homes, hotels, and fashion houses worldwide, representing the pinnacle of Italian textile excellence.',
+        businessIntro:
+          'Luxury textile house specializing in high-end fabrics for interior design and fashion. We create exclusive textile collections using traditional Italian weaving techniques combined with innovative materials and contemporary patterns. Our fabrics grace the most prestigious homes, hotels, and fashion houses worldwide, representing the pinnacle of Italian textile excellence.',
         phone: '+39 02 3333 9876',
         website: 'https://tessutiferrari.it',
         facebookUrl: 'https://facebook.com/tessutiferrari',
@@ -464,8 +483,10 @@ async function main() {
       data: {
         title: 'Milano Design Week 2024: Sustainable Futures',
         slug: 'milano-design-week-2024-sustainable-futures',
-        description: 'Join us for the most anticipated design event of the year! Milano Design Week 2024: Sustainable Futures brings together leading designers, architects, and innovators to explore the future of sustainable design. This comprehensive exhibition showcases cutting-edge materials, innovative technologies, and visionary projects that are shaping tomorrow\'s built environment. Featuring interactive installations, expert panels, and networking opportunities with industry leaders.',
-        shortDescription: 'Premier design exhibition exploring sustainable design innovations',
+        description:
+          "Join us for the most anticipated design event of the year! Milano Design Week 2024: Sustainable Futures brings together leading designers, architects, and innovators to explore the future of sustainable design. This comprehensive exhibition showcases cutting-edge materials, innovative technologies, and visionary projects that are shaping tomorrow's built environment. Featuring interactive installations, expert panels, and networking opportunities with industry leaders.",
+        shortDescription:
+          'Premier design exhibition exploring sustainable design innovations',
         status: 'PUBLISHED',
         startDate: new Date('2024-12-15T09:00:00.000Z'),
         endDate: new Date('2024-12-15T18:00:00.000Z'),
@@ -485,19 +506,25 @@ async function main() {
         categoryId: categories[0].id,
         isPublic: true,
         featured: true,
-        tags: ['design', 'sustainability', 'architecture', 'innovation', 'materials'],
+        tags: [
+          'design',
+          'sustainability',
+          'architecture',
+          'innovation',
+          'materials',
+        ],
         metadata: {
           organizer: 'Studio Rossi Design',
           contact: {
             email: 'info@studiorossi.it',
             phone: '+39 02 1234 5678',
-            website: 'https://studiorossi.it'
+            website: 'https://studiorossi.it',
           },
           social: {
             instagram: '@studiorossi',
             twitter: '@studiorossi',
             facebook: 'Studio Rossi Design',
-            linkedin: 'Studio Rossi Design'
+            linkedin: 'Studio Rossi Design',
           },
           features: [
             'Interactive Design Installations',
@@ -505,11 +532,13 @@ async function main() {
             'Sustainable Materials Showcase',
             'Networking Reception',
             'Design Awards Ceremony',
-            'Innovation Workshops'
+            'Innovation Workshops',
           ],
-          requirements: 'Professional design background or interest in sustainable design',
+          requirements:
+            'Professional design background or interest in sustainable design',
           pricing: 'Free for professionals, €50 for general public',
-          heroImageUrl: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&h=600&fit=crop'
+          heroImageUrl:
+            'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&h=600&fit=crop',
         },
       },
     }),
@@ -519,8 +548,10 @@ async function main() {
       data: {
         title: 'Luxury Kitchen Design Masterclass',
         slug: 'luxury-kitchen-design-masterclass',
-        description: 'An exclusive masterclass for interior designers and architects focusing on luxury kitchen design principles. Learn from industry experts about space planning, material selection, and the latest trends in high-end kitchen design. This hands-on workshop includes case studies, design exercises, and access to premium kitchen showrooms.',
-        shortDescription: 'Exclusive masterclass on luxury kitchen design principles',
+        description:
+          'An exclusive masterclass for interior designers and architects focusing on luxury kitchen design principles. Learn from industry experts about space planning, material selection, and the latest trends in high-end kitchen design. This hands-on workshop includes case studies, design exercises, and access to premium kitchen showrooms.',
+        shortDescription:
+          'Exclusive masterclass on luxury kitchen design principles',
         status: 'PUBLISHED',
         startDate: new Date('2024-12-20T10:00:00.000Z'),
         endDate: new Date('2024-12-20T16:00:00.000Z'),
@@ -545,12 +576,12 @@ async function main() {
           contact: {
             email: 'info@cucinemodernemilano.it',
             phone: '+39 02 8765 4321',
-            website: 'https://cucinemodernemilano.it'
+            website: 'https://cucinemodernemilano.it',
           },
           social: {
             instagram: '@cucinemodernemilano',
             twitter: '@cucinemodernemilano',
-            facebook: 'Cucine Moderne Milano'
+            facebook: 'Cucine Moderne Milano',
           },
           features: [
             'Expert-led Design Sessions',
@@ -558,11 +589,12 @@ async function main() {
             'Material Selection Workshop',
             'Networking Lunch',
             'Design Portfolio Review',
-            'Industry Trends Presentation'
+            'Industry Trends Presentation',
           ],
           requirements: 'Professional interior designer or architect',
           pricing: '€150 for professionals',
-          heroImageUrl: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=800&h=600&fit=crop'
+          heroImageUrl:
+            'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=800&h=600&fit=crop',
         },
       },
     }),
@@ -572,8 +604,10 @@ async function main() {
       data: {
         title: 'Lighting Design Symposium: Art & Technology',
         slug: 'lighting-design-symposium-art-technology',
-        description: 'Explore the intersection of art and technology in contemporary lighting design. This symposium brings together lighting designers, artists, and technologists to discuss innovative approaches to illumination. Features live demonstrations, interactive installations, and presentations on the latest lighting technologies and their creative applications.',
-        shortDescription: 'Symposium exploring art and technology in lighting design',
+        description:
+          'Explore the intersection of art and technology in contemporary lighting design. This symposium brings together lighting designers, artists, and technologists to discuss innovative approaches to illumination. Features live demonstrations, interactive installations, and presentations on the latest lighting technologies and their creative applications.',
+        shortDescription:
+          'Symposium exploring art and technology in lighting design',
         status: 'PUBLISHED',
         startDate: new Date('2024-12-25T14:00:00.000Z'),
         endDate: new Date('2024-12-25T20:00:00.000Z'),
@@ -598,12 +632,12 @@ async function main() {
           contact: {
             email: 'info@lucedesign.it',
             phone: '+39 02 9876 5432',
-            website: 'https://lucedesign.it'
+            website: 'https://lucedesign.it',
           },
           social: {
             instagram: '@lucedesign',
             twitter: '@lucedesign',
-            facebook: 'Luce & Design'
+            facebook: 'Luce & Design',
           },
           features: [
             'Interactive Light Installations',
@@ -611,11 +645,12 @@ async function main() {
             'Expert Panel Discussions',
             'Networking Reception',
             'Design Competition',
-            'Product Launches'
+            'Product Launches',
           ],
           requirements: 'Open to all design professionals and enthusiasts',
           pricing: '€75 for professionals, €25 for students',
-          heroImageUrl: 'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=800&h=600&fit=crop'
+          heroImageUrl:
+            'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=800&h=600&fit=crop',
         },
       },
     }),
@@ -625,8 +660,10 @@ async function main() {
       data: {
         title: 'Bespoke Furniture Design Workshop',
         slug: 'bespoke-furniture-design-workshop',
-        description: 'Hands-on workshop on creating bespoke furniture pieces. Learn traditional Italian craftsmanship techniques while exploring contemporary design approaches. Participants will work on their own furniture project under the guidance of master craftsmen. Includes materials, tools, and a take-home piece.',
-        shortDescription: 'Hands-on workshop on bespoke furniture design and craftsmanship',
+        description:
+          'Hands-on workshop on creating bespoke furniture pieces. Learn traditional Italian craftsmanship techniques while exploring contemporary design approaches. Participants will work on their own furniture project under the guidance of master craftsmen. Includes materials, tools, and a take-home piece.',
+        shortDescription:
+          'Hands-on workshop on bespoke furniture design and craftsmanship',
         status: 'PUBLISHED',
         startDate: new Date('2024-12-30T09:00:00.000Z'),
         endDate: new Date('2024-12-30T17:00:00.000Z'),
@@ -645,18 +682,24 @@ async function main() {
         categoryId: categories[0].id,
         isPublic: true,
         featured: false,
-        tags: ['furniture', 'craftsmanship', 'workshop', 'design', 'traditional'],
+        tags: [
+          'furniture',
+          'craftsmanship',
+          'workshop',
+          'design',
+          'traditional',
+        ],
         metadata: {
           organizer: 'Atelier Conti',
           contact: {
             email: 'info@atelierconti.it',
             phone: '+39 02 5555 1234',
-            website: 'https://atelierconti.it'
+            website: 'https://atelierconti.it',
           },
           social: {
             instagram: '@atelierconti',
             twitter: '@atelierconti',
-            facebook: 'Atelier Conti'
+            facebook: 'Atelier Conti',
           },
           features: [
             'Master Craftsman Instruction',
@@ -664,11 +707,12 @@ async function main() {
             'Design Consultation',
             'Materials Included',
             'Take-home Project',
-            'Traditional Techniques'
+            'Traditional Techniques',
           ],
           requirements: 'No experience necessary, all skill levels welcome',
           pricing: '€200 including materials and tools',
-          heroImageUrl: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=800&h=600&fit=crop'
+          heroImageUrl:
+            'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=800&h=600&fit=crop',
         },
       },
     }),
@@ -678,8 +722,10 @@ async function main() {
       data: {
         title: 'Textile Innovation Conference: Future Fabrics',
         slug: 'textile-innovation-conference-future-fabrics',
-        description: 'Explore the future of textiles at this comprehensive conference featuring sustainable materials, smart fabrics, and innovative manufacturing processes. Industry leaders will present cutting-edge research and showcase revolutionary textile technologies that are transforming fashion, interior design, and industrial applications.',
-        shortDescription: 'Conference on sustainable and smart textile innovations',
+        description:
+          'Explore the future of textiles at this comprehensive conference featuring sustainable materials, smart fabrics, and innovative manufacturing processes. Industry leaders will present cutting-edge research and showcase revolutionary textile technologies that are transforming fashion, interior design, and industrial applications.',
+        shortDescription:
+          'Conference on sustainable and smart textile innovations',
         status: 'PUBLISHED',
         startDate: new Date('2025-01-05T10:00:00.000Z'),
         endDate: new Date('2025-01-05T18:00:00.000Z'),
@@ -698,18 +744,24 @@ async function main() {
         categoryId: categories[1].id,
         isPublic: true,
         featured: true,
-        tags: ['textiles', 'innovation', 'sustainability', 'technology', 'fashion'],
+        tags: [
+          'textiles',
+          'innovation',
+          'sustainability',
+          'technology',
+          'fashion',
+        ],
         metadata: {
           organizer: 'Tessuti Ferrari',
           contact: {
             email: 'info@tessutiferrari.it',
             phone: '+39 02 3333 9876',
-            website: 'https://tessutiferrari.it'
+            website: 'https://tessutiferrari.it',
           },
           social: {
             instagram: '@tessutiferrari',
             twitter: '@tessutiferrari',
-            facebook: 'Tessuti Ferrari'
+            facebook: 'Tessuti Ferrari',
           },
           features: [
             'Industry Expert Presentations',
@@ -717,11 +769,13 @@ async function main() {
             'Smart Fabric Demonstrations',
             'Networking Opportunities',
             'Innovation Awards',
-            'Future Trends Panel'
+            'Future Trends Panel',
           ],
-          requirements: 'Textile professionals, designers, or industry enthusiasts',
+          requirements:
+            'Textile professionals, designers, or industry enthusiasts',
           pricing: '€100 for professionals, €50 for students',
-          heroImageUrl: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800&h=600&fit=crop'
+          heroImageUrl:
+            'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800&h=600&fit=crop',
         },
       },
     }),
@@ -740,7 +794,7 @@ async function main() {
 }
 
 main()
-  .catch((e) => {
+  .catch(e => {
     console.error('❌ Seed failed:', e);
     process.exit(1);
   })
