@@ -1706,36 +1706,6 @@ app.get('/api/events/:id', async (request, reply) => {
         isPublic: true,
         deletedAt: null,
       },
-      include: {
-        owner: {
-          select: { id: true, name: true, email: true, businessName: true },
-        },
-        venue: {
-          select: {
-            id: true,
-            name: true,
-            address: true,
-            city: true,
-            country: true,
-            latitude: true,
-            longitude: true,
-          },
-        },
-        category: {
-          select: { id: true, name: true, slug: true, color: true, icon: true },
-        },
-        shows: {
-          where: { deletedAt: null },
-          orderBy: { startDate: 'asc' },
-        },
-        nearbyPlaces: {
-          orderBy: { distance: 'asc' },
-          take: 10,
-        },
-        _count: {
-          select: { waitlist: true },
-        },
-      },
       select: {
         id: true,
         title: true,
