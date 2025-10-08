@@ -207,7 +207,7 @@ This email was sent to ${data.email}
           .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
           .event-info { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #667eea; }
           .qr-section { text-align: center; margin: 30px 0; }
-          .qr-code { max-width: 300px; border: 2px solid #ddd; border-radius: 8px; }
+          .qr-code { max-width: 300px; border: 2px solid #ddd; border-radius: 8px; display: block; margin: 20px auto; background: white; padding: 10px; }
           .footer { text-align: center; margin-top: 30px; color: #666; font-size: 14px; }
         </style>
       </head>
@@ -228,8 +228,9 @@ This email was sent to ${data.email}
             <p>When you arrive at the event, show this QR code to the event organizer for quick check-in:</p>
             
             <div class="qr-section">
-              <img src="${data.qrCodeData}" alt="Event Arrival QR Code" class="qr-code" />
+              <img src="${data.qrCodeData}" alt="Event Arrival QR Code" class="qr-code" style="display: block; max-width: 300px; height: auto; margin: 20px auto;" />
               <p><small>Scan this QR code when you arrive at the event</small></p>
+              <p><strong>Alternative:</strong> If the QR code doesn't display, use this link: <a href="${data.arrivalUrl}">${data.arrivalUrl}</a></p>
             </div>
             
             <h3>What happens next?</h3>
