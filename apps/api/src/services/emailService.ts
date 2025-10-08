@@ -30,9 +30,9 @@ export class EmailService {
   private fromName: string;
 
   constructor() {
-    this.apiKey = process.env.SENDGRID_API_KEY || config.email.SENDGRID_API_KEY;
-    this.fromEmail = process.env.SENDGRID_FROM_EMAIL || config.email.SENDGRID_FROM_EMAIL;
-    this.fromName = process.env.SENDGRID_FROM_NAME || config.email.SENDGRID_FROM_NAME;
+    this.apiKey = process.env.SENDGRID_API_KEY || '';
+    this.fromEmail = process.env.SENDGRID_FROM_EMAIL || '';
+    this.fromName = process.env.SENDGRID_FROM_NAME || '';
   }
 
   /**
@@ -91,7 +91,7 @@ export class EmailService {
       .update(JSON.stringify(arrivalData))
       .digest('hex');
     
-    const arrivalUrl = `${config.server.API_URL}/api/events/${eventId}/arrival/${hash}`;
+    const arrivalUrl = `${process.env.API_URL || 'https://linea-production.up.railway.app'}/api/events/${eventId}/arrival/${hash}`;
     
     return QRCodeGenerator.generateEventQR(arrivalUrl, {
       width: 300,
@@ -138,7 +138,7 @@ export class EmailService {
             
             <p>We're excited to have you as part of our community. Get ready for unforgettable experiences!</p>
             
-            <a href="${config.server.FRONTEND_URL}" class="button">Explore Events</a>
+            <a href="${process.env.FRONTEND_URL || 'https://linea-production.up.railway.app'}" class="button">Explore Events</a>
             
             <p>If you have any questions, feel free to reach out to our support team.</p>
           </div>
@@ -166,7 +166,7 @@ What's next?
 
 We're excited to have you as part of our community. Get ready for unforgettable experiences!
 
-Explore events: ${config.server.FRONTEND_URL}
+Explore events: ${process.env.FRONTEND_URL || 'https://linea-production.up.railway.app'}
 
 If you have any questions, feel free to reach out to our support team.
 
