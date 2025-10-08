@@ -1170,6 +1170,7 @@ export function OwnerPortal() {
                             {event.currentWaitlist && (
                               <span>• Waitlist: {event.currentWaitlist}</span>
                             )}
+                            {/* QR Code status with proper type checking */}
                             {event.metadata?.qrUrl && typeof event.metadata.qrUrl === 'string' && (
                               <span className='text-green-600'>• QR Code Available</span>
                             )}
@@ -1202,6 +1203,7 @@ export function OwnerPortal() {
                           >
                             Analytics
                           </Link>
+                          {/* Generate QR button with proper type checking */}
                           {(!event.metadata?.qrUrl || typeof event.metadata.qrUrl !== 'string') && (
                             <button
                               onClick={() => handleGenerateQR(event.id)}
