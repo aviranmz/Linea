@@ -109,7 +109,6 @@ export function EventPage() {
     try {
       const response = await fetch(`/api/owner/events/${event.id}/generate-qr`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
       });
 
       if (response.ok) {

@@ -410,7 +410,6 @@ export function OwnerPortal() {
     try {
       const response = await fetch(`/api/owner/events/${eventId}/generate-qr`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
       });
 
       if (response.ok) {
