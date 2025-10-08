@@ -92,10 +92,22 @@ export class EmailService {
     
     const arrivalUrl = `${process.env.API_URL || 'https://linea-production.up.railway.app'}/api/events/${eventId}/arrival/${hash}`;
     
-    return QRCodeGenerator.generateEventQR(arrivalUrl, {
-      width: 300,
-      margin: 3,
-    });
+    console.log('Generating QR code for URL:', arrivalUrl);
+    
+    try {
+      const qrCodeData = await QRCodeGenerator.generateEventQR(arrivalUrl, {
+        width: 300,
+        margin: 3,
+      });
+      
+      console.log('QR code generated successfully, length:', qrCodeData?.length);
+      console.log('QR code prefix:', qrCodeData?.substring(0, 50));
+      
+      return qrCodeData;
+    } catch (error) {
+      console.error('Error generating QR code:', error);
+      throw error;
+    }
   }
 
   private generateWelcomeTemplate(data: WelcomeEmailData): EmailTemplate {

@@ -2608,6 +2608,13 @@ app.post('/api/waitlist', async (request, reply) => {
         const arrivalHash = await ArrivalTracker.createArrivalRecord(eventId, waitlistEntry.id);
         const qrCodeData = await emailService.generateArrivalQRCode(eventId, waitlistEntry.id);
         
+        app.log.info({ 
+          eventId, 
+          waitlistEntryId: waitlistEntry.id, 
+          qrCodeLength: qrCodeData?.length,
+          qrCodePrefix: qrCodeData?.substring(0, 50) 
+        }, 'Generated QR code for email');
+        
         // Send waitlist email
         await emailService.sendWaitlistEmail({
           email,
