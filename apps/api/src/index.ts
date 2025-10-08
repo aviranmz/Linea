@@ -2600,6 +2600,15 @@ app.post('/api/waitlist', async (request, reply) => {
         select: {
           title: true,
           startDate: true,
+          venue: {
+            select: {
+              name: true,
+              address: true,
+              city: true,
+              country: true,
+            },
+          },
+          mapAddress: true,
         },
       });
 
@@ -2615,13 +2624,22 @@ app.post('/api/waitlist', async (request, reply) => {
           qrCodePrefix: qrCodeData?.substring(0, 50) 
         }, 'Generated QR code for email');
         
+        // Build location string from venue or mapAddress
+        let eventLocation = 'TBD';
+        if (eventDetails.venue) {
+          const venue = eventDetails.venue;
+          eventLocation = `${venue.name}, ${venue.address}, ${venue.city}, ${venue.country}`;
+        } else if (eventDetails.mapAddress) {
+          eventLocation = eventDetails.mapAddress;
+        }
+
         // Send waitlist email
         await emailService.sendWaitlistEmail({
           email,
           eventId,
           eventTitle: eventDetails.title,
           eventDate: eventDetails.startDate?.toLocaleDateString() || 'TBD',
-          eventLocation: 'TBD', // TODO: Get location from venue
+          eventLocation,
           qrCodeData,
           arrivalUrl: `${config.server.API_URL}/api/events/${eventId}/arrival/${arrivalHash}`,
         });
