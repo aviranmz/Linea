@@ -19,6 +19,8 @@ import { fileURLToPath } from 'url';
 import { getConfig, validateConfig } from '@linea/config';
 import { sessionService } from './services/sessionService.js';
 import { QRCodeGenerator } from './utils/qrGenerator.js';
+import { emailService } from './services/emailService.js';
+import { ArrivalTracker } from './utils/arrivalTracker.js';
 import { favoritesRoutes } from './routes/favorites.js';
 
 // Get __dirname equivalent for ES modules
@@ -907,6 +909,56 @@ app.get('/api/events/:id/qr', async (request, reply) => {
   }
 });
 
+// Generate and save QR code for an event (owner only)
+app.post('/api/owner/events/:id/generate-qr', async (request, reply) => {
+  try {
+    const user = await requireOwnerOrAdmin(request, reply);
+    if (!user) return;
+
+    const { id } = request.params as { id: string };
+    
+    // Check if event exists and user owns it
+    const event = await prisma.event.findFirst({
+      where: {
+        id,
+        ownerId: user.id,
+        deletedAt: null,
+      },
+      select: { id: true, title: true, metadata: true },
+    });
+
+    if (!event) {
+      reply.code(404).send({ error: 'Event not found or access denied' });
+      return;
+    }
+
+    // Generate QR code for the event
+    const baseUrl = process.env.FRONTEND_URL || 'http://localhost:3050';
+    const eventUrl = `${baseUrl.replace(/\/$/, '')}/events/${id}`;
+    const qrUrl = await QRCodeGenerator.generateEventQR(eventUrl);
+
+    // Update the event with the QR code
+    await prisma.event.update({
+      where: { id },
+      data: {
+        metadata: {
+          ...((event.metadata as Record<string, unknown>) || {}),
+          qrUrl: qrUrl,
+        },
+      },
+    });
+
+    reply.send({ 
+      success: true, 
+      message: 'QR code generated successfully',
+      qrUrl: qrUrl 
+    });
+  } catch (error) {
+    app.log.error({ error }, 'Failed to generate QR code for event');
+    reply.code(500).send({ error: 'Failed to generate QR code' });
+  }
+});
+
 // Register plugins
 await app.register(cors, {
   origin: config.server.CORS_ORIGIN,
@@ -1684,6 +1736,51 @@ app.get('/api/events/:id', async (request, reply) => {
           select: { waitlist: true },
         },
       },
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        description: true,
+        shortDescription: true,
+        status: true,
+        startDate: true,
+        endDate: true,
+        capacity: true,
+        isPublic: true,
+        featured: true,
+        tags: true,
+        metadata: true,
+        createdAt: true,
+        updatedAt: true,
+        owner: {
+          select: { id: true, name: true, email: true, businessName: true },
+        },
+        venue: {
+          select: {
+            id: true,
+            name: true,
+            address: true,
+            city: true,
+            country: true,
+            latitude: true,
+            longitude: true,
+          },
+        },
+        category: {
+          select: { id: true, name: true, slug: true, color: true, icon: true },
+        },
+        shows: {
+          where: { deletedAt: null },
+          orderBy: { startDate: 'asc' },
+        },
+        nearbyPlaces: {
+          orderBy: { distance: 'asc' },
+          take: 10,
+        },
+        _count: {
+          select: { waitlist: true },
+        },
+      },
     });
 
     // If not found as public event, check if user is the owner
@@ -1697,7 +1794,22 @@ app.get('/api/events/:id', async (request, reply) => {
               ownerId: user.id,
               deletedAt: null,
             },
-            include: {
+            select: {
+              id: true,
+              title: true,
+              slug: true,
+              description: true,
+              shortDescription: true,
+              status: true,
+              startDate: true,
+              endDate: true,
+              capacity: true,
+              isPublic: true,
+              featured: true,
+              tags: true,
+              metadata: true,
+              createdAt: true,
+              updatedAt: true,
               owner: {
                 select: {
                   id: true,
@@ -1885,16 +1997,8 @@ app.post('/api/owner/events', async (request, reply) => {
     }
     const slug = await generateUniqueSlug(title);
 
-    // Generate QR code for the event
-    const baseUrl = process.env.FRONTEND_URL || 'http://localhost:3050';
-    const eventUrl = `${baseUrl}/events/${slug}`;
+    // Generate QR code for the event - we'll generate it after creating the event to get the ID
     let generatedQRUrl: string | undefined;
-    try {
-      generatedQRUrl = await QRCodeGenerator.generateEventQR(eventUrl);
-    } catch (error) {
-      app.log.warn({ error }, 'Failed to generate QR code for event');
-      // Continue without QR code if generation fails
-    }
 
     const event = await prisma.event.create({
       data: {
@@ -1924,10 +2028,38 @@ app.post('/api/owner/events', async (request, reply) => {
           pressKitUrl: pressKitUrl ?? null,
           contact: contact ?? null,
           schedule: Array.isArray(schedule) ? schedule : [],
-          qrUrl: generatedQRUrl || null,
+          qrUrl: null, // Will be generated after event creation
         },
       },
     });
+
+    // Generate QR code for the event using the event ID
+    try {
+      const baseUrl = process.env.FRONTEND_URL || 'http://localhost:3050';
+      const eventUrl = `${baseUrl.replace(/\/$/, '')}/events/${event.id}`;
+      generatedQRUrl = await QRCodeGenerator.generateEventQR(eventUrl);
+      
+      // Update the event with the QR code
+      await prisma.event.update({
+        where: { id: event.id },
+        data: {
+          metadata: {
+            ...((event.metadata as Record<string, unknown>) || {}),
+            qrUrl: generatedQRUrl,
+          },
+        },
+      });
+      
+      // Update the event object to include the QR code
+      event.metadata = {
+        ...((event.metadata as Record<string, unknown>) || {}),
+        qrUrl: generatedQRUrl,
+      };
+    } catch (error) {
+      app.log.warn({ error }, 'Failed to generate QR code for event');
+      // Continue without QR code if generation fails
+    }
+
     reply.code(201).send({ event });
   } catch (error) {
     app.log.error({ error }, 'Failed to create event');
@@ -2013,12 +2145,11 @@ app.put('/api/owner/events/:id', async (request, reply) => {
 
     // If slug changed or existing QR missing, regenerate QR
     try {
-      const newSlug = (data.slug as string) || existing.slug;
       const shouldRegenerate =
         !!data.slug || !(existing.metadata as any)?.qrUrl;
       if (shouldRegenerate) {
         const baseUrl = process.env.FRONTEND_URL || 'http://localhost:3050';
-        const eventUrl = `${baseUrl}/events/${newSlug}`;
+        const eventUrl = `${baseUrl.replace(/\/$/, '')}/events/${id}`;
         const qrUrl = await QRCodeGenerator.generateEventQR(eventUrl);
         const current = await prisma.event.findUnique({
           where: { id },
@@ -2474,6 +2605,37 @@ app.post('/api/waitlist', async (request, reply) => {
       },
     });
 
+    // Send waitlist confirmation email with QR code
+    try {
+      const eventDetails = await prisma.event.findUnique({
+        where: { id: eventId },
+        select: {
+          title: true,
+          startDate: true,
+          location: true,
+        },
+      });
+
+      if (eventDetails) {
+        // Generate arrival QR code
+        const arrivalHash = await ArrivalTracker.createArrivalRecord(eventId, waitlistEntry.id);
+        const qrCodeData = await emailService.generateArrivalQRCode(eventId, waitlistEntry.id);
+        
+        // Send waitlist email
+        await emailService.sendWaitlistEmail({
+          email,
+          eventId,
+          eventTitle: eventDetails.title,
+          eventDate: eventDetails.startDate?.toLocaleDateString() || 'TBD',
+          eventLocation: eventDetails.location || 'TBD',
+          qrCodeData,
+          arrivalUrl: `${config.server.API_URL}/api/events/${eventId}/arrival/${arrivalHash}`,
+        });
+      }
+    } catch (emailError) {
+      app.log.warn({ emailError, email, eventId }, 'Failed to send waitlist email');
+    }
+
     return {
       waitlistEntry: {
         id: waitlistEntry.id,
@@ -2523,6 +2685,35 @@ app.post('/api/waitlist', async (request, reply) => {
       );
       reply.code(500).send({ error: 'Failed to join waitlist' });
     }
+  }
+});
+
+// Event arrival scanning endpoint
+app.get('/api/events/:eventId/arrival/:hash', async (request, reply) => {
+  try {
+    const { eventId, hash } = request.params as {
+      eventId: string;
+      hash: string;
+    };
+
+    const result = await ArrivalTracker.processArrivalByHash(hash);
+    
+    if (result.success) {
+      reply.send({
+        success: true,
+        message: result.message,
+        eventTitle: result.eventTitle,
+        userEmail: result.userEmail,
+      });
+    } else {
+      reply.code(400).send({
+        success: false,
+        message: result.message,
+      });
+    }
+  } catch (error) {
+    app.log.error({ error }, 'Failed to process arrival');
+    reply.code(500).send({ error: 'Failed to process arrival' });
   }
 });
 
@@ -3005,6 +3196,10 @@ app.get('/api/admin/events', async (request, reply) => {
       limit = '20',
       status,
       search,
+      category,
+      dateFrom,
+      dateTo,
+      featured,
     } = request.query as {
       page?: string;
       limit?: string;
@@ -3015,6 +3210,10 @@ app.get('/api/admin/events', async (request, reply) => {
         | 'COMPLETED'
         | 'PENDING_REVIEW';
       search?: string;
+      category?: string;
+      dateFrom?: string;
+      dateTo?: string;
+      featured?: string;
     };
     const pageNum = Math.max(1, parseInt(page));
     const limitNum = Math.min(100, Math.max(1, parseInt(limit)));
@@ -3034,6 +3233,16 @@ app.get('/api/admin/events', async (request, reply) => {
             ],
           }
         : {}),
+      ...(category ? { categoryId: category } : {}),
+      ...(featured === 'true' ? { featured: true } : featured === 'false' ? { featured: false } : {}),
+      ...(dateFrom || dateTo
+        ? {
+            startDate: {
+              ...(dateFrom ? { gte: new Date(dateFrom) } : {}),
+              ...(dateTo ? { lte: new Date(dateTo) } : {}),
+            },
+          }
+        : {}),
     };
 
     const [total, events] = await Promise.all([
@@ -3048,6 +3257,7 @@ app.get('/api/admin/events', async (request, reply) => {
           title: true,
           slug: true,
           status: true,
+          startDate: true,
           createdAt: true,
           owner: { select: { name: true } },
           _count: { select: { waitlist: true } },
@@ -3062,6 +3272,7 @@ app.get('/api/admin/events', async (request, reply) => {
           title: string;
           slug: string;
           status: string;
+          startDate: Date;
           createdAt: Date;
           owner?: { name: string | null } | null;
           _count: { waitlist: number };
@@ -3070,6 +3281,7 @@ app.get('/api/admin/events', async (request, reply) => {
           title: e.title,
           slug: e.slug,
           status: e.status,
+          startDate: e.startDate,
           ownerName: e.owner?.name || 'Unknown',
           waitlistCount: e._count.waitlist,
           createdAt: e.createdAt,
@@ -3567,6 +3779,57 @@ app.post('/api/owner/bulk-email', async (request, reply) => {
   } catch (error) {
     request.log.error({ error }, 'Failed to send bulk email');
     reply.code(500).send({ error: 'Failed to send bulk email' });
+  }
+});
+
+// Test email functionality endpoint (admin only)
+app.post('/api/admin/test-email', async (request, reply) => {
+  const user = await requireAdmin(request, reply);
+  if (!user) return;
+
+  try {
+    const { type, email } = request.body as {
+      type: 'welcome' | 'waitlist';
+      email: string;
+    };
+
+    if (!email || !type) {
+      reply.code(400).send({ error: 'Email and type are required' });
+      return;
+    }
+
+    let result = false;
+    let message = '';
+
+    if (type === 'welcome') {
+      result = await emailService.sendWelcomeEmail({
+        email,
+        name: 'Test User',
+        adminListEmail: 'admin@linea.app',
+      });
+      message = result ? 'Welcome email sent successfully' : 'Failed to send welcome email';
+    } else if (type === 'waitlist') {
+      result = await emailService.sendWaitlistEmail({
+        email,
+        eventId: 'test-event-123',
+        eventTitle: 'Test Event',
+        eventDate: new Date().toLocaleDateString(),
+        eventLocation: 'Test Location',
+        qrCodeData: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
+        arrivalUrl: 'https://api.linea.app/api/events/test-event-123/arrival/test-hash',
+      });
+      message = result ? 'Waitlist email sent successfully' : 'Failed to send waitlist email';
+    }
+
+    reply.send({
+      success: result,
+      message,
+      email,
+      type,
+    });
+  } catch (error) {
+    app.log.error({ error }, 'Failed to test email');
+    reply.code(500).send({ error: 'Failed to test email' });
   }
 });
 
@@ -5061,6 +5324,11 @@ app.get('/auth/owner-callback', async (request, reply) => {
     return;
   }
 
+  // Check if user already exists
+  const existingUser = await prisma.user.findUnique({
+    where: { email: record.email },
+  });
+
   // Create or update user as OWNER
   const user = await prisma.user.upsert({
     where: { email: record.email },
@@ -5078,6 +5346,20 @@ app.get('/auth/owner-callback', async (request, reply) => {
       lastLoginAt: new Date(),
     },
   });
+
+  // Send welcome email for new users
+  if (!existingUser) {
+    try {
+      await emailService.sendWelcomeEmail({
+        email: user.email,
+        name: user.name || undefined,
+        adminListEmail: 'admin@linea.app', // TODO: Make this configurable
+      });
+      app.log.info({ email: user.email }, 'Welcome email sent to new owner');
+    } catch (emailError) {
+      app.log.warn({ emailError, email: user.email }, 'Failed to send welcome email to owner');
+    }
+  }
 
   // Mark verification used
   await prisma.emailVerification.update({
@@ -5191,6 +5473,11 @@ app.get('/auth/callback', async (request, reply) => {
       return;
     }
 
+    // Check if user already exists
+    const existingUser = await prisma.user.findUnique({
+      where: { email: record.email },
+    });
+
     // Upsert user
     const user = await prisma.user.upsert({
       where: { email: record.email },
@@ -5205,6 +5492,20 @@ app.get('/auth/callback', async (request, reply) => {
         lastLoginAt: new Date(),
       },
     });
+
+    // Send welcome email for new users
+    if (!existingUser) {
+      try {
+        await emailService.sendWelcomeEmail({
+          email: user.email,
+          name: user.name || undefined,
+          adminListEmail: 'admin@linea.app', // TODO: Make this configurable
+        });
+        app.log.info({ email: user.email }, 'Welcome email sent to new user');
+      } catch (emailError) {
+        app.log.warn({ emailError, email: user.email }, 'Failed to send welcome email');
+      }
+    }
 
     // Mark verification used
     await prisma.emailVerification.update({
