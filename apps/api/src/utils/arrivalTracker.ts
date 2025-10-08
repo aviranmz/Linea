@@ -1,6 +1,5 @@
 import crypto from 'crypto';
 import * as Prisma from '@prisma/client';
-import { WaitlistStatus } from '@prisma/client';
 
 const prisma = new Prisma.PrismaClient();
 
@@ -67,7 +66,7 @@ export class ArrivalTracker {
       }
 
       // Check if already arrived
-      if (waitlistEntry.status === WaitlistStatus.ARRIVED) {
+      if (waitlistEntry.status === 'ARRIVED') {
         return {
           success: false,
           message: 'User has already checked in for this event',
@@ -78,7 +77,7 @@ export class ArrivalTracker {
       await prisma.waitlistEntry.update({
         where: { id: waitlistEntry.id },
         data: {
-          status: WaitlistStatus.ARRIVED,
+          status: 'ARRIVED',
           updatedAt: new Date(),
         },
       });
