@@ -210,6 +210,15 @@ This email was sent to ${data.email}
 
   private generateWaitlistTemplate(data: WaitlistEmailData): EmailTemplate {
     const subject = `You're on the waitlist for ${data.eventTitle}! 🎫`;
+    
+    // Debug QR code data
+    console.log('QR Code Debug:', {
+      hasQrCodeData: !!data.qrCodeData,
+      hasQrImageUrl: !!data.qrImageUrl,
+      qrCodeDataLength: data.qrCodeData?.length,
+      qrCodeDataPrefix: data.qrCodeData?.substring(0, 50),
+      arrivalUrl: data.arrivalUrl
+    });
 
     const html = `
       <!DOCTYPE html>
@@ -246,7 +255,7 @@ This email was sent to ${data.email}
             <p>When you arrive at the event, show this QR code to the event organizer for quick check-in:</p>
             
             <div class="qr-section">
-              <img src="${data.qrImageUrl || data.qrCodeData || ''}" alt="Event Arrival QR Code" class="qr-code" style="display: block; max-width: 300px; height: auto; margin: 20px auto;" />
+              ${data.qrCodeData ? `<img src="${data.qrCodeData}" alt="Event Arrival QR Code" class="qr-code" style="display: block; max-width: 300px; height: auto; margin: 20px auto;" />` : ''}
               <p><small>Scan this QR code when you arrive at the event</small></p>
               <p><strong>Alternative:</strong> If the QR code doesn't display, use this link: <a href="${data.arrivalUrl}">${data.arrivalUrl}</a></p>
             </div>
@@ -281,7 +290,7 @@ Event Details:
 Your Arrival QR Code:
 When you arrive at the event, show this QR code to the event organizer for quick check-in.
 
-[QR Code Image: ${data.qrImageUrl || (data.qrCodeData ? data.qrCodeData.substring(0, 50) + '...' : 'embedded') }]
+${data.qrCodeData ? '[QR Code Image embedded in HTML version]' : '[QR Code not available]'}
 
 What happens next?
 - ✅ You're on the waitlist for this event
