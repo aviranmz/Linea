@@ -40,7 +40,8 @@ function generateEmail(firstName: string, lastName: string, domain: string): str
     `${firstName.toLowerCase()}_${lastName.toLowerCase()}@${domain}`,
     `${firstName.toLowerCase()}${lastName.toLowerCase()}${Math.floor(Math.random() * 99)}@${domain}`,
   ];
-  return variations[Math.floor(Math.random() * variations.length)] || `${firstName.toLowerCase()}.${lastName.toLowerCase()}@${domain}`;
+  const randomIndex = Math.floor(Math.random() * variations.length);
+  return variations[randomIndex] || `${firstName.toLowerCase()}.${lastName.toLowerCase()}@${domain}`;
 }
 
 async function main() {

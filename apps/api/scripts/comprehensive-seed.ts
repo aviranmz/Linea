@@ -69,7 +69,7 @@ async function main() {
 
   // STEP 2: Create admin user
   console.log('👤 Creating admin user...');
-  const adminUser = await prisma.user.upsert({
+  await prisma.user.upsert({
     where: { email: 'admin@linea.app' },
     update: {},
     create: {
