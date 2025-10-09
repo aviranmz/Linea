@@ -86,7 +86,6 @@ model Event {
   shortDescription  String?
   tags              String[]
   // New location fields for user-friendly address input
-  streetAddress     String?
   city              String?
   country           String?
   postalCode        String?
