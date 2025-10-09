@@ -42,7 +42,10 @@ function generateEmail(firstName: string, lastName: string, domain: string): str
   ];
   const randomIndex = Math.floor(Math.random() * variations.length);
   const selectedEmail = variations[randomIndex];
-  return (selectedEmail ?? `${firstName.toLowerCase()}.${lastName.toLowerCase()}@${domain}`) as string;
+  if (selectedEmail !== undefined) {
+    return selectedEmail;
+  }
+  return `${firstName.toLowerCase()}.${lastName.toLowerCase()}@${domain}`;
 }
 
 async function main() {
