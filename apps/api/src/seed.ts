@@ -40,7 +40,7 @@ function generateEmail(firstName: string, lastName: string, domain: string): str
     `${firstName.toLowerCase()}_${lastName.toLowerCase()}@${domain}`,
     `${firstName.toLowerCase()}${lastName.toLowerCase()}${Math.floor(Math.random() * 99)}@${domain}`,
   ];
-  return variations[Math.floor(Math.random() * variations.length)];
+  return variations[Math.floor(Math.random() * variations.length)] || `${firstName.toLowerCase()}.${lastName.toLowerCase()}@${domain}`;
 }
 
 async function main() {
@@ -178,7 +178,7 @@ async function main() {
 
   // STEP 6: Create admin user
   console.log('👑 Creating admin user...');
-  const admin = await prisma.user.create({
+  await prisma.user.create({
     data: {
       email: 'admin@linea.app',
       name: 'Admin User',
@@ -368,6 +368,11 @@ async function main() {
       ];
       
       const template = eventTemplates[eventIndex];
+      if (!template) {
+        console.error(`No template found for eventIndex ${eventIndex}`);
+        continue;
+      }
+      
       const startDate = new Date();
       startDate.setDate(startDate.getDate() + (ownerIndex * 7) + (eventIndex * 2) + 15);
       startDate.setHours(9 + (eventIndex * 2), 0, 0, 0);
