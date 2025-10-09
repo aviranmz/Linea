@@ -67,6 +67,10 @@ export function QRScanner() {
       streamRef.current = stream;
       
       if (videoRef.current) {
+        // Prepare video element for iOS Safari
+        videoRef.current.setAttribute('playsinline', 'true');
+        videoRef.current.setAttribute('autoplay', 'true');
+        videoRef.current.muted = true;
         videoRef.current.srcObject = stream;
         // iOS Safari requires both muted + playsInline + autoplay attribute
         // and play() call after a user gesture (the button click)
@@ -308,7 +312,7 @@ export function QRScanner() {
               {/* Live preview */}
               <video
                 ref={videoRef}
-                className='block w-full aspect-[3/4] sm:aspect-[4/3] bg-black'
+                className='block w-full h-[60vh] sm:h-[70vh] object-cover bg-black'
                 playsInline
                 muted
                 autoPlay
