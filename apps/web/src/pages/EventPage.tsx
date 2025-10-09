@@ -314,7 +314,7 @@ export function EventPage() {
 
                       {/* Event Details - Responsive Grid */}
                       <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-sm text-gray-600'>
-                        <div className='flex items-center bg-white/60 rounded-lg px-3 py-2 shadow-sm'>
+                      <div className='flex items-center bg-white/60 rounded-lg px-3 py-2 shadow-sm'>
                           <svg
                             className='w-4 h-4 mr-2 text-gray-500 flex-shrink-0'
                             fill='none'
@@ -433,6 +433,14 @@ export function EventPage() {
                           </div>
                         )}
                       </div>
+                      {event.metadata?.pricing && (
+                        <div className='flex items-center bg-white/60 rounded-lg px-3 py-2 shadow-sm'>
+                          <span className='w-4 h-4 mr-2 text-gray-500'>💶</span>
+                          <span className='font-medium text-gray-700 text-xs sm:text-sm'>
+                            {event.metadata.pricing}
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </div>
 

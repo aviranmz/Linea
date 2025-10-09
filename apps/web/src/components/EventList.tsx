@@ -389,6 +389,12 @@ export function EventList({
                   ? `${event.venue.city}, ${event.venue.country}`
                   : t('common.locationTBA')}
               </div>
+              {event.metadata?.pricing && (
+                <div className='flex items-center text-sm text-gray-700'>
+                  <span className='mr-2'>💶</span>
+                  {event.metadata.pricing}
+                </div>
+              )}
               {showOwner && event.owner && (
                 <div className='flex items-center text-sm text-gray-500'>
                   <span className='mr-2'>👤</span>

@@ -22,6 +22,9 @@ export interface EventMetadata {
     endsAt?: string;
   }>;
 
+  // Commerce
+  pricing?: string | null; // free text e.g., "€25", "€80 for professionals"
+
   // Social & Contact
   social?: {
     website?: string;
