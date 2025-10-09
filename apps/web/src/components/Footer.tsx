@@ -5,7 +5,7 @@ const version = import.meta.env.VITE_APP_VERSION || '0.2.4';
 
 export function Footer() {
   return (
-    <footer className='bg-white/95 backdrop-blur-md border-t border-neutral-200/50 transition-colors duration-300'>
+    <footer className='bg-gradient-to-b from-white to-neutral-50 dark:from-neutral-900 dark:to-neutral-950/90 backdrop-blur-md border-t border-neutral-200/50 dark:border-neutral-800 transition-colors duration-300'>
       <div className='container section-sm'>
         <div className='grid grid-cols-1 md:grid-cols-4 gap-8'>
           {/* Brand */}
@@ -23,7 +23,7 @@ export function Footer() {
               platform. Experience the future of event management with
               Milano-inspired design.
             </p>
-            <div className='flex space-x-4'>
+            <div className='flex space-x-3'>
               <a
                 href='#'
                 className='text-neutral-400 hover:text-accent-600 transition-colors duration-200'
@@ -59,7 +59,7 @@ export function Footer() {
 
           {/* Quick Links */}
           <div>
-            <h3 className='text-sm font-semibold text-neutral-900 uppercase tracking-wider mb-4'>
+            <h3 className='text-sm font-semibold text-neutral-900 dark:text-neutral-100 uppercase tracking-wider mb-4'>
               Quick Links
             </h3>
             <ul className='space-y-3'>
@@ -92,7 +92,7 @@ export function Footer() {
 
           {/* Support */}
           <div>
-            <h3 className='text-sm font-semibold text-neutral-900 uppercase tracking-wider mb-4'>
+            <h3 className='text-sm font-semibold text-neutral-900 dark:text-neutral-100 uppercase tracking-wider mb-4'>
               Support
             </h3>
             <ul className='space-y-3'>
@@ -132,7 +132,7 @@ export function Footer() {
           </div>
         </div>
 
-        <div className='mt-12 pt-8 border-t border-neutral-200'>
+        <div className='mt-12 pt-8 border-t border-neutral-200 dark:border-neutral-800'>
           <div className='flex flex-col md:flex-row justify-between items-center'>
             <p className='text-caption'>
               © 2025 Linea. All rights reserved. Version {version}
