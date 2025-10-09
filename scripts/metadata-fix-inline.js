@@ -14,7 +14,7 @@ console.log('🔧 Creating metadata fix script in API directory...');
 
 // Create the script content
 const scriptContent = `
-const { PrismaClient } = require('@prisma/client');
+import { PrismaClient } from '@prisma/client';
 
 async function fixMetadataColumn() {
   const prisma = new PrismaClient();
