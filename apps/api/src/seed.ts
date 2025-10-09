@@ -292,7 +292,7 @@ async function main() {
     const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
     const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
     const domain = domains[Math.floor(Math.random() * domains.length)];
-    const email = generateEmail(firstName, lastName, domain);
+    const email: string = generateEmail(firstName, lastName, domain);
 
     const visitor = await prisma.user.create({
       data: {
