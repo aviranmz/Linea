@@ -2766,6 +2766,10 @@ app.post('/api/waitlist', async (request, reply) => {
           eventDate: eventDetails.startDate?.toLocaleDateString() || 'TBD',
           eventLocation,
           qrCodeData,
+          // Some email clients block large data URLs; also include hosted image URL
+          qrImageUrl: qrCodeData?.startsWith('data:')
+            ? undefined
+            : qrCodeData,
           arrivalUrl: `${config.server.API_URL}/api/events/${eventId}/arrival/${arrivalHash}`,
         });
       }

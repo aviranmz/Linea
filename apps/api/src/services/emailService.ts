@@ -19,7 +19,8 @@ export interface WaitlistEmailData {
   eventTitle: string;
   eventDate: string;
   eventLocation: string;
-  qrCodeData: string;
+  qrCodeData?: string; // base64 data url (fallback)
+  qrImageUrl?: string; // http(s) url (preferred by many email clients)
   arrivalUrl: string;
 }
 
@@ -245,7 +246,7 @@ This email was sent to ${data.email}
             <p>When you arrive at the event, show this QR code to the event organizer for quick check-in:</p>
             
             <div class="qr-section">
-              <img src="${data.qrCodeData}" alt="Event Arrival QR Code" class="qr-code" style="display: block; max-width: 300px; height: auto; margin: 20px auto;" />
+              <img src="${data.qrImageUrl || data.qrCodeData || ''}" alt="Event Arrival QR Code" class="qr-code" style="display: block; max-width: 300px; height: auto; margin: 20px auto;" />
               <p><small>Scan this QR code when you arrive at the event</small></p>
               <p><strong>Alternative:</strong> If the QR code doesn't display, use this link: <a href="${data.arrivalUrl}">${data.arrivalUrl}</a></p>
             </div>
@@ -280,7 +281,7 @@ Event Details:
 Your Arrival QR Code:
 When you arrive at the event, show this QR code to the event organizer for quick check-in.
 
-[QR Code Image - ${data.qrCodeData.substring(0, 50)}...]
+[QR Code Image: ${data.qrImageUrl || (data.qrCodeData ? data.qrCodeData.substring(0, 50) + '...' : 'embedded') }]
 
 What happens next?
 - ✅ You're on the waitlist for this event
