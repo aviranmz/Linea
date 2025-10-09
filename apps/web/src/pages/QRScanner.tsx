@@ -39,6 +39,8 @@ export function QRScanner() {
     try {
       setError(null);
       setCameraError(null);
+      // Show preview area right away so users see where it will appear
+      setIsScanning(true);
       // Stop any previously running stream first
       if (streamRef.current) {
         streamRef.current.getTracks().forEach(track => track.stop());
@@ -70,17 +72,19 @@ export function QRScanner() {
         // Prepare video element for iOS Safari
         videoRef.current.setAttribute('playsinline', 'true');
         videoRef.current.setAttribute('autoplay', 'true');
+        // WebKit-specific hint
+        videoRef.current.setAttribute('webkit-playsinline', 'true');
         videoRef.current.muted = true;
         videoRef.current.srcObject = stream;
-        // iOS Safari requires both muted + playsInline + autoplay attribute
-        // and play() call after a user gesture (the button click)
-        try {
-          await videoRef.current.play();
-        } catch (playErr) {
-          // Surface a hint if autoplay fails
-          console.warn('Video play() was interrupted:', playErr);
-        }
-        setIsScanning(true);
+        // iOS Safari: start playback when metadata is ready
+        const v = videoRef.current;
+        v.onloadedmetadata = async () => {
+          try {
+            await v.play();
+          } catch (playErr) {
+            console.warn('Video play() failed on metadata:', playErr);
+          }
+        };
         setHasPermission(true);
         
         // Bring the scanner preview into view on mobile
@@ -94,8 +98,11 @@ export function QRScanner() {
     } catch (err) {
       console.error('Camera access error:', err);
       const message = err instanceof Error ? err.message : 'Unknown error';
-      setCameraError(`Failed to access camera: ${message}. Please check site permissions and reload.`);
+      setCameraError(
+        `Failed to access camera: ${message}. On iPhone Safari: Settings → Safari → Camera → Allow; or tap the address bar lock → Website Settings → Allow Camera.`
+      );
       setHasPermission(false);
+      setIsScanning(false);
     }
   };
 
