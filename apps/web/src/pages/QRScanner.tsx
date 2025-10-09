@@ -39,20 +39,43 @@ export function QRScanner() {
     try {
       setError(null);
       setCameraError(null);
-      
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          facingMode: 'environment', // Use back camera on mobile
-          width: { ideal: 1280 },
-          height: { ideal: 720 },
-        },
-      });
+      // Stop any previously running stream first
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+        streamRef.current = null;
+      }
+
+      // Prefer back camera on mobile with Safari-friendly constraint
+      let stream: MediaStream | null = null;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: { ideal: 'environment' },
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
+          },
+          audio: false,
+        });
+      } catch (firstErr) {
+        // Fallback without facingMode (some Android/iOS devices fail otherwise)
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: false,
+        });
+      }
       
       streamRef.current = stream;
       
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
-        videoRef.current.play();
+        // iOS Safari requires both muted + playsInline + autoplay attribute
+        // and play() call after a user gesture (the button click)
+        try {
+          await videoRef.current.play();
+        } catch (playErr) {
+          // Surface a hint if autoplay fails
+          console.warn('Video play() was interrupted:', playErr);
+        }
         setIsScanning(true);
         setHasPermission(true);
         
@@ -61,7 +84,8 @@ export function QRScanner() {
       }
     } catch (err) {
       console.error('Camera access error:', err);
-      setCameraError('Failed to access camera. Please check permissions.');
+      const message = err instanceof Error ? err.message : 'Unknown error';
+      setCameraError(`Failed to access camera: ${message}. Please check site permissions and reload.`);
       setHasPermission(false);
     }
   };
@@ -281,6 +305,7 @@ export function QRScanner() {
                 className='w-full h-64 sm:h-96 object-cover'
                 playsInline
                 muted
+                autoPlay
               />
               <canvas
                 ref={canvasRef}
