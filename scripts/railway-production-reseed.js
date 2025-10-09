@@ -7,7 +7,8 @@
  * to wipe and reseed the production database.
  */
 
-const { PrismaClient } = require('@prisma/client');
+// Use the built Prisma client from the API app
+const { PrismaClient } = require('../apps/api/dist/generated/client/index.js');
 
 const prisma = new PrismaClient();
 
