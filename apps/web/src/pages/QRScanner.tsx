@@ -1,6 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useLanguage } from '../hooks/useLanguage';
 
 interface ScanResult {
   success: boolean;
@@ -18,7 +17,6 @@ export function QRScanner() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
-  const { t } = useLanguage();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -93,8 +91,9 @@ export function QRScanner() {
     context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
     // Get image data for QR code detection
-    const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-    
+    // We could read the image data here for a real QR decode implementation
+    // const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+
     // Simple QR code detection (in a real app, you'd use a library like jsQR)
     // For now, we'll simulate detection
     setTimeout(() => {
