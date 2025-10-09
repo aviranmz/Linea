@@ -334,7 +334,7 @@ export function EventList({
   // Grid variant (default)
   return (
     <div
-      className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 ${className}`}
+      className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 ${className}`}
     >
       {events.map(event => (
         <div
@@ -348,7 +348,7 @@ export function EventList({
                 event.metadata?.heroImageUrl || '/images/event-placeholder.jpg'
               }
               alt={event.title}
-              className='w-full h-32 object-cover'
+              className='w-full h-48 object-cover'
             />
             {event.featured && (
               <div className='absolute top-2 right-2'>
@@ -369,7 +369,7 @@ export function EventList({
             )}
           </div>
 
-          <div className='p-3'>
+          <div className='p-4'>
             <h3 className='text-lg font-semibold text-gray-900 mb-2'>
               {event.title}
             </h3>
@@ -378,7 +378,7 @@ export function EventList({
               {event.shortDescription || t('common.noDescriptionAvailable')}
             </p>
 
-            <div className='space-y-2 mb-3'>
+            <div className='space-y-2 mb-4'>
               <div className='flex items-center text-sm text-gray-500'>
                 <span className='mr-2'>📅</span>
                 {formatDate(event.startDate)}
