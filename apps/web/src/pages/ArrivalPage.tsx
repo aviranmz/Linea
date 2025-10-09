@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
+import { getJson } from '../lib/api';
 
 interface ArrivalData {
   eventTitle: string;
@@ -14,7 +14,10 @@ interface ArrivalData {
 
 export function ArrivalPage() {
   const { eventId, hash } = useParams<{ eventId: string; hash: string }>();
-  const { auth } = useAuth();
+  const [auth, setAuth] = useState<{
+    authenticated: boolean;
+    user?: { role?: string };
+  } | null>(null);
   const [arrivalData, setArrivalData] = useState<ArrivalData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -26,6 +29,11 @@ export function ArrivalPage() {
       setLoading(false);
       return;
     }
+
+    // Load auth status
+    getJson<{ authenticated: boolean; user?: { role?: string } }>('/auth/me')
+      .then(setAuth)
+      .catch(() => setAuth({ authenticated: false }));
 
     loadArrivalData();
   }, [eventId, hash]);
@@ -48,7 +56,7 @@ export function ArrivalPage() {
   };
 
   const handleAdminScan = async () => {
-    if (!auth?.authenticated || (auth.role !== 'ADMIN' && auth.role !== 'OWNER')) {
+    if (!auth?.authenticated || (auth.user?.role !== 'ADMIN' && auth.user?.role !== 'OWNER')) {
       alert('Only admins and owners can scan arrival codes');
       return;
     }
@@ -182,7 +190,7 @@ export function ArrivalPage() {
             )}
 
             {/* Admin Actions */}
-            {auth?.authenticated && (auth.role === 'ADMIN' || auth.role === 'OWNER') && (
+            {auth?.authenticated && (auth.user?.role === 'ADMIN' || auth.user?.role === 'OWNER') && (
               <div className="mt-8 pt-6 border-t border-gray-200">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Admin Actions</h3>
                 <button
