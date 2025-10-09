@@ -20,6 +20,7 @@ import AdminSystemSettings from './pages/AdminSystemSettings';
 import SaloneDelMobile from './pages/SaloneDelMobile';
 import { CreateEventPage } from './pages/CreateEventPage';
 import { QRScanner } from './pages/QRScanner';
+import { ArrivalPage } from './pages/ArrivalPage';
 import { Layout } from './components/Layout';
 import HelpCenter from './pages/HelpCenter';
 import Contact from './pages/Contact';
@@ -40,6 +41,7 @@ function App() {
             <Route path='/' element={<HomePage />} />
               <Route path='/events' element={<EventsPage />} />
               <Route path='/events/:id' element={<EventPage />} />
+              <Route path='/events/:eventId/arrival/:hash' element={<ArrivalPage />} />
             <Route path='/designers' element={<DesignersPage />} />
             <Route path='/designers/:id' element={<DesignerProfile />} />
             <Route path='/favorites' element={<FavoritesPage />} />

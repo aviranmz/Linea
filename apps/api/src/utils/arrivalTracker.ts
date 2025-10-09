@@ -155,20 +155,28 @@ export class ArrivalTracker {
         };
       }
 
-      // Check if already arrived
-      if (waitlistEntry.status === 'ARRIVED') {
+      // Check if already arrived using metadata
+      if (waitlistEntry.metadata?.arrivalTime) {
+        const arrivalTime = new Date(waitlistEntry.metadata.arrivalTime).toLocaleString();
         return {
           success: false,
-          message: 'User has already checked in for this event',
+          message: `User has already arrived at ${arrivalTime}`,
+          eventTitle: waitlistEntry.event.title,
+          userEmail: waitlistEntry.email,
         };
       }
 
-      // Mark as arrived
+      // Mark as arrived with timestamp in metadata
       await prisma.waitlistEntry.update({
         where: { id: waitlistEntry.id },
         data: {
           status: 'ARRIVED',
           updatedAt: new Date(),
+          metadata: {
+            ...waitlistEntry.metadata,
+            arrivalTime: Date.now(),
+            arrivalProcessedBy: 'admin_scan',
+          },
         },
       });
 

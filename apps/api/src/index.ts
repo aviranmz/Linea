@@ -2832,13 +2832,81 @@ app.post('/api/waitlist', async (request, reply) => {
   }
 });
 
-// Event arrival scanning endpoint
-app.get('/api/events/:eventId/arrival/:hash', async (request, reply) => {
+// Get arrival data for frontend display
+app.get('/api/events/:eventId/arrival/:hash/data', async (request, reply) => {
   try {
-    const { hash } = request.params as {
+    const { eventId, hash } = request.params as {
       eventId: string;
       hash: string;
     };
+
+    // Find waitlist entry by stored arrival hash
+    const waitlistEntry = await prisma.waitlistEntry.findFirst({
+      where: {
+        eventId,
+        metadata: {
+          path: ['arrivalHash'],
+          equals: hash,
+        },
+      },
+      include: {
+        event: {
+          select: {
+            id: true,
+            title: true,
+          },
+        },
+      },
+    });
+
+    if (!waitlistEntry) {
+      reply.code(404).send({ error: 'Arrival link not found' });
+      return;
+    }
+
+    // Check if already arrived
+    const alreadyArrived = waitlistEntry.metadata?.arrivalTime;
+    const arrivalTime = alreadyArrived ? new Date(waitlistEntry.metadata.arrivalTime).toLocaleString() : null;
+
+    // Generate QR code for display
+    const arrivalUrl = `${config.server.API_URL}/api/events/${eventId}/arrival/${hash}`;
+    const qrCodeData = await QRCodeGenerator.generateEventQR(arrivalUrl, {
+      width: 300,
+      margin: 3,
+    });
+
+    reply.send({
+      eventTitle: waitlistEntry.event.title,
+      userEmail: waitlistEntry.email,
+      eventId: waitlistEntry.eventId,
+      arrivalHash: hash,
+      qrCodeData,
+      alreadyArrived: !!alreadyArrived,
+      arrivalTime,
+    });
+  } catch (error) {
+    app.log.error({ error }, 'Failed to get arrival data');
+    reply.code(500).send({ error: 'Failed to get arrival data' });
+  }
+});
+
+// Admin scan endpoint - process arrival
+app.post('/api/events/:eventId/arrival/:hash/scan', async (request, reply) => {
+  try {
+    const { eventId, hash } = request.params as {
+      eventId: string;
+      hash: string;
+    };
+
+    // Verify admin/owner is logged in
+    const session = await getSession(request);
+    if (!session || (session.role !== 'ADMIN' && session.role !== 'OWNER')) {
+      reply.code(403).send({ 
+        success: false, 
+        message: 'Only admins and owners can scan arrival codes' 
+      });
+      return;
+    }
 
     const result = await ArrivalTracker.processArrivalByHash(hash);
 
@@ -2856,8 +2924,8 @@ app.get('/api/events/:eventId/arrival/:hash', async (request, reply) => {
       });
     }
   } catch (error) {
-    app.log.error({ error }, 'Failed to process arrival');
-    reply.code(500).send({ error: 'Failed to process arrival' });
+    app.log.error({ error }, 'Failed to process arrival scan');
+    reply.code(500).send({ error: 'Failed to process arrival scan' });
   }
 });
 
