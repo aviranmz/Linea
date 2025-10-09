@@ -20,7 +20,7 @@ export interface WaitlistEmailData {
   eventDate: string;
   eventLocation: string;
   qrCodeData?: string; // base64 data url (fallback)
-  qrImageUrl?: string; // http(s) url (preferred by many email clients)
+  qrImageUrl?: string | undefined; // http(s) url (preferred by many email clients)
   arrivalUrl: string;
 }
 
