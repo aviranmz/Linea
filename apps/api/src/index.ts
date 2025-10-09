@@ -2770,7 +2770,7 @@ app.post('/api/waitlist', async (request, reply) => {
           qrImageUrl: qrCodeData?.startsWith('data:')
             ? undefined
             : qrCodeData,
-          arrivalUrl: `${config.server.API_URL}/api/events/${eventId}/arrival/${arrivalHash}`,
+          arrivalUrl: `${config.server.FRONTEND_URL || 'https://linea-production.up.railway.app'}/events/${eventId}/arrival/${arrivalHash}`,
         });
       }
     } catch (emailError) {
