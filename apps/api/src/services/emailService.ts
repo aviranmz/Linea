@@ -105,7 +105,7 @@ export class EmailService {
       .update(JSON.stringify(arrivalData))
       .digest('hex');
 
-    const arrivalUrl = `${process.env.API_URL || 'https://linea-production.up.railway.app'}/api/events/${eventId}/arrival/${hash}`;
+    const arrivalUrl = `${process.env.FRONTEND_URL || 'https://linea-production.up.railway.app'}/events/${eventId}/arrival/${hash}`;
 
     console.log('Generating QR code for URL:', arrivalUrl);
 
@@ -113,6 +113,7 @@ export class EmailService {
       const qrCodeData = await QRCodeGenerator.generateEventQR(arrivalUrl, {
         width: 300,
         margin: 3,
+        errorCorrectionLevel: 'M', // Medium error correction for better mobile scanning
       });
 
       console.log(
@@ -217,7 +218,8 @@ This email was sent to ${data.email}
       hasQrImageUrl: !!data.qrImageUrl,
       qrCodeDataLength: data.qrCodeData?.length,
       qrCodeDataPrefix: data.qrCodeData?.substring(0, 50),
-      arrivalUrl: data.arrivalUrl
+      arrivalUrl: data.arrivalUrl,
+      qrCodeDataValid: data.qrCodeData?.startsWith('data:image/png;base64,')
     });
 
     const html = `

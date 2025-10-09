@@ -3,6 +3,7 @@ import QRCode from 'qrcode';
 export interface QRCodeOptions {
   width?: number;
   margin?: number;
+  errorCorrectionLevel?: 'L' | 'M' | 'Q' | 'H';
   color?: {
     dark?: string;
     light?: string;
@@ -35,6 +36,7 @@ export class QRCodeGenerator {
         width: defaultOptions.width,
         margin: defaultOptions.margin,
         color: defaultOptions.color,
+        errorCorrectionLevel: defaultOptions.errorCorrectionLevel,
         type: 'image/png',
       });
 
