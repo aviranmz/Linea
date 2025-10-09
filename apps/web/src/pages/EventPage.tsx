@@ -435,8 +435,7 @@ export function EventPage() {
                       </div>
                       {event.metadata?.pricing && (
                         <div className='flex items-center bg-white/60 rounded-lg px-3 py-2 shadow-sm'>
-                          <span className='w-4 h-4 mr-2 text-gray-500'>💶</span>
-                          <span className='font-medium text-gray-700 text-xs sm:text-sm'>
+                          <span className='inline-flex items-center px-2 py-0.5 rounded-full bg-gray-100 text-gray-800 text-xs sm:text-sm'>
                             {event.metadata.pricing}
                           </span>
                         </div>

@@ -391,8 +391,9 @@ export function EventList({
               </div>
               {event.metadata?.pricing && (
                 <div className='flex items-center text-sm text-gray-700'>
-                  <span className='mr-2'>💶</span>
-                  {event.metadata.pricing}
+                  <span className='inline-flex items-center px-2 py-0.5 rounded-full bg-gray-100 text-gray-800'>
+                    {event.metadata.pricing}
+                  </span>
                 </div>
               )}
               {showOwner && event.owner && (
