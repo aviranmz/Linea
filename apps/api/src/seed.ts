@@ -34,7 +34,7 @@ async function generateQRCode(eventId: string, eventSlug: string): Promise<strin
 
 // Helper function to generate realistic email addresses
 function generateEmail(firstName: string, lastName: string, domain: string): string {
-  const variations = [
+  const variations: string[] = [
     `${firstName.toLowerCase()}.${lastName.toLowerCase()}@${domain}`,
     `${firstName.toLowerCase()}${lastName.toLowerCase()}@${domain}`,
     `${firstName.toLowerCase()}_${lastName.toLowerCase()}@${domain}`,
@@ -42,7 +42,7 @@ function generateEmail(firstName: string, lastName: string, domain: string): str
   ];
   const randomIndex = Math.floor(Math.random() * variations.length);
   const selectedEmail = variations[randomIndex];
-  return selectedEmail || `${firstName.toLowerCase()}.${lastName.toLowerCase()}@${domain}`;
+  return (selectedEmail ?? `${firstName.toLowerCase()}.${lastName.toLowerCase()}@${domain}`) as string;
 }
 
 async function main() {
@@ -292,7 +292,7 @@ async function main() {
     const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
     const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
     const domain = domains[Math.floor(Math.random() * domains.length)];
-    const email: string = generateEmail(firstName, lastName, domain);
+    const email = generateEmail(firstName, lastName, domain)!;
 
     const visitor = await prisma.user.create({
       data: {
@@ -313,6 +313,10 @@ async function main() {
   
   for (let ownerIndex = 0; ownerIndex < owners.length; ownerIndex++) {
     const owner = owners[ownerIndex];
+    if (!owner) {
+      console.error(`Owner at index ${ownerIndex} is undefined`);
+      continue;
+    }
     console.log(`📅 Creating 5 events for owner: ${owner.name}`);
     
     for (let eventIndex = 0; eventIndex < 5; eventIndex++) {
@@ -399,8 +403,8 @@ async function main() {
           country: owner.country,
           postalCode: '20121',
           ownerId: owner.id,
-          venueId: venues[ownerIndex % venues.length].id,
-          categoryId: categories[ownerIndex % categories.length].id,
+          venueId: venues[ownerIndex % venues.length]?.id || venues[0]?.id || '',
+          categoryId: categories[ownerIndex % categories.length]?.id || categories[0]?.id || '',
           isPublic: true,
           featured: eventIndex === 0,
           tags: template.tags,
