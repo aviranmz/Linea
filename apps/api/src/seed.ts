@@ -55,6 +55,7 @@ async function main() {
   console.log('🧹 Cleaning existing data...');
   await prisma.waitlistEntry.deleteMany();
   await prisma.event.deleteMany();
+  await prisma.session.deleteMany(); // Delete sessions before users
   await prisma.user.deleteMany();
   await prisma.venue.deleteMany();
   await prisma.area.deleteMany();
