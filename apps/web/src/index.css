@@ -24,7 +24,7 @@
 
     /* Owner theme variables */
     font-family: var(--font-family, 'Inter', sans-serif);
-    font-size: var(--font-size, 19.2px); /* Increased from 16px by 20% */
+    font-size: var(--font-size, 19.2px); /* Increased from 16px by 20% - Force rebuild */
     font-weight: var(--font-weight, 400);
     color: var(--color-text, inherit);
     background-color: var(--color-bg, inherit);
