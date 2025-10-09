@@ -1,4 +1,5 @@
 import React from 'react';
+import { getJson } from '../lib/api';
 import { useParams } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { NearbyEvents } from '../components/NearbyEvents';
@@ -16,6 +17,7 @@ export function EventPage() {
   const [joined, setJoined] = useState(false);
   const [isGeneratingQR, setIsGeneratingQR] = useState(false);
   const { t } = useLanguage();
+  const [isPrivileged, setIsPrivileged] = useState(false);
   const analytics = useAnalytics();
 
   useEffect(() => {
@@ -70,6 +72,21 @@ export function EventPage() {
       analytics.reset();
     };
   }, [id]);
+
+  // Determine if current user can see QR UI (ADMIN or OWNER)
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await getJson<{ authenticated: boolean; user?: { role?: string } }>(
+          '/auth/me'
+        );
+        const role = res?.user?.role;
+        setIsPrivileged(!!res?.authenticated && (role === 'ADMIN' || role === 'OWNER'));
+      } catch {
+        setIsPrivileged(false);
+      }
+    })();
+  }, []);
 
   const handleJoinWaitlist = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -421,7 +438,7 @@ export function EventPage() {
 
                   {/* Professional QR Code - Responsive */}
                   <div className='flex-shrink-0 w-full lg:w-auto'>
-                    {event.metadata?.qrUrl &&
+                    {isPrivileged && event.metadata?.qrUrl &&
                     typeof event.metadata.qrUrl === 'string' ? (
                       <div className='bg-white border border-gray-200/60 rounded-2xl p-4 shadow-sm hover:shadow-md transition-all duration-300 group'>
                         <div className='flex flex-col items-center'>
@@ -458,6 +475,7 @@ export function EventPage() {
                         </div>
                       </div>
                     ) : (
+                      isPrivileged && (
                       <div className='bg-white border border-gray-200/60 rounded-2xl p-4 shadow-sm'>
                         <div className='flex flex-col items-center'>
                           <div className='w-24 h-24 sm:w-28 sm:h-28 bg-gray-100 rounded-xl border border-gray-200 flex items-center justify-center mb-3'>
@@ -491,6 +509,7 @@ export function EventPage() {
                           </div>
                         </div>
                       </div>
+                      )
                     )}
                   </div>
                 </div>

@@ -54,8 +54,8 @@ export function CookieBanner() {
   return (
     <div className='fixed inset-x-0 bottom-0 z-50'>
       <div className='mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-6'>
-        <div className='bg-whitebg-neutral-900 border border-neutral-200border-neutral-700 rounded-2xl shadow-milano p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center gap-4'>
-          <div className='text-sm text-neutral-700text-neutral-200'>
+        <div className='bg-white dark:bg-neutral-900/95 border border-neutral-200 dark:border-neutral-700 rounded-2xl shadow-milano p-4 sm:p-5 backdrop-blur supports-[backdrop-filter]:bg-white/90 dark:supports-[backdrop-filter]:bg-neutral-900/80 flex flex-col sm:flex-row items-start sm:items-center gap-4'>
+          <div className='text-sm text-neutral-700 dark:text-neutral-200'>
             {t('cookie.message')}{' '}
             <a className='underline hover:text-accent-600' href='/privacy'>
               {t('cookie.privacyPolicy')}
