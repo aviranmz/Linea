@@ -17,6 +17,7 @@ import AdminAreas from './pages/AdminAreas';
 import AdminProducts from './pages/AdminProducts';
 import AdminSystemSettings from './pages/AdminSystemSettings';
 import SaloneDelMobile from './pages/SaloneDelMobile';
+import { CreateEventPage } from './pages/CreateEventPage';
 import { Layout } from './components/Layout';
 import HelpCenter from './pages/HelpCenter';
 import Contact from './pages/Contact';
@@ -42,6 +43,7 @@ function App() {
             <Route path='/owner/*' element={<OwnerPortal />} />
             <Route path='/owner/profile' element={<OwnerProfile />} />
             <Route path='/owner/theme' element={<OwnerTheme />} />
+            <Route path='/owner/events/create' element={<CreateEventPage />} />
             <Route
               path='/owner/waitlist/:eventId'
               element={<OwnerWaitlist />}

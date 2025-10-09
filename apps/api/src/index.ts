@@ -1662,7 +1662,7 @@ app.get('/api/events/:slug/nearby', async (request, reply) => {
       return;
     }
 
-    // Find nearby events based on city and category
+    // Find nearby events based on city, category, and area
     const nearbyEvents = await prisma.event.findMany({
       where: {
         isPublic: true,
@@ -1677,6 +1677,8 @@ app.get('/api/events/:slug/nearby', async (request, reply) => {
           ...(referenceEvent.owner.areaId
             ? [{ owner: { areaId: referenceEvent.owner.areaId } }]
             : []),
+          // Same country (fallback)
+          { venue: { country: referenceEvent.venue.country } },
         ],
       },
       include: {
@@ -1703,20 +1705,51 @@ app.get('/api/events/:slug/nearby', async (request, reply) => {
       take: parseInt(limit),
     });
 
+    // If no nearby events found, get recent events as fallback
+    if (nearbyEvents.length === 0) {
+      const fallbackEvents = await prisma.event.findMany({
+        where: {
+          isPublic: true,
+          deletedAt: null,
+          id: { not: referenceEvent.id },
+          startDate: { gte: new Date() }, // Future events only
+        },
+        include: {
+          owner: {
+            select: { id: true, name: true, email: true, businessName: true },
+          },
+          venue: {
+            select: {
+              id: true,
+              name: true,
+              address: true,
+              city: true,
+              country: true,
+            },
+          },
+          category: {
+            select: { id: true, name: true, slug: true, color: true, icon: true },
+          },
+          _count: {
+            select: { waitlist: true },
+          },
+        },
+        orderBy: [{ featured: 'desc' }, { startDate: 'asc' }],
+        take: parseInt(limit),
+      });
+
+      return {
+        nearbyEvents: fallbackEvents,
+      };
+    }
+
     return {
-      referenceEvent: {
-        id: referenceEvent.id,
-        title: referenceEvent.title,
-        slug: referenceEvent.slug,
-        venue: referenceEvent.venue,
-      },
       nearbyEvents,
     };
   } catch (error) {
     app.log.error({ error }, 'Failed to fetch nearby events');
     // Return empty array instead of 500 error when database is unavailable
     reply.send({
-      referenceEvent: null,
       nearbyEvents: [],
     });
   }
@@ -3990,6 +4023,81 @@ app.post('/api/analytics/event-interaction', async (request, reply) => {
   } catch (error) {
     request.log.error({ error }, 'Failed to track event interaction');
     reply.code(500).send({ error: 'Failed to track event interaction' });
+  }
+});
+
+// -------- Admin: Update visitor details (RBAC: ADMIN only) --------
+app.put('/api/admin/users/:id', async (request, reply) => {
+  const user = await requireAdmin(request, reply);
+  if (!user) return;
+  try {
+    const { id } = request.params as { id: string };
+    const { name, email } = request.body as {
+      name: string;
+      email: string;
+    };
+
+    // Validate required fields
+    if (!email || !name) {
+      reply.code(400).send({ error: 'Email and name are required' });
+      return;
+    }
+
+    // Check if email is already taken by another user
+    const existingUser = await prisma.user.findFirst({
+      where: { email, id: { not: id }, deletedAt: null },
+    });
+
+    if (existingUser) {
+      reply.code(400).send({ error: 'Email is already taken by another user' });
+      return;
+    }
+
+    // Update the user
+    const updatedUser = await prisma.user.update({
+      where: { id },
+      data: { name, email },
+    });
+
+    reply.send({ success: true, user: updatedUser });
+  } catch (error) {
+    request.log.error({ error }, 'Failed to update visitor details (admin)');
+    reply.code(500).send({ error: 'Failed to update visitor details' });
+  }
+});
+
+// -------- Admin: Get visitor registrations (RBAC: ADMIN only) --------
+app.get('/api/admin/users/:id/registrations', async (request, reply) => {
+  const user = await requireAdmin(request, reply);
+  if (!user) return;
+  try {
+    const { id } = request.params as { id: string };
+
+    // Get all waitlist entries for this user
+    const registrations = await prisma.waitlistEntry.findMany({
+      where: { userId: id, deletedAt: null },
+      include: {
+        event: {
+          select: {
+            id: true,
+            title: true,
+            startDate: true,
+            venue: {
+              select: {
+                city: true,
+                country: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    reply.send(registrations);
+  } catch (error) {
+    request.log.error({ error }, 'Failed to get visitor registrations (admin)');
+    reply.code(500).send({ error: 'Failed to get visitor registrations' });
   }
 });
 

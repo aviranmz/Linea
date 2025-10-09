@@ -45,6 +45,16 @@ export default function AdminUsers() {
   >('createdAt');
   const [sortDir] = useState<'asc' | 'desc'>('desc');
 
+  // Edit visitor modal state
+  const [editingVisitor, setEditingVisitor] = useState<UserRow | null>(null);
+  const [visitorRegistrations, setVisitorRegistrations] = useState<any[]>([]);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editData, setEditData] = useState({
+    name: '',
+    email: '',
+  });
+  const [saving, setSaving] = useState(false);
+
   const query = useMemo(() => {
     const params = new URLSearchParams();
     params.set('page', String(page));
@@ -172,6 +182,54 @@ export default function AdminUsers() {
         console.error('Failed to generate/send magic link', e);
         alert('Failed to generate or send magic link. Please try again.');
       }
+    }
+  };
+
+  const openEditVisitor = async (user: UserRow) => {
+    try {
+      // Load visitor registrations
+      const registrations = await getJson<any[]>(`/api/admin/users/${user.id}/registrations`);
+      setVisitorRegistrations(registrations || []);
+      
+      setEditingVisitor(user);
+      setEditData({
+        name: user.name || '',
+        email: user.email,
+      });
+      setShowEditModal(true);
+    } catch (error) {
+      console.error('Failed to load visitor data:', error);
+      alert('Failed to load visitor data. Please try again.');
+    }
+  };
+
+  const saveVisitorChanges = async () => {
+    if (!editingVisitor) return;
+    
+    setSaving(true);
+    try {
+      await putJson(`/api/admin/users/${editingVisitor.id}`, {
+        name: editData.name,
+        email: editData.email,
+      });
+
+      // Update local state
+      setUsers(prev =>
+        prev.map(u => 
+          u.id === editingVisitor.id 
+            ? { ...u, name: editData.name, email: editData.email }
+            : u
+        )
+      );
+
+      setShowEditModal(false);
+      setEditingVisitor(null);
+      alert('Visitor information updated successfully.');
+    } catch (error) {
+      console.error('Failed to update visitor:', error);
+      alert('Failed to update visitor information. Please try again.');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -442,6 +500,14 @@ export default function AdminUsers() {
                               ? t('admin.users.deactivate')
                               : t('admin.users.activate')}
                           </button>
+                          {user.role === 'VISITOR' && (
+                            <button
+                              onClick={() => openEditVisitor(user)}
+                              className='btn btn-ghost btn-sm text-blue-600 hover:text-blue-700'
+                            >
+                              Edit
+                            </button>
+                          )}
                           {user.role === 'OWNER' && (
                             <button
                               onClick={() => sendMagicLink(user)}
@@ -540,6 +606,94 @@ export default function AdminUsers() {
               </div>
             )}
           </>
+        )}
+
+        {/* Edit Visitor Modal */}
+        {showEditModal && editingVisitor && (
+          <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50'>
+            <div className='bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto'>
+              <h2 className='text-2xl font-bold text-gray-900 mb-6'>
+                Edit Visitor: {editingVisitor.email}
+              </h2>
+
+              <div className='space-y-4 mb-6'>
+                <div>
+                  <label className='block text-sm font-medium text-gray-700 mb-2'>
+                    Name
+                  </label>
+                  <input
+                    type='text'
+                    value={editData.name}
+                    onChange={e => setEditData({ ...editData, name: e.target.value })}
+                    className='w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
+                  />
+                </div>
+                <div>
+                  <label className='block text-sm font-medium text-gray-700 mb-2'>
+                    Email
+                  </label>
+                  <input
+                    type='email'
+                    value={editData.email}
+                    onChange={e => setEditData({ ...editData, email: e.target.value })}
+                    className='w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
+                  />
+                </div>
+              </div>
+
+              {/* Event Registrations */}
+              <div className='mb-6'>
+                <h3 className='text-lg font-semibold text-gray-900 mb-4'>
+                  Event Registrations ({visitorRegistrations.length})
+                </h3>
+                {visitorRegistrations.length > 0 ? (
+                  <div className='space-y-3 max-h-60 overflow-y-auto'>
+                    {visitorRegistrations.map((registration, index) => (
+                      <div key={index} className='border border-gray-200 rounded-lg p-3'>
+                        <div className='flex justify-between items-start'>
+                          <div>
+                            <h4 className='font-medium text-gray-900'>
+                              {registration.event?.title || 'Unknown Event'}
+                            </h4>
+                            <p className='text-sm text-gray-500'>
+                              {registration.event?.startDate 
+                                ? new Date(registration.event.startDate).toLocaleDateString()
+                                : 'Date TBA'
+                              }
+                            </p>
+                            <p className='text-sm text-gray-500'>
+                              Status: {registration.status || 'Unknown'}
+                            </p>
+                          </div>
+                          <span className='text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full'>
+                            {registration.event?.venue?.city || 'Location TBA'}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className='text-gray-500 text-sm'>No event registrations found.</p>
+                )}
+              </div>
+
+              <div className='flex justify-end space-x-3'>
+                <button
+                  onClick={() => setShowEditModal(false)}
+                  className='px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={saveVisitorChanges}
+                  disabled={saving}
+                  className='px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50'
+                >
+                  {saving ? 'Saving...' : 'Save Changes'}
+                </button>
+              </div>
+            </div>
+          </div>
         )}
       </div>
     </div>

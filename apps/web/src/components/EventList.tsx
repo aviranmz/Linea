@@ -370,28 +370,28 @@ export function EventList({
           </div>
 
           <div className='p-3'>
-            <h3 className='text-base font-semibold text-gray-900 mb-1'>
+            <h3 className='text-lg font-semibold text-gray-900 mb-2'>
               {event.title}
             </h3>
 
-            <p className='text-gray-600 text-xs mb-2 line-clamp-2'>
+            <p className='text-gray-600 text-sm mb-3 line-clamp-2'>
               {event.shortDescription || t('common.noDescriptionAvailable')}
             </p>
 
-            <div className='space-y-1 mb-3'>
-              <div className='flex items-center text-xs text-gray-500'>
-                <span className='mr-1'>📅</span>
+            <div className='space-y-2 mb-3'>
+              <div className='flex items-center text-sm text-gray-500'>
+                <span className='mr-2'>📅</span>
                 {formatDate(event.startDate)}
               </div>
-              <div className='flex items-center text-xs text-gray-500'>
-                <span className='mr-1'>📍</span>
+              <div className='flex items-center text-sm text-gray-500'>
+                <span className='mr-2'>📍</span>
                 {event.venue
                   ? `${event.venue.city}, ${event.venue.country}`
                   : t('common.locationTBA')}
               </div>
               {showOwner && event.owner && (
-                <div className='flex items-center text-xs text-gray-500'>
-                  <span className='mr-1'>👤</span>
+                <div className='flex items-center text-sm text-gray-500'>
+                  <span className='mr-2'>👤</span>
                   {event.owner.businessName || event.owner.name}
                 </div>
               )}
@@ -409,7 +409,7 @@ export function EventList({
                 ))}
               </div>
               {showWaitlist && (
-                <span className='text-sm text-blue-600'>
+                <span className='text-base text-blue-600 font-medium'>
                   {event._count?.waitlist || 0} people
                 </span>
               )}
