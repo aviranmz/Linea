@@ -16,6 +16,7 @@ export function EventPage() {
   const [isJoining, setIsJoining] = useState(false);
   const [joined, setJoined] = useState(false);
   const [isGeneratingQR, setIsGeneratingQR] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const { t } = useLanguage();
   const [isPrivileged, setIsPrivileged] = useState(false);
   const analytics = useAnalytics();
@@ -93,6 +94,7 @@ export function EventPage() {
     if (!event || !email) return;
 
     setIsJoining(true);
+    setError(null);
     try {
       const response = await fetch('/api/waitlist', {
         method: 'POST',
@@ -111,9 +113,17 @@ export function EventPage() {
 
         // Track waitlist join
         analytics.trackWaitlistJoin(event.id);
+      } else {
+        const errorData = await response.json();
+        if (response.status === 409) {
+          setError('You are already on the waitlist for this event.');
+        } else {
+          setError(errorData.error || 'Failed to join waitlist. Please try again.');
+        }
       }
     } catch (error) {
       console.error('Failed to join waitlist:', error);
+      setError('Network error. Please check your connection and try again.');
     } finally {
       setIsJoining(false);
     }
@@ -747,6 +757,34 @@ export function EventPage() {
               </div>
             </div>
           ) : (
+            <>
+              {error && (
+                <div className='bg-red-50 border border-red-200 rounded-md p-4 mb-4'>
+                  <div className='flex'>
+                    <svg
+                      className='w-5 h-5 text-red-400 mr-3'
+                      fill='none'
+                      stroke='currentColor'
+                      viewBox='0 0 24 24'
+                    >
+                      <path
+                        strokeLinecap='round'
+                        strokeLinejoin='round'
+                        strokeWidth={2}
+                        d='M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'
+                      />
+                    </svg>
+                    <div>
+                      <h3 className='text-sm font-medium text-red-800'>
+                        Error
+                      </h3>
+                      <p className='text-sm text-red-700 mt-1'>
+                        {error}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
             <form
               onSubmit={handleJoinWaitlist}
               className='flex flex-col sm:flex-row gap-4'
@@ -770,6 +808,7 @@ export function EventPage() {
                 {isJoining ? t('event.joining') : t('event.joinWaitlist')}
               </button>
             </form>
+            </>
           )}
         </div>
 

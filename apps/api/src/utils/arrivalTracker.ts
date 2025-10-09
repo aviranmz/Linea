@@ -106,10 +106,16 @@ export class ArrivalTracker {
   ): Promise<string> {
     const hash = this.generateArrivalHash(eventId, waitlistEntryId);
 
-    // Store the hash in the waitlist entry metadata or a separate table
-    // Note: WaitlistEntry doesn't have metadata field, so we'll store it in a separate table
-    // For now, we'll just return the hash without storing it
-    // TODO: Create a separate table for arrival hashes if needed
+    // Store the hash in the waitlist entry metadata
+    await prisma.waitlistEntry.update({
+      where: { id: waitlistEntryId },
+      data: {
+        metadata: {
+          arrivalHash: hash,
+          arrivalTimestamp: Date.now(),
+        },
+      },
+    });
 
     return hash;
   }
@@ -117,18 +123,67 @@ export class ArrivalTracker {
   /**
    * Process arrival using stored hash
    */
-  static async processArrivalByHash(_hash: string): Promise<{
+  static async processArrivalByHash(hash: string): Promise<{
     success: boolean;
     message: string;
     eventTitle?: string;
     userEmail?: string;
   }> {
-    // Since we don't have metadata field, we'll need to implement a different approach
-    // For now, return an error indicating this feature needs to be implemented
-    return {
-      success: false,
-      message:
-        'Arrival processing by hash is not yet implemented. The database schema needs to be updated to support metadata storage.',
-    };
+    try {
+      // Find waitlist entry by stored arrival hash
+      const waitlistEntry = await prisma.waitlistEntry.findFirst({
+        where: {
+          metadata: {
+            path: ['arrivalHash'],
+            equals: hash,
+          },
+        },
+        include: {
+          event: {
+            select: {
+              id: true,
+              title: true,
+            },
+          },
+        },
+      });
+
+      if (!waitlistEntry) {
+        return {
+          success: false,
+          message: 'Invalid or expired arrival code',
+        };
+      }
+
+      // Check if already arrived
+      if (waitlistEntry.status === 'ARRIVED') {
+        return {
+          success: false,
+          message: 'User has already checked in for this event',
+        };
+      }
+
+      // Mark as arrived
+      await prisma.waitlistEntry.update({
+        where: { id: waitlistEntry.id },
+        data: {
+          status: 'ARRIVED',
+          updatedAt: new Date(),
+        },
+      });
+
+      return {
+        success: true,
+        message: 'Successfully checked in!',
+        eventTitle: waitlistEntry.event.title,
+        userEmail: waitlistEntry.email,
+      };
+    } catch (error) {
+      console.error('Error processing arrival by hash:', error);
+      return {
+        success: false,
+        message: 'Failed to process arrival',
+      };
+    }
   }
 }
