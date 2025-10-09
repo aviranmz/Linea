@@ -401,7 +401,6 @@ async function main() {
           mapLng: 9.1708 + (ownerIndex * 0.01) + (eventIndex * 0.002),
           mapZoom: 15,
           mapAddress: `${owner.address}, ${owner.city}, ${owner.country}`,
-          streetAddress: owner.address,
           city: owner.city,
           country: owner.country,
           postalCode: '20121',

@@ -24,7 +24,7 @@
 
     /* Owner theme variables */
     font-family: var(--font-family, 'Inter', sans-serif);
-    font-size: var(--font-size, 16px);
+    font-size: var(--font-size, 19.2px); /* Increased from 16px by 20% */
     font-weight: var(--font-weight, 400);
     color: var(--color-text, inherit);
     background-color: var(--color-bg, inherit);
@@ -67,7 +67,7 @@
 @layer components {
   /* Button Components */
   .btn {
-    @apply inline-flex items-center justify-center rounded-lg text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 px-4 py-2.5;
+    @apply inline-flex items-center justify-center rounded-lg text-base font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 px-5 py-3;
   }
 
   .btn-primary {
@@ -97,7 +97,7 @@
 
   /* Input Components */
   .input {
-    @apply flex h-11 w-full rounded-lg border border-neutral-300 bg-white px-3 py-2.5 text-sm placeholder:text-neutral-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-colors duration-200;
+    @apply flex h-14 w-full rounded-lg border border-neutral-300 bg-white px-4 py-3 text-base placeholder:text-neutral-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-colors duration-200;
   }
 
   .input-error {
@@ -106,27 +106,27 @@
 
   /* Typography Components */
   .heading-1 {
-    @apply text-4xl md:text-5xl lg:text-6xl font-display font-semibold text-neutral-900;
+    @apply text-5xl md:text-6xl lg:text-7xl font-display font-semibold text-neutral-900;
   }
 
   .heading-2 {
-    @apply text-3xl md:text-4xl lg:text-5xl font-display font-semibold text-neutral-900;
+    @apply text-4xl md:text-5xl lg:text-6xl font-display font-semibold text-neutral-900;
   }
 
   .heading-3 {
-    @apply text-2xl md:text-3xl font-display font-medium text-neutral-900;
+    @apply text-3xl md:text-4xl font-display font-medium text-neutral-900;
   }
 
   .heading-4 {
-    @apply text-xl md:text-2xl font-display font-medium text-neutral-900;
+    @apply text-2xl md:text-3xl font-display font-medium text-neutral-900;
   }
 
   .text-body {
-    @apply text-base text-neutral-600 leading-relaxed;
+    @apply text-lg text-neutral-600 leading-relaxed;
   }
 
   .text-caption {
-    @apply text-sm text-neutral-500;
+    @apply text-base text-neutral-500;
   }
 
   /* Layout Components */
@@ -135,11 +135,11 @@
   }
 
   .section {
-    @apply py-16 md:py-24;
+    @apply py-20 md:py-28;
   }
 
   .section-sm {
-    @apply py-8 md:py-12;
+    @apply py-10 md:py-14;
   }
 
   /* Milano Design Elements */
