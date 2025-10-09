@@ -24,6 +24,14 @@ export default function OwnerWaitlist() {
   const [loading, setLoading] = useState(true);
   const [message] = useState('');
   const [showWaitlistModal, setShowWaitlistModal] = useState(false);
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 20,
+    total: 0,
+    totalPages: 0,
+  });
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
   const { t } = useLanguage();
 
   useEffect(() => {
@@ -40,28 +48,65 @@ export default function OwnerWaitlist() {
 
   useEffect(() => {
     if (auth?.authenticated) {
-      const loadEvents = async () => {
-        try {
-          const data = await getJson<{ events: Event[] }>('/api/owner/events');
-          setEvents(data.events || []);
-          if (data.events && data.events.length > 0) {
-            setSelectedEvent(data.events[0]);
-          }
-        } catch (error) {
-          console.error('Failed to load events:', error);
-        } finally {
-          setLoading(false);
-        }
-      };
       loadEvents();
     } else {
       setLoading(false);
     }
-  }, [auth]);
+  }, [auth, pagination.page, search, statusFilter]);
+
+  const loadEvents = async () => {
+    if (!auth?.authenticated) return;
+    
+    setLoading(true);
+    try {
+      const params = new URLSearchParams();
+      params.set('page', pagination.page.toString());
+      params.set('limit', pagination.limit.toString());
+      if (search) params.set('search', search);
+      if (statusFilter) params.set('status', statusFilter);
+
+      const data = await getJson<{ 
+        events: Event[]; 
+        pagination: {
+          page: number;
+          limit: number;
+          total: number;
+          totalPages: number;
+        };
+      }>(`/api/owner/events?${params}`);
+      
+      setEvents(data.events || []);
+      if (data.pagination) {
+        setPagination(data.pagination);
+      }
+      if (data.events && data.events.length > 0) {
+        setSelectedEvent(data.events[0]);
+      }
+    } catch (error) {
+      console.error('Failed to load events:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const openWaitlistModal = (event: Event) => {
     setSelectedEvent(event);
     setShowWaitlistModal(true);
+  };
+
+  const handlePageChange = (newPage: number) => {
+    setPagination(prev => ({ ...prev, page: newPage }));
+  };
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    setPagination(prev => ({ ...prev, page: 1 }));
+    loadEvents();
+  };
+
+  const handleStatusFilter = (status: string) => {
+    setStatusFilter(status);
+    setPagination(prev => ({ ...prev, page: 1 }));
   };
 
   if (!auth?.authenticated) {
@@ -122,6 +167,44 @@ export default function OwnerWaitlist() {
           {message}
         </div>
       )}
+
+      {/* Search and Filter Controls */}
+      <div className='bg-white rounded-lg shadow-sm border border-neutral-200 p-4 mb-6'>
+        <div className='flex flex-col sm:flex-row gap-4'>
+          {/* Search */}
+          <form onSubmit={handleSearch} className='flex-1'>
+            <div className='relative'>
+              <input
+                type='text'
+                placeholder='Search events...'
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className='input w-full pl-10'
+              />
+              <div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
+                <svg className='h-5 w-5 text-gray-400' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
+                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z' />
+                </svg>
+              </div>
+            </div>
+          </form>
+          
+          {/* Status Filter */}
+          <div className='flex gap-2'>
+            <select
+              value={statusFilter}
+              onChange={(e) => handleStatusFilter(e.target.value)}
+              className='input'
+            >
+              <option value=''>All Status</option>
+              <option value='DRAFT'>Draft</option>
+              <option value='PUBLISHED'>Published</option>
+              <option value='CANCELLED'>Cancelled</option>
+              <option value='COMPLETED'>Completed</option>
+            </select>
+          </div>
+        </div>
+      </div>
 
       {events.length === 0 ? (
         <div className='text-center py-12'>
@@ -237,6 +320,57 @@ export default function OwnerWaitlist() {
               </tbody>
             </table>
           </div>
+          
+          {/* Pagination */}
+          {pagination.totalPages > 1 && (
+            <div className='px-4 sm:px-6 py-4 border-t border-neutral-200 bg-neutral-50'>
+              <div className='flex items-center justify-between'>
+                <div className='text-sm text-gray-700'>
+                  Showing {((pagination.page - 1) * pagination.limit) + 1} to{' '}
+                  {Math.min(pagination.page * pagination.limit, pagination.total)} of{' '}
+                  {pagination.total} results
+                </div>
+                <div className='flex items-center space-x-2'>
+                  <button
+                    onClick={() => handlePageChange(pagination.page - 1)}
+                    disabled={pagination.page <= 1}
+                    className='px-3 py-1 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed'
+                  >
+                    Previous
+                  </button>
+                  
+                  {/* Page numbers */}
+                  {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
+                    const startPage = Math.max(1, pagination.page - 2);
+                    const pageNum = startPage + i;
+                    if (pageNum > pagination.totalPages) return null;
+                    
+                    return (
+                      <button
+                        key={pageNum}
+                        onClick={() => handlePageChange(pageNum)}
+                        className={`px-3 py-1 text-sm font-medium rounded-md ${
+                          pageNum === pagination.page
+                            ? 'bg-blue-600 text-white'
+                            : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50'
+                        }`}
+                      >
+                        {pageNum}
+                      </button>
+                    );
+                  })}
+                  
+                  <button
+                    onClick={() => handlePageChange(pagination.page + 1)}
+                    disabled={pagination.page >= pagination.totalPages}
+                    className='px-3 py-1 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed'
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
 

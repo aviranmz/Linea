@@ -1945,16 +1945,76 @@ app.get('/api/owner/events', async (request, reply) => {
   try {
     const user = await requireOwnerOrAdmin(request, reply);
     if (!user) return;
+    
+    const {
+      page = '1',
+      limit = '20',
+      search,
+      status,
+    } = request.query as {
+      page?: string;
+      limit?: string;
+      search?: string;
+      status?: string;
+    };
+    
+    const pageNum = Math.max(1, parseInt(page));
+    const limitNum = Math.min(100, Math.max(1, parseInt(limit)));
+    
     const where: Record<string, unknown> =
       user.role === 'OWNER'
         ? { ownerId: user.id, deletedAt: null }
         : { deletedAt: null };
-    const events = await prisma.event.findMany({
-      where,
-      orderBy: { createdAt: 'desc' },
-      include: { _count: { select: { shows: true, waitlist: true } } },
+    
+    if (search) {
+      where.OR = [
+        { title: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } },
+        { shortDescription: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+    
+    if (status && ['DRAFT', 'PUBLISHED', 'CANCELLED', 'COMPLETED'].includes(status)) {
+      where.status = status;
+    }
+    
+    const [total, events] = await Promise.all([
+      prisma.event.count({ where }),
+      prisma.event.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip: (pageNum - 1) * limitNum,
+        take: limitNum,
+        include: { 
+          _count: { select: { shows: true, waitlist: true } },
+          venue: {
+            select: {
+              city: true,
+              country: true,
+            },
+          },
+        },
+      }),
+    ]);
+    
+    reply.send({
+      events: events.map((event: any) => ({
+        id: event.id,
+        title: event.title,
+        slug: event.slug,
+        startDate: event.startDate,
+        capacity: event.capacity,
+        currentWaitlist: event._count.waitlist,
+        status: event.status,
+        venue: event.venue,
+      })),
+      pagination: {
+        page: pageNum,
+        limit: limitNum,
+        total,
+        totalPages: Math.max(1, Math.ceil(total / limitNum)),
+      },
     });
-    return { events };
   } catch (error) {
     app.log.error({ error }, 'Failed to list owner events');
     reply.code(500).send({ error: 'Failed to list events' });
