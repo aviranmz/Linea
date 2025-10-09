@@ -79,6 +79,11 @@ export function QRScanner() {
         setIsScanning(true);
         setHasPermission(true);
         
+        // Bring the scanner preview into view on mobile
+        try {
+          videoRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } catch {}
+
         // Start scanning loop
         scanLoop();
       }
@@ -300,28 +305,25 @@ export function QRScanner() {
         {isScanning && (
           <div className='bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden mb-6'>
             <div className='relative'>
+              {/* Live preview */}
               <video
                 ref={videoRef}
-                className='w-full h-64 sm:h-96 object-cover'
+                className='block w-full aspect-[3/4] sm:aspect-[4/3] bg-black'
                 playsInline
                 muted
                 autoPlay
               />
-              <canvas
-                ref={canvasRef}
-                className='hidden'
-              />
-              {/* Scanning overlay */}
-              <div className='absolute inset-0 flex items-center justify-center'>
-                <div className='w-48 h-48 border-2 border-white border-dashed rounded-lg flex items-center justify-center'>
-                  <div className='text-white text-center'>
-                    <svg className='w-8 h-8 mx-auto mb-2' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
-                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z' />
-                    </svg>
-                    <div className='text-sm'>Position QR code here</div>
-                  </div>
-                </div>
+
+              {/* Hidden canvas used for frame reads */}
+              <canvas ref={canvasRef} className='hidden' />
+
+              {/* Visible scan guide */}
+              <div className='pointer-events-none absolute inset-0 flex items-center justify-center'>
+                <div className='w-56 h-56 max-w-[75vw] max-h-[75vw] border-2 border-accent-500/90 rounded-xl shadow-[0_0_0_100vmax_rgba(0,0,0,0.35)] outline outline-1 outline-white/40'></div>
               </div>
+            </div>
+            <div className='px-4 py-3 text-center text-sm text-gray-600'>
+              Align the QR code inside the square
             </div>
           </div>
         )}
