@@ -2899,7 +2899,7 @@ app.post('/api/events/:eventId/arrival/:hash/scan', async (request, reply) => {
     };
 
     // Verify admin/owner is logged in
-    const session = await getSession(request);
+    const session = await getSessionUser(request);
     if (!session || (session.role !== 'ADMIN' && session.role !== 'OWNER')) {
       reply.code(403).send({ 
         success: false, 
