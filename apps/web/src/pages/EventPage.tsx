@@ -493,7 +493,7 @@ export function EventPage() {
                               />
                             </svg>
                           </div>
-                          <div className='text-center'>
+                      <div className='text-center'>
                             <p className='text-xs sm:text-sm font-semibold text-gray-800 mb-2'>
                               QR Code Missing
                             </p>
@@ -779,6 +779,28 @@ export function EventPage() {
               <p className='text-gray-600 mb-4'>
                 {event.venue.address}, {event.venue.city}, {event.venue.country}
               </p>
+            {event.venue.latitude && event.venue.longitude && (
+              <div className='flex flex-wrap gap-3 mb-4'>
+                <a
+                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                    `${event.venue.name}, ${event.venue.address}, ${event.venue.city}`
+                  )}`}
+                  target='_blank'
+                  rel='noopener noreferrer'
+                  className='btn btn-outline'
+                >
+                  Open in Google Maps
+                </a>
+                <a
+                  href={`https://www.google.com/maps/dir/?api=1&destination=${event.venue.latitude},${event.venue.longitude}`}
+                  target='_blank'
+                  rel='noopener noreferrer'
+                  className='btn btn-primary'
+                >
+                  Directions
+                </a>
+              </div>
+            )}
               {event.venue.latitude && event.venue.longitude && (
                 <a
                   href={`https://maps.google.com/?q=${event.venue.latitude},${event.venue.longitude}`}

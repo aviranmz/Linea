@@ -1,6 +1,7 @@
 import { Routes, Route } from 'react-router-dom';
 import { HomePage } from './pages/HomePage';
 import { EventPage } from './pages/EventPage';
+import { EventsPage } from './pages/EventsPage';
 import { OwnerPortal } from './pages/OwnerPortal';
 import OwnerTheme from './pages/OwnerTheme';
 import OwnerWaitlist from './pages/OwnerWaitlist';
@@ -36,7 +37,8 @@ function App() {
         <Layout>
           <Routes>
             <Route path='/' element={<HomePage />} />
-            <Route path='/events/:id' element={<EventPage />} />
+              <Route path='/events' element={<EventsPage />} />
+              <Route path='/events/:id' element={<EventPage />} />
             <Route path='/designers' element={<DesignersPage />} />
             <Route path='/designers/:id' element={<DesignerProfile />} />
             <Route path='/favorites' element={<FavoritesPage />} />
