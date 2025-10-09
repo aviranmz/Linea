@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Event } from '../types/Event';
 import { getJson } from '../lib/api';
 import { useLanguage } from '../hooks/useLanguage';
@@ -8,6 +9,7 @@ export function EventsPage() {
   const { t } = useLanguage();
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     getJson<{ events: Event[] }>('/api/events')
@@ -25,7 +27,12 @@ export function EventsPage() {
           ))}
         </div>
       ) : (
-        <EventList events={events} showOwner className='' />
+        <EventList
+          events={events}
+          showOwner
+          className=''
+          onEventClick={ev => navigate(`/events/${ev.id}`)}
+        />
       )}
     </div>
   );
