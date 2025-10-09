@@ -32,6 +32,38 @@ async function generateQRCode(eventId: string, eventSlug: string): Promise<strin
   }
 }
 
+// Helper function to get unique event images
+function getEventImage(eventIndex: number): string {
+  const images = [
+    'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=800&h=600&fit=crop&ixlib=rb-4.0.3&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1511578314322-379afb476865?w=800&h=600&fit=crop&ixlib=rb-4.0.3&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=800&h=600&fit=crop&ixlib=rb-4.0.3&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1505373877841-8d25f7d46678?w=800&h=600&fit=crop&ixlib=rb-4.0.3&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=800&h=600&fit=crop&ixlib=rb-4.0.3&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&h=600&fit=crop&ixlib=rb-4.0.3&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=800&h=600&fit=crop&ixlib=rb-4.0.3&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=800&h=600&fit=crop&ixlib=rb-4.0.3&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&h=600&fit=crop&ixlib=rb-4.0.3&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=800&h=600&fit=crop&ixlib=rb-4.0.3&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=800&h=600&fit=crop&ixlib=rb-4.0.3&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1505373877841-8d25f7d46678?w=800&h=600&fit=crop&ixlib=rb-4.0.3&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=800&h=600&fit=crop&ixlib=rb-4.0.3&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&h=600&fit=crop&ixlib=rb-4.0.3&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=800&h=600&fit=crop&ixlib=rb-4.0.3&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=800&h=600&fit=crop&ixlib=rb-4.0.3&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1505373877841-8d25f7d46678?w=800&h=600&fit=crop&ixlib=rb-4.0.3&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=800&h=600&fit=crop&ixlib=rb-4.0.3&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&h=600&fit=crop&ixlib=rb-4.0.3&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=800&h=600&fit=crop&ixlib=rb-4.0.3&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=800&h=600&fit=crop&ixlib=rb-4.0.3&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1505373877841-8d25f7d46678?w=800&h=600&fit=crop&ixlib=rb-4.0.3&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=800&h=600&fit=crop&ixlib=rb-4.0.3&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&h=600&fit=crop&ixlib=rb-4.0.3&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=800&h=600&fit=crop&ixlib=rb-4.0.3&auto=format&fit=crop&q=80'
+  ];
+  return images[eventIndex % images.length];
+}
+
 // Helper function to generate realistic email addresses
 function generateEmail(firstName: string, lastName: string, domain: string): string {
   const variations: string[] = [
@@ -425,7 +457,7 @@ async function main() {
             features: template.features,
             requirements: 'Open to design professionals and enthusiasts',
             pricing: template.pricing,
-            heroImageUrl: `https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=800&h=600&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&t=${ownerIndex}${eventIndex}`,
+            heroImageUrl: getEventImage(eventIndex),
           },
         },
       });
