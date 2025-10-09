@@ -5,7 +5,7 @@
  * Uses the built Prisma client from the API app
  */
 
-const { PrismaClient } = require('../apps/api/dist/generated/client/index.js');
+const { PrismaClient } = require('@prisma/client');
 
 async function addMetadataColumn() {
   const prisma = new PrismaClient();
