@@ -13,8 +13,6 @@ const detectQRCode = (imageData: ImageData): boolean => {
   // This is a very basic QR code detection
   // In a real implementation, you'd use a proper QR library like jsQR
   const data = imageData.data;
-  const width = imageData.width;
-  const height = imageData.height;
   
   // Look for high contrast patterns that might indicate a QR code
   let contrastCount = 0;
