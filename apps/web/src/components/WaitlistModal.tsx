@@ -130,6 +130,26 @@ export function WaitlistModal({ event, isOpen, onClose }: WaitlistModalProps) {
     window.URL.revokeObjectURL(url);
   };
 
+  const resendEmail = async (entryId: string) => {
+    try {
+      await postJson(`/api/owner/waitlist/${entryId}/resend`, {});
+      setMessage('Resent QR email successfully');
+    } catch (e) {
+      setMessage('Failed to resend email');
+    }
+  };
+
+  const deleteEntry = async (entryId: string) => {
+    if (!confirm('Remove this user from the waitlist? They will be able to rejoin.')) return;
+    try {
+      await fetch(`/api/owner/waitlist/${entryId}`, { method: 'DELETE' });
+      setMessage('Entry removed');
+      loadWaitlist();
+    } catch (e) {
+      setMessage('Failed to remove entry');
+    }
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'CONFIRMED':
@@ -386,6 +406,20 @@ export function WaitlistModal({ event, isOpen, onClose }: WaitlistModalProps) {
                                   Restore
                                 </button>
                               )}
+                              <button
+                                onClick={() => resendEmail(entry.id)}
+                                className='text-blue-600 hover:text-blue-900'
+                                title='Resend QR email'
+                              >
+                                Resend
+                              </button>
+                              <button
+                                onClick={() => deleteEntry(entry.id)}
+                                className='text-red-600 hover:text-red-900'
+                                title='Remove from waitlist'
+                              >
+                                Delete
+                              </button>
                             </div>
                           </td>
                         </tr>

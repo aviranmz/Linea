@@ -3708,6 +3708,101 @@ app.post(
   }
 );
 
+// Resend waitlist email (QR) for a specific entry
+app.post('/api/owner/waitlist/:entryId/resend', async (request, reply) => {
+  const user = await requireOwnerOrAdmin(request, reply);
+  if (!user) return;
+  const { entryId } = request.params as { entryId: string };
+
+  // Load entry and validate ownership
+  const entry = await prisma.waitlistEntry.findUnique({
+    where: { id: entryId },
+    include: {
+      event: {
+        select: {
+          id: true,
+          title: true,
+          startDate: true,
+          venue: { select: { name: true, address: true, city: true } },
+          ownerId: true,
+        },
+      },
+    },
+  });
+  if (!entry || entry.deletedAt) {
+    reply.code(404).send({ error: 'Waitlist entry not found' });
+    return;
+  }
+  if (user.role === 'OWNER' && entry.event.ownerId !== user.id) {
+    reply.code(403).send({ error: 'Forbidden' });
+    return;
+  }
+
+  // Ensure arrival hash exists (create if missing)
+  let arrivalHash: string | undefined = entry.metadata?.arrivalHash as
+    | string
+    | undefined;
+  if (!arrivalHash) {
+    arrivalHash = await ArrivalTracker.createArrivalRecord(
+      entry.eventId,
+      entry.id
+    );
+  }
+
+  // Generate QR code pointing to frontend arrival page
+  const arrivalUrl = `${config.server.FRONTEND_URL || 'https://linea-production.up.railway.app'}/events/${entry.eventId}/arrival/${arrivalHash}`;
+  const qrCodeData = await QRCodeGenerator.generateEventQR(
+    JSON.stringify({ type: 'arrival', eventId: entry.eventId, hash: arrivalHash, url: arrivalUrl }),
+    { width: 400, margin: 4, errorCorrectionLevel: 'H' }
+  );
+
+  const eventLocation = entry.event.venue
+    ? `${entry.event.venue.name}, ${entry.event.venue.address}, ${entry.event.venue.city}`
+    : 'TBD';
+
+  await emailService.sendWaitlistEmail({
+    email: entry.email,
+    eventId: entry.event.id,
+    eventTitle: entry.event.title,
+    eventDate: entry.event.startDate
+      ? new Date(entry.event.startDate).toLocaleDateString()
+      : 'TBD',
+    eventLocation,
+    qrCodeData,
+    arrivalUrl,
+    qrImageUrl: undefined,
+  });
+
+  reply.send({ ok: true });
+});
+
+// Delete a waitlist entry so the user can re-join later
+app.delete('/api/owner/waitlist/:entryId', async (request, reply) => {
+  const user = await requireOwnerOrAdmin(request, reply);
+  if (!user) return;
+  const { entryId } = request.params as { entryId: string };
+
+  const entry = await prisma.waitlistEntry.findUnique({
+    where: { id: entryId },
+    include: { event: { select: { ownerId: true } } },
+  });
+  if (!entry || entry.deletedAt) {
+    reply.code(404).send({ error: 'Waitlist entry not found' });
+    return;
+  }
+  if (user.role === 'OWNER' && entry.event.ownerId !== user.id) {
+    reply.code(403).send({ error: 'Forbidden' });
+    return;
+  }
+
+  await prisma.waitlistEntry.update({
+    where: { id: entryId },
+    data: { deletedAt: new Date() },
+  });
+
+  reply.send({ ok: true });
+});
+
 // Export waitlist CSV
 app.get(
   '/api/owner/events/:eventId/waitlist/export',
