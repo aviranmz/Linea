@@ -146,54 +146,90 @@ export function QRScanner() {
     setIsScanning(false);
   };
 
-  const scanLoop = () => {
+  const scanLoop = async () => {
     if (!isScanning || !videoRef.current || !canvasRef.current) return;
 
     const video = videoRef.current;
     const canvas = canvasRef.current;
     const context = canvas.getContext('2d');
-
     if (!context) return;
 
-    // Set canvas size to match video
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
+    // Maintain a reasonable canvas size for performance
+    const targetWidth = Math.min(640, video.videoWidth || 640);
+    const aspect = (video.videoWidth || 640) / (video.videoHeight || 480);
+    const targetHeight = Math.max(1, Math.round(targetWidth / (aspect || 1.333)));
+    canvas.width = targetWidth;
+    canvas.height = targetHeight;
 
-    // Draw video frame to canvas
     context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    // Get image data for QR code detection
-    // We could read the image data here for a real QR decode implementation
-    // const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+    // 1) Prefer BarcodeDetector if supported
+    // @ts-ignore - experimental API
+    const BD: typeof window.BarcodeDetector | undefined = (window as any).BarcodeDetector;
+    if (BD && typeof BD === 'function') {
+      try {
+        // @ts-ignore
+        const detector = new BD({ formats: ['qr_code'] });
+        const bitmap = await createImageBitmap(canvas);
+        // @ts-ignore
+        const codes = await detector.detect(bitmap);
+        if (codes && codes.length > 0) {
+          const raw = codes[0].rawValue || '';
+          handleDecodedValue(raw);
+          return;
+        }
+      } catch (e) {
+        // Continue to fallback
+      }
+    }
 
-    // Try to detect QR code in the image
+    // 2) Fallback naive luminance-based detection (placeholder until jsQR is added)
     try {
       const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-      
-      // Simple QR code detection - look for patterns
-      // This is a basic implementation - in production you'd use a proper QR library
-      const qrCodeDetected = detectQRCode(imageData);
-      
-      if (qrCodeDetected) {
-        console.log('QR code detected!');
-        // For now, we'll just show a success message
-        setScanResult({
-          success: true,
-          message: 'QR code detected! Please use manual input to process.',
-        });
+      const found = detectQRCode(imageData);
+      if (found) {
+        setScanResult({ success: true, message: 'QR detected. Paste URL below to process.' });
         setIsScanning(false);
         return;
       }
-    } catch (err) {
-      console.log('QR detection error:', err);
-    }
+    } catch {}
 
     // Continue scanning
     setTimeout(() => {
-      if (isScanning) {
-        scanLoop();
+      if (isScanning) scanLoop();
+    }, 120);
+  };
+
+  const handleDecodedValue = async (value: string) => {
+    try {
+      // Expect either the arrival URL or the JSON payload created by backend
+      let url = value;
+      try {
+        const obj = JSON.parse(value);
+        if (obj && typeof obj === 'object' && obj.url) url = obj.url as string;
+      } catch {}
+
+      if (!url || typeof url !== 'string') return;
+
+      const match = url.match(/\/events\/([^/]+)\/arrival\/([^?/]+)/);
+      if (!match) {
+        setScanResult({ success: false, message: 'Invalid QR content' });
+        return;
       }
-    }, 100);
+      const [, eventId, hash] = match;
+
+      const resp = await fetch(`/api/events/${eventId}/arrival/${hash}/scan`, { method: 'POST' });
+      const data = await resp.json();
+      if (resp.ok && data.success) {
+        setScanResult({ success: true, message: data.message || 'Checked in' });
+      } else {
+        setScanResult({ success: false, message: data.message || 'Failed to check in' });
+      }
+      setIsScanning(false);
+    } catch (e) {
+      setScanResult({ success: false, message: 'Scan processing failed' });
+      setIsScanning(false);
+    }
   };
 
   const handleManualInput = async (qrCode: string) => {
