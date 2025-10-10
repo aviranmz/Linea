@@ -363,7 +363,9 @@ This email was sent to ${data.email}
       console.log('SendGrid API key not configured, logging email instead:');
       console.log(`To: ${to}`);
       console.log(`Subject: ${subject}`);
-      console.log(`Content: ${text.substring(0, 200)}...`);
+      console.log(`HTML Content Length: ${html.length}`);
+      console.log(`Text Content: ${text.substring(0, 200)}...`);
+      console.log(`QR Code in HTML: ${html.includes('data:image/png;base64,') ? 'YES' : 'NO'}`);
       return;
     }
 
