@@ -5852,6 +5852,81 @@ app.get('/auth/callback', async (request, reply) => {
     return;
   }
 
+  // DEMO MODE: support permanent, hard-coded magic links for seeded owners
+  if (config.development.DEMO_MODE === true) {
+    const demoMagicTokens: Record<
+      string,
+      { email: string; role: 'OWNER' | 'ADMIN'; name?: string | null }
+    > = {
+      '62f7a4e3-2b27-45c2-9123-06ef9a899088': {
+        email: 'marco.rossi@studiorossi.it',
+        role: 'OWNER',
+        name: 'Marco Rossi',
+      },
+      '60cf9b2f-7e46-4f96-9058-87c2cd53e566': {
+        email: 'giulia.bianchi@atelierbianchi.it',
+        role: 'OWNER',
+        name: 'Giulia Bianchi',
+      },
+      'aa1e9b25-3345-49ad-b35a-79a94c51afde': {
+        email: 'andrea.ferrari@lucemilano.it',
+        role: 'OWNER',
+        name: 'Andrea Ferrari',
+      },
+      '25e8cf93-d251-4ad2-aab5-61477e207643': {
+        email: 'francesca.conti@atelierconti.it',
+        role: 'OWNER',
+        name: 'Francesca Conti',
+      },
+      'fd4908d1-bebc-4ed7-9a7b-c5f7e9121fd6': {
+        email: 'luca.ricci@tessutiferrari.it',
+        role: 'OWNER',
+        name: 'Luca Ricci',
+      },
+    };
+
+    const demoUser = demoMagicTokens[token];
+    if (demoUser) {
+      // Upsert demo user and create a session immediately
+      const user = await prisma.user.upsert({
+        where: { email: demoUser.email },
+        update: {
+          role: demoUser.role,
+          name: demoUser.name ?? null,
+          isActive: true,
+          lastLoginAt: new Date(),
+        },
+        create: {
+          email: demoUser.email,
+          role: demoUser.role,
+          name: demoUser.name ?? null,
+          isActive: true,
+          lastLoginAt: new Date(),
+        },
+      });
+
+      // Issue session cookie
+      const sessionToken = await sessionService.createSession({
+        userId: user.id,
+        email: user.email,
+        role: user.role,
+        name: user.name || undefined,
+      });
+      const cookieName = config.security.SESSION_COOKIE_NAME || 'linea_session';
+      reply.setCookie(cookieName, sessionToken, {
+        path: '/',
+        httpOnly: true,
+        sameSite: 'lax',
+        secure: config.environment.NODE_ENV === 'production',
+        maxAge: 60 * 60 * 24 * 30, // 30 days
+      });
+
+      // Redirect to app home or owner dashboard
+      reply.redirect(303, '/owner');
+      return;
+    }
+  }
+
   const clientIP = request.ip;
   const userAgent = request.headers['user-agent'];
 
