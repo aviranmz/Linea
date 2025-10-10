@@ -156,8 +156,9 @@ export class ArrivalTracker {
       }
 
       // Check if already arrived using metadata
-      if (waitlistEntry.metadata?.arrivalTime) {
-        const arrivalTime = new Date(waitlistEntry.metadata.arrivalTime).toLocaleString();
+      const metadata = waitlistEntry.metadata as any;
+      if (metadata?.arrivalTime) {
+        const arrivalTime = new Date(metadata.arrivalTime).toLocaleString();
         return {
           success: false,
           message: `User has already arrived at ${arrivalTime}`,
@@ -173,7 +174,7 @@ export class ArrivalTracker {
           status: 'ARRIVED',
           updatedAt: new Date(),
           metadata: {
-            ...waitlistEntry.metadata,
+            ...metadata,
             arrivalTime: Date.now(),
             arrivalProcessedBy: 'admin_scan',
           },

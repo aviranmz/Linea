@@ -5906,12 +5906,20 @@ app.get('/auth/callback', async (request, reply) => {
       });
 
       // Issue session cookie
-      const sessionToken = await sessionService.createSession({
-        userId: user.id,
-        email: user.email,
-        role: user.role,
-        name: user.name || undefined,
-      });
+      const sessionToken = crypto.randomBytes(32).toString('hex');
+      const expiresInMs = config.security.SESSION_COOKIE_MAX_AGE || 7 * 24 * 60 * 60 * 1000;
+      
+      await sessionService.createSession(
+        sessionToken,
+        {
+          userId: user.id,
+          email: user.email,
+          role: user.role,
+          name: user.name || undefined,
+        },
+        expiresInMs
+      );
+      
       const cookieName = config.security.SESSION_COOKIE_NAME || 'linea_session';
       reply.setCookie(cookieName, sessionToken, {
         path: '/',
