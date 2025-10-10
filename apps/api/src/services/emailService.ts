@@ -110,10 +110,18 @@ export class EmailService {
     console.log('Generating QR code for URL:', arrivalUrl);
 
     try {
-      const qrCodeData = await QRCodeGenerator.generateEventQR(arrivalUrl, {
-        width: 300,
-        margin: 3,
-        errorCorrectionLevel: 'M', // Medium error correction for better mobile scanning
+      // Create a simpler QR code content for better mobile scanning
+      const qrContent = JSON.stringify({
+        type: 'arrival',
+        eventId,
+        hash,
+        url: arrivalUrl
+      });
+
+      const qrCodeData = await QRCodeGenerator.generateEventQR(qrContent, {
+        width: 400, // Larger size for better mobile scanning
+        margin: 4, // More margin for better scanning
+        errorCorrectionLevel: 'H', // High error correction for mobile scanning
       });
 
       console.log(

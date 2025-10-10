@@ -2869,10 +2869,20 @@ app.get('/api/events/:eventId/arrival/:hash/data', async (request, reply) => {
     const arrivalTime = alreadyArrived ? new Date(waitlistEntry.metadata.arrivalTime).toLocaleString() : null;
 
     // Generate QR code for display
-    const arrivalUrl = `${config.server.API_URL}/api/events/${eventId}/arrival/${hash}`;
-    const qrCodeData = await QRCodeGenerator.generateEventQR(arrivalUrl, {
-      width: 300,
-      margin: 3,
+    const arrivalUrl = `${config.server.FRONTEND_URL || 'https://linea-production.up.railway.app'}/events/${eventId}/arrival/${hash}`;
+    
+    // Create a simpler QR code content for better mobile scanning
+    const qrContent = JSON.stringify({
+      type: 'arrival',
+      eventId,
+      hash,
+      url: arrivalUrl
+    });
+    
+    const qrCodeData = await QRCodeGenerator.generateEventQR(qrContent, {
+      width: 400, // Larger size for better mobile scanning
+      margin: 4, // More margin for better scanning
+      errorCorrectionLevel: 'H', // High error correction for mobile scanning
     });
 
     reply.send({
