@@ -2870,13 +2870,15 @@ app.get('/api/events/:eventId/arrival/:hash/data', async (request, reply) => {
 
     // Generate QR code for display
     const arrivalUrl = `${config.server.FRONTEND_URL || 'https://linea-production.up.railway.app'}/events/${eventId}/arrival/${hash}`;
+    const scanApiUrl = `${config.server.API_URL || 'https://linea-production.up.railway.app'}/api/events/${eventId}/arrival/${hash}/scan`;
     
-    // Create a simpler QR code content for better mobile scanning
+    // Create QR code content for scanner
     const qrContent = JSON.stringify({
-      type: 'arrival',
+      type: 'arrival_scan',
       eventId,
       hash,
-      url: arrivalUrl
+      scanUrl: scanApiUrl,
+      displayUrl: arrivalUrl
     });
     
     const qrCodeData = await QRCodeGenerator.generateEventQR(qrContent, {

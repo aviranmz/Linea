@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import jsQR from 'jsqr';
 
 interface ScanResult {
   success: boolean;
@@ -8,30 +9,6 @@ interface ScanResult {
   userEmail?: string;
 }
 
-// Simple QR code detection function
-const detectQRCode = (imageData: ImageData): boolean => {
-  // This is a very basic QR code detection
-  // In a real implementation, you'd use a proper QR library like jsQR
-  const data = imageData.data;
-  
-  // Look for high contrast patterns that might indicate a QR code
-  let contrastCount = 0;
-  for (let i = 0; i < data.length; i += 4) {
-    const r = data[i];
-    const g = data[i + 1];
-    const b = data[i + 2];
-    const brightness = (r + g + b) / 3;
-    
-    // Count pixels that are very dark or very light (high contrast)
-    if (brightness < 50 || brightness > 200) {
-      contrastCount++;
-    }
-  }
-  
-  // If we have enough high contrast pixels, assume it might be a QR code
-  const contrastRatio = contrastCount / (data.length / 4);
-  return contrastRatio > 0.3; // 30% of pixels are high contrast
-};
 
 export function QRScanner() {
   const [isScanning, setIsScanning] = useState(false);
@@ -183,16 +160,17 @@ export function QRScanner() {
       }
     }
 
-    // 2) Fallback naive luminance-based detection (placeholder until jsQR is added)
+    // 2) Fallback to jsQR library
     try {
       const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-      const found = detectQRCode(imageData);
-      if (found) {
-        setScanResult({ success: true, message: 'QR detected. Paste URL below to process.' });
-        setIsScanning(false);
+      const code = jsQR(imageData.data, imageData.width, imageData.height);
+      if (code) {
+        handleDecodedValue(code.data);
         return;
       }
-    } catch {}
+    } catch (e) {
+      console.warn('jsQR detection failed:', e);
+    }
 
     // Continue scanning
     setTimeout(() => {
