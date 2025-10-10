@@ -508,9 +508,9 @@ export function OwnerPortal() {
               </svg>
               <span>{t('owner.customizeTheme')}</span>
             </Link>
-          </div>
-        </div>
-      </div>
+              </div>
+              </div>
+                </div>
 
       {/* Create Event Form Modal - REMOVED */}
 
