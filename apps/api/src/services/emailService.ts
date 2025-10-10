@@ -265,7 +265,7 @@ This email was sent to ${data.email}
             <p>When you arrive at the event, show this QR code to the event organizer for quick check-in:</p>
             
             <div class="qr-section">
-              ${data.qrCodeData ? `<img src="${data.qrCodeData}" alt="Event Arrival QR Code" class="qr-code" style="display: block; max-width: 300px; height: auto; margin: 20px auto;" />` : ''}
+              ${data.qrCodeData ? `<img src="${data.qrCodeData}" alt="Event Arrival QR Code" class="qr-code" style="display: block; max-width: 300px; height: auto; margin: 20px auto;" />` : '<div style="border: 2px dashed #ccc; padding: 20px; text-align: center; margin: 20px auto; max-width: 300px;"><p>QR Code not available</p><p>Use the link below instead</p></div>'}
               <p><small>Scan this QR code when you arrive at the event</small></p>
               <p><strong>Alternative:</strong> If the QR code doesn't display, use this link: <a href="${data.arrivalUrl}">${data.arrivalUrl}</a></p>
             </div>

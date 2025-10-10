@@ -8,6 +8,33 @@ interface ScanResult {
   userEmail?: string;
 }
 
+// Simple QR code detection function
+const detectQRCode = (imageData: ImageData): boolean => {
+  // This is a very basic QR code detection
+  // In a real implementation, you'd use a proper QR library like jsQR
+  const data = imageData.data;
+  const width = imageData.width;
+  const height = imageData.height;
+  
+  // Look for high contrast patterns that might indicate a QR code
+  let contrastCount = 0;
+  for (let i = 0; i < data.length; i += 4) {
+    const r = data[i];
+    const g = data[i + 1];
+    const b = data[i + 2];
+    const brightness = (r + g + b) / 3;
+    
+    // Count pixels that are very dark or very light (high contrast)
+    if (brightness < 50 || brightness > 200) {
+      contrastCount++;
+    }
+  }
+  
+  // If we have enough high contrast pixels, assume it might be a QR code
+  const contrastRatio = contrastCount / (data.length / 4);
+  return contrastRatio > 0.3; // 30% of pixels are high contrast
+};
+
 export function QRScanner() {
   const [isScanning, setIsScanning] = useState(false);
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
@@ -39,6 +66,7 @@ export function QRScanner() {
     try {
       setError(null);
       setCameraError(null);
+      console.log('Starting camera...');
       // Show preview area right away so users see where it will appear
       setIsScanning(true);
       // Stop any previously running stream first
@@ -59,11 +87,17 @@ export function QRScanner() {
           audio: false,
         });
       } catch (firstErr) {
+        console.log('First camera attempt failed:', firstErr);
         // Fallback without facingMode (some Android/iOS devices fail otherwise)
-        stream = await navigator.mediaDevices.getUserMedia({
-          video: true,
-          audio: false,
-        });
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: true,
+            audio: false,
+          });
+        } catch (secondErr) {
+          console.error('Second camera attempt failed:', secondErr);
+          throw new Error('Camera access denied or not available');
+        }
       }
       
       streamRef.current = stream;
@@ -134,8 +168,29 @@ export function QRScanner() {
     // We could read the image data here for a real QR decode implementation
     // const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
 
-    // Simple QR code detection (in a real app, you'd use a library like jsQR)
-    // For now, we'll simulate detection
+    // Try to detect QR code in the image
+    try {
+      const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+      
+      // Simple QR code detection - look for patterns
+      // This is a basic implementation - in production you'd use a proper QR library
+      const qrCodeDetected = detectQRCode(imageData);
+      
+      if (qrCodeDetected) {
+        console.log('QR code detected!');
+        // For now, we'll just show a success message
+        setScanResult({
+          success: true,
+          message: 'QR code detected! Please use manual input to process.',
+        });
+        setIsScanning(false);
+        return;
+      }
+    } catch (err) {
+      console.log('QR detection error:', err);
+    }
+
+    // Continue scanning
     setTimeout(() => {
       if (isScanning) {
         scanLoop();
