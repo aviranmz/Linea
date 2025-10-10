@@ -202,23 +202,32 @@ export function QRScanner() {
 
   const handleDecodedValue = async (value: string) => {
     try {
-      // Expect either the arrival URL or the JSON payload created by backend
-      let url = value;
+      // Parse QR content - should be JSON with scanUrl
+      let scanUrl = value;
       try {
         const obj = JSON.parse(value);
-        if (obj && typeof obj === 'object' && obj.url) url = obj.url as string;
+        if (obj && typeof obj === 'object') {
+          if (obj.scanUrl) {
+            scanUrl = obj.scanUrl as string;
+          } else if (obj.url) {
+            // Legacy format - convert arrival URL to scan URL
+            const url = obj.url as string;
+            const match = url.match(/\/events\/([^/]+)\/arrival\/([^?/]+)/);
+            if (match) {
+              const [, eventId, hash] = match;
+              scanUrl = `/api/events/${eventId}/arrival/${hash}/scan`;
+            }
+          }
+        }
       } catch {}
 
-      if (!url || typeof url !== 'string') return;
-
-      const match = url.match(/\/events\/([^/]+)\/arrival\/([^?/]+)/);
-      if (!match) {
+      if (!scanUrl || typeof scanUrl !== 'string') {
         setScanResult({ success: false, message: 'Invalid QR content' });
         return;
       }
-      const [, eventId, hash] = match;
 
-      const resp = await fetch(`/api/events/${eventId}/arrival/${hash}/scan`, { method: 'POST' });
+      // Call the scan API directly
+      const resp = await fetch(scanUrl, { method: 'POST' });
       const data = await resp.json();
       if (resp.ok && data.success) {
         setScanResult({ success: true, message: data.message || 'Checked in' });

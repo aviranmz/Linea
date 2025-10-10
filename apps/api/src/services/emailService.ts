@@ -106,16 +106,18 @@ export class EmailService {
       .digest('hex');
 
     const arrivalUrl = `${process.env.FRONTEND_URL || 'https://linea-production.up.railway.app'}/events/${eventId}/arrival/${hash}`;
+    const scanApiUrl = `${process.env.API_URL || 'https://linea-production.up.railway.app'}/api/events/${eventId}/arrival/${hash}/scan`;
 
-    console.log('Generating QR code for URL:', arrivalUrl);
+    console.log('Generating QR code for scan API:', scanApiUrl);
 
     try {
-      // Create a simpler QR code content for better mobile scanning
+      // QR content should point to scan API, not arrival page
       const qrContent = JSON.stringify({
-        type: 'arrival',
+        type: 'arrival_scan',
         eventId,
         hash,
-        url: arrivalUrl
+        scanUrl: scanApiUrl,
+        displayUrl: arrivalUrl
       });
 
       const qrCodeData = await QRCodeGenerator.generateEventQR(qrContent, {
