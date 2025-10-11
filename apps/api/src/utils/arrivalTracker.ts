@@ -130,6 +130,8 @@ export class ArrivalTracker {
     userEmail?: string;
   }> {
     try {
+      console.log('Processing arrival hash:', hash);
+      
       // Find waitlist entry by stored arrival hash
       const waitlistEntry = await prisma.waitlistEntry.findFirst({
         where: {
@@ -147,6 +149,16 @@ export class ArrivalTracker {
           },
         },
       });
+
+      console.log('Found waitlist entry:', waitlistEntry ? 'YES' : 'NO');
+      if (waitlistEntry) {
+        console.log('Entry details:', {
+          id: waitlistEntry.id,
+          email: waitlistEntry.email,
+          eventTitle: waitlistEntry.event.title,
+          metadata: waitlistEntry.metadata
+        });
+      }
 
       if (!waitlistEntry) {
         return {

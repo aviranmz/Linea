@@ -21,7 +21,7 @@ export function ArrivalPage() {
   const [arrivalData, setArrivalData] = useState<ArrivalData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [scanning, setScanning] = useState(false);
+  // Scanning state removed - handled by /owner/scanner page
 
   useEffect(() => {
     if (!eventId || !hash) {
@@ -55,37 +55,7 @@ export function ArrivalPage() {
     }
   };
 
-  const handleAdminScan = async () => {
-    if (!auth?.authenticated || (auth.user?.role !== 'ADMIN' && auth.user?.role !== 'OWNER')) {
-      alert('Only admins and owners can scan arrival codes');
-      return;
-    }
-
-    setScanning(true);
-    try {
-      const response = await fetch(`/api/events/${eventId}/arrival/${hash}/scan`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-      });
-
-      const result = await response.json();
-      
-      if (result.success) {
-        setArrivalData(prev => prev ? { ...prev, alreadyArrived: true, arrivalTime: new Date().toLocaleString() } : null);
-        alert(`✅ ${result.message}`);
-      } else {
-        alert(`❌ ${result.message}`);
-      }
-    } catch (error) {
-      console.error('Error scanning:', error);
-      alert('Failed to process scan');
-    } finally {
-      setScanning(false);
-    }
-  };
+  // Admin scan functionality moved to /owner/scanner page
 
   if (loading) {
     return (
@@ -202,29 +172,8 @@ export function ArrivalPage() {
             )}
 
             {/* Admin Actions */}
-            {auth?.authenticated && (auth.user?.role === 'ADMIN' || auth.user?.role === 'OWNER') && (
-              <div className="mt-10 pt-8 border-t border-neutral-200">
-                <h3 className="text-xl font-display font-semibold text-neutral-900 mb-6">Admin Actions</h3>
-                <button
-                  onClick={handleAdminScan}
-                  disabled={scanning || arrivalData.alreadyArrived}
-                  className={`w-full py-4 px-6 rounded-xl font-semibold text-lg transition-all duration-200 ${
-                    arrivalData.alreadyArrived
-                      ? 'bg-neutral-100 text-neutral-400 cursor-not-allowed'
-                      : scanning
-                      ? 'bg-accent-100 text-accent-600 cursor-not-allowed'
-                      : 'bg-accent-600 text-white hover:bg-accent-700 hover:shadow-milano'
-                  }`}
-                >
-                  {scanning ? 'Processing...' : arrivalData.alreadyArrived ? 'Already Checked In' : 'Mark as Arrived'}
-                </button>
-                {arrivalData.alreadyArrived && (
-                  <p className="text-neutral-600 mt-4 text-center text-lg">
-                    This QR code was already scanned at {arrivalData.arrivalTime}
-                  </p>
-                )}
-              </div>
-            )}
+            {/* Admin actions are now handled by the /owner/scanner page */}
+            {/* This page is for users to show their QR code to admins */}
           </div>
         </div>
       </div>

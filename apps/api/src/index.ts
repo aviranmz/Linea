@@ -2910,9 +2910,12 @@ app.post('/api/events/:eventId/arrival/:hash/scan', async (request, reply) => {
       hash: string;
     };
 
+    app.log.info({ eventId, hash }, 'Processing arrival scan');
+
     // Verify admin/owner is logged in
     const session = await getSessionUser(request);
     if (!session || (session.role !== 'ADMIN' && session.role !== 'OWNER')) {
+      app.log.warn({ session }, 'Unauthorized scan attempt');
       reply.code(403).send({ 
         success: false, 
         message: 'Only admins and owners can scan arrival codes' 
@@ -2920,7 +2923,11 @@ app.post('/api/events/:eventId/arrival/:hash/scan', async (request, reply) => {
       return;
     }
 
+    app.log.info({ session: { role: session.role, userId: session.userId } }, 'Authorized scan attempt');
+
     const result = await ArrivalTracker.processArrivalByHash(hash);
+
+    app.log.info({ result }, 'Arrival processing result');
 
     if (result.success) {
       reply.send({
@@ -2936,8 +2943,12 @@ app.post('/api/events/:eventId/arrival/:hash/scan', async (request, reply) => {
       });
     }
   } catch (error) {
-    app.log.error({ error }, 'Failed to process arrival scan');
-    reply.code(500).send({ error: 'Failed to process arrival scan' });
+    app.log.error({ error, stack: error instanceof Error ? error.stack : undefined }, 'Failed to process arrival scan');
+    reply.code(500).send({ 
+      success: false,
+      error: 'Failed to process arrival scan',
+      message: error instanceof Error ? error.message : 'Unknown error'
+    });
   }
 });
 
